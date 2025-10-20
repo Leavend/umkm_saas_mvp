@@ -14,6 +14,7 @@ import {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   TRANSLATIONS,
+  isSupportedLocale,
   type Locale,
   type Translations,
 } from "~/lib/i18n";
@@ -36,21 +37,11 @@ export function LanguageProvider({
   initialLocale,
 }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     setLocaleState((current) => (current === initialLocale ? current : initialLocale));
   }, [initialLocale]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
-      setLocaleState(stored as Locale);
-    }
-  }, []);
 
   const persistLocalePreferences = useCallback((value: Locale) => {
     if (typeof window !== "undefined") {
@@ -65,12 +56,57 @@ export function LanguageProvider({
   }, []);
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     persistLocalePreferences(locale);
-  }, [locale, persistLocalePreferences]);
+  }, [locale, hasHydrated, persistLocalePreferences]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      setHasHydrated(true);
+      return;
+    }
+
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && isSupportedLocale(stored)) {
+      setLocaleState((current) =>
+        current === stored ? current : (stored as Locale),
+      );
+    } else if (stored && !isSupportedLocale(stored)) {
+      window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+    }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key !== LANGUAGE_STORAGE_KEY || !event.newValue) {
+        return;
+      }
+
+      if (!isSupportedLocale(event.newValue)) {
+        return;
+      }
+
+      setLocaleState((current) =>
+        current === event.newValue ? current : (event.newValue as Locale),
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    setHasHydrated(true);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const setLocale = useCallback(
     (nextLocale: Locale) => {
-      setLocaleState(nextLocale);
+      if (!SUPPORTED_LOCALES.includes(nextLocale)) {
+        return;
+      }
+
+      setLocaleState((current) => (current === nextLocale ? current : nextLocale));
     },
     [],
   );

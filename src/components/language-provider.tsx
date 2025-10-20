@@ -14,6 +14,7 @@ import {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   TRANSLATIONS,
+  isSupportedLocale,
   type Locale,
   type Translations,
 } from "~/lib/i18n";
@@ -36,46 +37,79 @@ export function LanguageProvider({
   initialLocale,
 }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
-  const persistCookie = useCallback((value: Locale) => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const oneYearInSeconds = 60 * 60 * 24 * 365;
-    document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${oneYearInSeconds}; SameSite=Lax`;
-  }, []);
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     setLocaleState((current) => (current === initialLocale ? current : initialLocale));
-    persistCookie(initialLocale);
-  }, [initialLocale, persistCookie]);
+  }, [initialLocale]);
+
+  const persistLocalePreferences = useCallback((value: Locale) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, value);
+    }
+
+    if (typeof document !== "undefined") {
+      const oneYearInSeconds = 60 * 60 * 24 * 365;
+      document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${oneYearInSeconds}; SameSite=Lax`;
+      document.documentElement.setAttribute("lang", value);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    persistLocalePreferences(locale);
+  }, [locale, hasHydrated, persistLocalePreferences]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      setHasHydrated(true);
       return;
     }
 
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
-      setLocaleState(stored as Locale);
-      persistCookie(stored as Locale);
-    }
-  }, [persistCookie]);
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("lang", locale);
-    }
-  }, [locale]);
-
-  const setLocale = useCallback((nextLocale: Locale) => {
-    setLocaleState(nextLocale);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale);
+    if (stored && isSupportedLocale(stored)) {
+      setLocaleState((current) =>
+        current === stored ? current : (stored as Locale),
+      );
+    } else if (stored && !isSupportedLocale(stored)) {
+      window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
     }
 
-    persistCookie(nextLocale);
-  }, [persistCookie]);
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key !== LANGUAGE_STORAGE_KEY || !event.newValue) {
+        return;
+      }
+
+      if (!isSupportedLocale(event.newValue)) {
+        return;
+      }
+
+      setLocaleState((current) =>
+        current === event.newValue ? current : (event.newValue as Locale),
+      );
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    setHasHydrated(true);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
+  const setLocale = useCallback(
+    (nextLocale: Locale) => {
+      if (!SUPPORTED_LOCALES.includes(nextLocale)) {
+        return;
+      }
+
+      setLocaleState((current) => (current === nextLocale ? current : nextLocale));
+    },
+    [],
+  );
 
   const translations = useMemo(() => TRANSLATIONS[locale], [locale]);
 

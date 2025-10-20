@@ -9,9 +9,12 @@ import { AccountSettingsCards } from "@daveyplate/better-auth-ui";
 import { Loader2 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "~/components/language-provider";
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const translations = useTranslations();
+  const { settings, common } = translations;
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -32,7 +35,7 @@ export default function SettingsPage() {
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="text-primary h-8 w-8 animate-spin" />
           <p className="text-muted-foreground text-sm">
-            Loading your settings...
+            {common.states.loadingSettings}
           </p>
         </div>
       </div>
@@ -46,10 +49,10 @@ export default function SettingsPage() {
         <div className="space-y-8">
           <div className="space-y-2">
             <h1 className="from-foreground to-foreground/70 bg-gradient-to-r bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-              Account Settings
+              {settings.title}
             </h1>
             <p className="text-muted-foreground text-lg">
-              Manage your account preferences and security settings
+              {settings.description}
             </p>
           </div>
 

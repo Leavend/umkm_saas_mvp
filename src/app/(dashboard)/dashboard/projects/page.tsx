@@ -24,6 +24,7 @@ import { Input } from "~/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Image as ImageKitImage } from "@imagekit/next";
 import { env } from "~/env";
+import { useTranslations, useLanguage } from "~/components/language-provider";
 
 interface Project {
   id: string;
@@ -47,6 +48,9 @@ export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const router = useRouter();
+  const translations = useTranslations();
+  const { locale } = useLanguage();
+  const { projects, common } = translations;
 
   useEffect(() => {
     const initializeProjects = async () => {
@@ -114,7 +118,7 @@ export default function ProjectsPage() {
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="text-primary h-8 w-8 animate-spin" />
           <p className="text-muted-foreground text-sm">
-            Loading your projects...
+            {common.states.loadingProjects}
           </p>
         </div>
       </div>
@@ -130,12 +134,14 @@ export default function ProjectsPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <h1 className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl">
-                Your Projects
+                {projects.title}
               </h1>
               <p className="text-muted-foreground text-base">
-                Manage and organize all your AI-generated images (
+                {projects.description} (
                 {filteredProjects.length}{" "}
-                {filteredProjects.length === 1 ? "project" : "projects"})
+                {filteredProjects.length === 1
+                  ? projects.projectCountSingular
+                  : projects.projectCountPlural})
               </p>
             </div>
             <Button
@@ -143,7 +149,7 @@ export default function ProjectsPage() {
               className="gap-2 self-start sm:self-auto"
             >
               <Plus className="h-4 w-4" />
-              New Project
+              {projects.newProject}
             </Button>
           </div>
 
@@ -155,7 +161,7 @@ export default function ProjectsPage() {
                 <div className="relative max-w-md flex-1">
                   <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                   <Input
-                    placeholder="Search projects..."
+                    placeholder={projects.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -169,9 +175,9 @@ export default function ProjectsPage() {
                     onChange={(e) => setSortBy(e.target.value as SortBy)}
                     className="border-input bg-background rounded-md border px-3 py-2 text-sm"
                   >
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="name">Name A-Z</option>
+                    <option value="newest">{projects.sort.newest}</option>
+                    <option value="oldest">{projects.sort.oldest}</option>
+                    <option value="name">{projects.sort.name}</option>
                   </select>
 
                   {/* View Mode Toggle */}
@@ -181,6 +187,7 @@ export default function ProjectsPage() {
                       size="sm"
                       onClick={() => setViewMode("grid")}
                       className="rounded-r-none"
+                      aria-label={projects.viewMode.grid}
                     >
                       <Grid3X3 className="h-4 w-4" />
                     </Button>
@@ -189,6 +196,7 @@ export default function ProjectsPage() {
                       size="sm"
                       onClick={() => setViewMode("list")}
                       className="rounded-l-none"
+                      aria-label={projects.viewMode.list}
                     >
                       <List className="h-4 w-4" />
                     </Button>
@@ -208,12 +216,14 @@ export default function ProjectsPage() {
                   </div>
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">
-                  {searchQuery ? "No projects found" : "No projects yet"}
+                  {searchQuery
+                    ? projects.empty.searchTitle
+                    : projects.empty.defaultTitle}
                 </h3>
                 <p className="text-muted-foreground mb-6 max-w-md text-sm">
                   {searchQuery
-                    ? `No projects match "${searchQuery}". Try adjusting your search terms.`
-                    : "Start creating amazing images with AI tools to see them here."}
+                    ? `${projects.empty.searchDescriptionPrefix} "${searchQuery}". ${projects.empty.searchDescriptionSuffix}`
+                    : projects.empty.defaultDescription}
                 </p>
                 {!searchQuery && (
                   <Button
@@ -221,7 +231,7 @@ export default function ProjectsPage() {
                     className="gap-2"
                   >
                     <Plus className="h-4 w-4" />
-                    Create Your First Project
+                    {projects.newProject}
                   </Button>
                 )}
                 {searchQuery && (
@@ -230,7 +240,7 @@ export default function ProjectsPage() {
                     onClick={() => setSearchQuery("")}
                     className="gap-2"
                   >
-                    Clear Search
+                    {projects.empty.clearSearch}
                   </Button>
                 )}
               </CardContent>
@@ -270,12 +280,12 @@ export default function ProjectsPage() {
                     </div>
                     <CardContent className="p-3">
                       <h3 className="truncate text-sm font-medium">
-                        {project.name ?? "Untitled Project"}
+                        {project.name ?? projects.card.untitled}
                       </h3>
-                      <div className="mt-1 flex items-center justify-between">
-                        <p className="text-muted-foreground text-xs">
-                          {new Date(project.createdAt).toLocaleDateString()}
-                        </p>
+                    <div className="mt-1 flex items-center justify-between">
+                      <p className="text-muted-foreground text-xs">
+                        {new Intl.DateTimeFormat(locale).format(new Date(project.createdAt))}
+                      </p>
                         <div className="opacity-0 transition-opacity group-hover:opacity-100">
                           <Button
                             variant="ghost"
@@ -315,18 +325,18 @@ export default function ProjectsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-medium">
-                          {project.name ?? "Untitled Project"}
+                          {project.name ?? projects.card.untitled}
                         </h3>
                         <div className="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {new Date(project.createdAt).toLocaleDateString()}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <ImageIcon className="h-3 w-3" />
-                            Image
-                          </div>
+                        <div className="flex items-center gap-1">
+                          <ImageIcon className="h-3 w-3" />
+                          {projects.card.imageLabel}
                         </div>
+                      </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <Button
@@ -369,7 +379,7 @@ export default function ProjectsPage() {
           {filteredProjects.length >= 20 && (
             <div className="text-center">
               <Button variant="outline" className="gap-2">
-                Load More Projects
+                {projects.card.loadMore}
                 <Loader2 className="h-4 w-4" />
               </Button>
             </div>

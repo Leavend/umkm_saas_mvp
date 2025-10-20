@@ -16,7 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
-import { useEffect, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { getUserProjects } from "~/actions/projects";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -33,8 +33,8 @@ interface Project {
   imageKitId: string;
   filePath: string;
   userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 type ViewMode = "grid" | "list";
@@ -43,7 +43,6 @@ type SortBy = "newest" | "oldest" | "name";
 export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
@@ -51,8 +50,10 @@ export default function ProjectsPage() {
   const translations = useTranslations();
   const { locale } = useLanguage();
   const { projects, common } = translations;
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
+    let isMounted = true;
     const initializeProjects = async () => {
       try {
         await authClient.getSession();
@@ -60,57 +61,84 @@ export default function ProjectsPage() {
         // Fetch user projects
         const projectsResult = await getUserProjects();
         if (projectsResult.success && projectsResult.projects) {
-          setUserProjects(projectsResult.projects);
-          setFilteredProjects(projectsResult.projects);
+          if (isMounted) {
+            setUserProjects(projectsResult.projects);
+          }
         }
       } catch (error) {
         console.error("Projects initialization failed:", error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     void initializeProjects();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Filter and sort projects
-  useEffect(() => {
-    let filtered = userProjects.filter((project) =>
-      (project.name ?? "Untitled Project")
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
-    );
+  const projectNameFallback = projects.card.untitled;
 
-    // Sort projects
+  const filteredProjects = useMemo(() => {
+    const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
+
+    const filtered = normalizedQuery
+      ? userProjects.filter((project) => {
+          const name = (project.name ?? projectNameFallback).toLowerCase();
+          return name.includes(normalizedQuery);
+        })
+      : [...userProjects];
+
+    const sorted = [...filtered];
     switch (sortBy) {
       case "newest":
-        filtered = filtered.sort(
+        sorted.sort(
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         );
         break;
       case "oldest":
-        filtered = filtered.sort(
+        sorted.sort(
           (a, b) =>
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         );
         break;
       case "name":
-        filtered = filtered.sort((a, b) =>
-          (a.name ?? "Untitled Project").localeCompare(
-            b.name ?? "Untitled Project",
+        sorted.sort((a, b) =>
+          (a.name ?? projectNameFallback).localeCompare(
+            b.name ?? projectNameFallback,
+            locale,
+            { sensitivity: "base" },
           ),
         );
         break;
     }
 
-    setFilteredProjects(filtered);
-  }, [userProjects, searchQuery, sortBy]);
+    return sorted;
+  }, [
+    deferredSearchQuery,
+    locale,
+    projectNameFallback,
+    sortBy,
+    userProjects,
+  ]);
 
-  const handleProjectClick = (_project: Project) => {
-    // Navigate to create page with project data - you can extend this to load the project
+  const handleProjectClick = useCallback(() => {
     router.push("/dashboard/create");
-  };
+  }, [router]);
+
+  const formatDate = useCallback(
+    (value: string | Date) => new Intl.DateTimeFormat(locale).format(new Date(value)),
+    [locale],
+  );
+
+  const projectCountLabel =
+    filteredProjects.length === 1
+      ? projects.projectCountSingular
+      : projects.projectCountPlural;
 
   if (isLoading) {
     return (
@@ -137,11 +165,7 @@ export default function ProjectsPage() {
                 {projects.title}
               </h1>
               <p className="text-muted-foreground text-base">
-                {projects.description} (
-                {filteredProjects.length}{" "}
-                {filteredProjects.length === 1
-                  ? projects.projectCountSingular
-                  : projects.projectCountPlural})
+                {projects.description} ({filteredProjects.length} {projectCountLabel})
               </p>
             </div>
             <Button
@@ -258,13 +282,13 @@ export default function ProjectsPage() {
                   <Card
                     key={project.id}
                     className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
-                    onClick={() => handleProjectClick(project)}
+                    onClick={handleProjectClick}
                   >
                     <div className="relative aspect-square overflow-hidden">
                       <ImageKitImage
                         urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
                         src={project.filePath}
-                        alt={project.name ?? "Project"}
+                        alt={project.name ?? projectNameFallback}
                         width={300}
                         height={300}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -280,11 +304,11 @@ export default function ProjectsPage() {
                     </div>
                     <CardContent className="p-3">
                       <h3 className="truncate text-sm font-medium">
-                        {project.name ?? projects.card.untitled}
+                        {project.name ?? projectNameFallback}
                       </h3>
                     <div className="mt-1 flex items-center justify-between">
                       <p className="text-muted-foreground text-xs">
-                        {new Intl.DateTimeFormat(locale).format(new Date(project.createdAt))}
+                        {formatDate(project.createdAt)}
                       </p>
                         <div className="opacity-0 transition-opacity group-hover:opacity-100">
                           <Button
@@ -302,14 +326,14 @@ export default function ProjectsPage() {
                   <Card
                     key={project.id}
                     className="group cursor-pointer transition-all hover:shadow-md"
-                    onClick={() => handleProjectClick(project)}
+                    onClick={handleProjectClick}
                   >
                     <CardContent className="flex items-center gap-4 p-4">
                       <div className="h-16 w-16 overflow-hidden rounded-lg border">
                         <ImageKitImage
                           urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
                           src={project.filePath}
-                          alt={project.name ?? "Project"}
+                          alt={project.name ?? projectNameFallback}
                           width={64}
                           height={64}
                           className="h-full w-full object-cover"
@@ -325,12 +349,12 @@ export default function ProjectsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="truncate font-medium">
-                          {project.name ?? projects.card.untitled}
+                          {project.name ?? projectNameFallback}
                         </h3>
                         <div className="text-muted-foreground mt-1 flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {new Date(project.createdAt).toLocaleDateString()}
+                            {formatDate(project.createdAt)}
                           </div>
                         <div className="flex items-center gap-1">
                           <ImageIcon className="h-3 w-3" />

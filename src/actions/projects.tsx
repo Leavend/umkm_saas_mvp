@@ -3,6 +3,7 @@
 import { db } from "~/server/db";
 import { auth } from "~/lib/auth";
 import { headers } from "next/headers";
+import { DEFAULT_LOCALE, TRANSLATIONS } from "~/lib/i18n";
 
 interface CreateProjectData {
   imageUrl: string;
@@ -23,7 +24,9 @@ export async function createProject(data: CreateProjectData) {
 
     const project = await db.project.create({
       data: {
-        name: data.name ?? "Untitled Project",
+        name:
+          data.name ??
+          TRANSLATIONS[DEFAULT_LOCALE].projects.card.untitled,
         imageUrl: data.imageUrl,
         imageKitId: data.imageKitId,
         filePath: data.filePath,

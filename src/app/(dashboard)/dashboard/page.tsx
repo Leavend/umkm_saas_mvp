@@ -14,7 +14,7 @@ import {
   Plus,
 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getUserProjects } from "~/actions/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -30,67 +30,95 @@ interface Project {
   imageKitId: string;
   filePath: string;
   userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface UserStats {
-  totalProjects: number;
-  thisMonth: number;
-  thisWeek: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
-  const [userStats, setUserStats] = useState<UserStats>({
-    totalProjects: 0,
-    thisMonth: 0,
-    thisWeek: 0,
-  });
   const [user, setUser] = useState<{ name?: string; createdAt?: string | Date } | null>(null);
   const router = useRouter();
   const translations = useTranslations();
   const { locale } = useLanguage();
-  const { dashboard, common } = translations;
+  const { dashboard, common, projects: projectsCopy } = translations;
 
   useEffect(() => {
+    let isMounted = true;
     const initializeDashboard = async () => {
       try {
-        const session = await authClient.getSession();
+        const [session, projectsResult] = await Promise.all([
+          authClient.getSession(),
+          getUserProjects(),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
         if (session?.data?.user) {
           setUser(session.data.user);
         }
 
-        // Fetch user projects
-        const projectsResult = await getUserProjects();
         if (projectsResult.success && projectsResult.projects) {
-          const projects = projectsResult.projects;
-          setUserProjects(projects);
-
-          // Calculate stats
-          const now = new Date();
-          const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-          const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-          setUserStats({
-            totalProjects: projects.length,
-            thisMonth: projects.filter(
-              (p) => new Date(p.createdAt) >= thisMonth,
-            ).length,
-            thisWeek: projects.filter((p) => new Date(p.createdAt) >= thisWeek)
-              .length,
-          });
+          setUserProjects(projectsResult.projects);
         }
       } catch (error) {
         console.error("Dashboard initialization failed:", error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     void initializeDashboard();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const userStats = useMemo(() => {
+    if (userProjects.length === 0) {
+      return { totalProjects: 0, thisMonth: 0, thisWeek: 0 } as const;
+    }
+
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thisWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const thisMonthCount = userProjects.filter(
+      (project) => new Date(project.createdAt) >= thisMonthStart,
+    ).length;
+    const thisWeekCount = userProjects.filter(
+      (project) => new Date(project.createdAt) >= thisWeekStart,
+    ).length;
+
+    return {
+      totalProjects: userProjects.length,
+      thisMonth: thisMonthCount,
+      thisWeek: thisWeekCount,
+    } as const;
+  }, [userProjects]);
+
+  const displayedProjects = useMemo(
+    () => userProjects.slice(0, 8),
+    [userProjects],
+  );
+
+  const handleNavigate = useCallback(
+    (path: string) => {
+      router.push(path);
+    },
+    [router],
+  );
+
+  const formatDate = useCallback(
+    (value: string | Date, options?: Intl.DateTimeFormatOptions) =>
+      new Intl.DateTimeFormat(locale, options).format(new Date(value)),
+    [locale],
+  );
 
   if (isLoading) {
     return (
@@ -184,10 +212,10 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-600">
                   {user?.createdAt
-                    ? new Intl.DateTimeFormat(locale, {
+                    ? formatDate(user.createdAt, {
                         month: "short",
                         year: "numeric",
-                      }).format(new Date(user.createdAt as string | number | Date))
+                      })
                     : "N/A"}
                 </div>
                 <p className="text-muted-foreground text-xs">
@@ -208,7 +236,7 @@ export default function DashboardPage() {
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Button
-                  onClick={() => router.push("/dashboard/create")}
+                  onClick={() => handleNavigate("/dashboard/create")}
                   className="group bg-primary hover:bg-primary/90 h-auto flex-col gap-2 p-6"
                 >
                   <Camera className="h-8 w-8 transition-transform group-hover:scale-110" />
@@ -223,7 +251,7 @@ export default function DashboardPage() {
                 </Button>
 
                 <Button
-                  onClick={() => router.push("/dashboard/projects")}
+                  onClick={() => handleNavigate("/dashboard/projects")}
                   variant="outline"
                   className="group hover:bg-muted h-auto flex-col gap-2 p-6"
                 >
@@ -239,7 +267,7 @@ export default function DashboardPage() {
                 </Button>
 
                 <Button
-                  onClick={() => router.push("/dashboard/settings")}
+                  onClick={() => handleNavigate("/dashboard/settings")}
                   variant="outline"
                   className="group hover:bg-muted h-auto flex-col gap-2 p-6"
                 >
@@ -264,11 +292,11 @@ export default function DashboardPage() {
                 <ImageIcon className="text-primary h-5 w-5" />
                 {dashboard.recent.title}
               </CardTitle>
-              {userProjects.length > 0 && (
+              {displayedProjects.length > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/dashboard/projects")}
+                  onClick={() => handleNavigate("/dashboard/projects")}
                   className="text-primary hover:text-primary/80"
                 >
                   {dashboard.recent.viewAll}
@@ -277,7 +305,7 @@ export default function DashboardPage() {
               )}
             </CardHeader>
             <CardContent>
-              {userProjects.length === 0 ? (
+              {displayedProjects.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="relative mb-4">
                     <div className="border-muted bg-muted/20 flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed">
@@ -291,7 +319,7 @@ export default function DashboardPage() {
                     {dashboard.recent.emptyDescription}
                   </p>
                   <Button
-                    onClick={() => router.push("/dashboard/create")}
+                    onClick={() => handleNavigate("/dashboard/create")}
                     className="gap-2"
                   >
                     <Plus className="h-4 w-4" />
@@ -300,17 +328,20 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {userProjects.slice(0, 8).map((project) => (
+                  {displayedProjects.map((project) => {
+                    const projectName = project.name ?? projectsCopy.card.untitled;
+
+                    return (
                     <div
                       key={project.id}
                       className="group relative cursor-pointer overflow-hidden rounded-lg border transition-all hover:shadow-md"
-                      onClick={() => router.push("/dashboard/create")}
+                      onClick={() => handleNavigate("/dashboard/create")}
                     >
                       <div className="aspect-square overflow-hidden">
                         <ImageKitImage
                           urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
                           src={project.filePath}
-                          alt={project.name ?? "Project"}
+                          alt={projectName}
                           width={200}
                           height={200}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -326,15 +357,16 @@ export default function DashboardPage() {
                       </div>
                       <div className="p-3">
                         <h4 className="truncate text-sm font-medium">
-                          {project.name ?? "Untitled Project"}
+                          {projectName}
                         </h4>
                         <p className="text-muted-foreground text-xs">
-                          {new Intl.DateTimeFormat(locale).format(new Date(project.createdAt))}
+                          {formatDate(project.createdAt)}
                         </p>
                       </div>
                       <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

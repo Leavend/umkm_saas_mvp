@@ -36,19 +36,10 @@ export function LanguageProvider({
   initialLocale,
 }: LanguageProviderProps) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
-  const persistCookie = useCallback((value: Locale) => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    const oneYearInSeconds = 60 * 60 * 24 * 365;
-    document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${oneYearInSeconds}; SameSite=Lax`;
-  }, []);
 
   useEffect(() => {
     setLocaleState((current) => (current === initialLocale ? current : initialLocale));
-    persistCookie(initialLocale);
-  }, [initialLocale, persistCookie]);
+  }, [initialLocale]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -58,24 +49,31 @@ export function LanguageProvider({
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (stored && SUPPORTED_LOCALES.includes(stored as Locale)) {
       setLocaleState(stored as Locale);
-      persistCookie(stored as Locale);
     }
-  }, [persistCookie]);
+  }, []);
+
+  const persistLocalePreferences = useCallback((value: Locale) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, value);
+    }
+
+    if (typeof document !== "undefined") {
+      const oneYearInSeconds = 60 * 60 * 24 * 365;
+      document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${oneYearInSeconds}; SameSite=Lax`;
+      document.documentElement.setAttribute("lang", value);
+    }
+  }, []);
 
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("lang", locale);
-    }
-  }, [locale]);
+    persistLocalePreferences(locale);
+  }, [locale, persistLocalePreferences]);
 
-  const setLocale = useCallback((nextLocale: Locale) => {
-    setLocaleState(nextLocale);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale);
-    }
-
-    persistCookie(nextLocale);
-  }, [persistCookie]);
+  const setLocale = useCallback(
+    (nextLocale: Locale) => {
+      setLocaleState(nextLocale);
+    },
+    [],
+  );
 
   const translations = useMemo(() => TRANSLATIONS[locale], [locale]);
 

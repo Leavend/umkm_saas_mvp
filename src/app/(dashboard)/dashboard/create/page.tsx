@@ -27,6 +27,8 @@ import {
   getUserProjects,
   deductCredits,
 } from "~/actions/projects";
+import { useTranslations, useLanguage } from "~/components/language-provider";
+import { formatTranslation } from "~/lib/i18n";
 
 interface UploadedImage {
   fileId: string;
@@ -52,6 +54,8 @@ interface Transformation {
   raw?: string;
 }
 
+type TransformationType = "background" | "upscale" | "objectCrop";
+
 interface UploadAuthResponse {
   signature: string;
   expire: number;
@@ -72,6 +76,43 @@ export default function CreatePage() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [objectInput, setObjectInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const translations = useTranslations();
+  const { locale } = useLanguage();
+  const { create: createCopy, common } = translations;
+  const uploadCopy = createCopy.uploadCard;
+  const effectsCopy = createCopy.effects;
+  const recentsCopy = createCopy.recents;
+
+  const resolveCreditError = (error?: string | null) => {
+    if (!error) {
+      return createCopy.toasts.paymentFailed;
+    }
+
+    if (error === "Invalid credit amount") {
+      return createCopy.toasts.invalidCredits;
+    }
+
+    if (error === "Insufficient credits") {
+      return createCopy.toasts.insufficientCredits;
+    }
+
+    return error;
+  };
+
+  const getEffectLabel = (type: TransformationType) => {
+    if (isProcessing) {
+      return effectsCopy[type].processing;
+    }
+
+    if (hasTransformation(type)) {
+      return effectsCopy[type].done;
+    }
+
+    return effectsCopy[type].idle;
+  };
+
+  const getEffectCost = (type: TransformationType) =>
+    effectsCopy[type].cost ?? "";
 
   useEffect(() => {
     const initializeData = async () => {
@@ -157,9 +198,9 @@ export default function CreatePage() {
         console.error("Database save error:", dbError);
       }
 
-      toast.success("Upload successful!");
+      toast.success(createCopy.toasts.uploadSuccess);
     } catch (error) {
-      toast.error("Upload failed");
+      toast.error(createCopy.toasts.uploadFailed);
       console.error(error);
     } finally {
       setIsUploading(false);
@@ -172,7 +213,7 @@ export default function CreatePage() {
   };
 
   // Helper functions to check if transformations exist
-  const hasTransformation = (type: string) => {
+  const hasTransformation = (type: TransformationType) => {
     return transformations.some((transform: Transformation) => {
       if (type === "background" && transform.aiRemoveBackground) return true;
       if (type === "upscale" && transform.aiUpscale) return true;
@@ -187,7 +228,7 @@ export default function CreatePage() {
   };
 
   // Function to remove specific transformation
-  const removeTransformation = (type: string) => {
+  const removeTransformation = (type: TransformationType) => {
     setTransformations((prev) =>
       prev.filter((transform: Transformation) => {
         if (type === "background" && transform.aiRemoveBackground) return false;
@@ -201,9 +242,12 @@ export default function CreatePage() {
         return true;
       }),
     );
-    toast.success(
-      `${type.charAt(0).toUpperCase() + type.slice(1)} transformation removed!`,
-    );
+    const removalMessages: Record<TransformationType, string> = {
+      background: createCopy.effects.removeBackground.toastRemoved,
+      upscale: createCopy.effects.upscale.toastRemoved,
+      objectCrop: createCopy.effects.objectCrop.toastRemoved,
+    };
+    toast.success(removalMessages[type]);
   };
 
   const removeBackground = async () => {
@@ -211,7 +255,7 @@ export default function CreatePage() {
 
     // Check if background removal already applied
     if (hasTransformation("background")) {
-      toast.error("Background removal is already applied!");
+      toast.error(createCopy.effects.removeBackground.toastAlready);
       return;
     }
 
@@ -222,7 +266,7 @@ export default function CreatePage() {
       const creditResult = await deductCredits(2, "background removal");
 
       if (!creditResult.success) {
-        toast.error(creditResult.error ?? "Failed to process payment");
+        toast.error(resolveCreditError(creditResult.error));
         setIsProcessing(false);
         return;
       }
@@ -233,14 +277,16 @@ export default function CreatePage() {
       setTimeout(() => {
         setIsProcessing(false);
         toast.success(
-          `Background removed! ${creditResult.remainingCredits} credits remaining.`,
+          formatTranslation(createCopy.effects.removeBackground.toastApplied, {
+            remaining: creditResult.remainingCredits ?? 0,
+          }),
         );
         // Refresh to update sidebar credits display
         router.refresh();
       }, 3000);
     } catch (error) {
       console.error("Background removal error:", error);
-      toast.error("Failed to remove background");
+      toast.error(createCopy.effects.removeBackground.toastError);
       setIsProcessing(false);
     }
   };
@@ -250,7 +296,7 @@ export default function CreatePage() {
 
     // Check if upscale already applied
     if (hasTransformation("upscale")) {
-      toast.error("Image upscaling is already applied!");
+      toast.error(createCopy.effects.upscale.toastAlready);
       return;
     }
 
@@ -261,7 +307,7 @@ export default function CreatePage() {
       const creditResult = await deductCredits(1, "upscaling");
 
       if (!creditResult.success) {
-        toast.error(creditResult.error ?? "Failed to process payment");
+        toast.error(resolveCreditError(creditResult.error));
         setIsProcessing(false);
         return;
       }
@@ -272,14 +318,16 @@ export default function CreatePage() {
       setTimeout(() => {
         setIsProcessing(false);
         toast.success(
-          `Image upscaled! ${creditResult.remainingCredits} credits remaining.`,
+          formatTranslation(createCopy.effects.upscale.toastApplied, {
+            remaining: creditResult.remainingCredits ?? 0,
+          }),
         );
         // Refresh to update sidebar credits display
         router.refresh();
       }, 3000);
     } catch (error) {
       console.error("Upscaling error:", error);
-      toast.error("Failed to upscale image");
+      toast.error(createCopy.effects.upscale.toastError);
       setIsProcessing(false);
     }
   };
@@ -289,13 +337,13 @@ export default function CreatePage() {
 
     // Check if object crop already applied
     if (hasTransformation("objectCrop")) {
-      toast.error("Smart object crop is already applied!");
+      toast.error(createCopy.effects.objectCrop.toastAlready);
       return;
     }
 
     // Validate object input
     if (!objectInput.trim()) {
-      toast.error("Please enter an object to focus on!");
+      toast.error(createCopy.effects.objectCrop.toastMissing);
       return;
     }
 
@@ -310,18 +358,22 @@ export default function CreatePage() {
 
       setTimeout(() => {
         setIsProcessing(false);
-        toast.success(`Smart crop applied focusing on "${objectInput}"!`);
+        toast.success(
+          formatTranslation(createCopy.effects.objectCrop.toastApplied, {
+            object: objectInput,
+          }),
+        );
       }, 3000);
     } catch (error) {
       console.error("Object crop error:", error);
-      toast.error("Failed to apply smart crop");
+      toast.error(createCopy.effects.objectCrop.toastError);
       setIsProcessing(false);
     }
   };
 
   const clearTransformations = () => {
     setTransformations([]);
-    toast.success("All transformations cleared!");
+    toast.success(createCopy.toasts.transformationsCleared);
   };
 
   const downloadImage = () => {
@@ -334,21 +386,18 @@ export default function CreatePage() {
       `${env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}${uploadedImage.filePath}`;
 
     window.open(url, "_blank");
-    toast.success("Download started!");
+    toast.success(createCopy.toasts.downloadStarted);
   };
 
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground text-sm">
+            {common.states.loading}
+          </p>
+        </div>
       </div>
     );
   }
@@ -362,10 +411,10 @@ export default function CreatePage() {
           <div className="border-b border-gray-200 bg-white py-2">
             <div className="mx-auto max-w-7xl text-center">
               <h1 className="from-primary to-primary/70 mb-1 bg-gradient-to-r bg-clip-text text-lg font-bold text-transparent">
-                Create AI Images
+                {createCopy.title}
               </h1>
               <p className="text-muted-foreground mx-auto max-w-xl text-xs">
-                Upload and transform images with AI tools
+                {createCopy.subtitle}
               </p>
             </div>
           </div>
@@ -391,10 +440,10 @@ export default function CreatePage() {
                           ></div>
                         </div>
                         <h3 className="text-foreground mb-2 text-lg font-bold">
-                          Uploading your image
+                          {common.states.uploadingImage}
                         </h3>
                         <p className="text-muted-foreground text-sm">
-                          Processing your file with AI magic ✨
+                          {common.states.uploadingDescription}
                         </p>
                         <div className="bg-muted mx-auto mt-4 h-2 w-48 overflow-hidden rounded-full">
                           <div className="bg-primary h-full animate-pulse rounded-full"></div>
@@ -422,29 +471,27 @@ export default function CreatePage() {
 
                         {/* Content */}
                         <h3 className="text-foreground mb-3 text-xl font-bold">
-                          Upload Your Image
+                          {uploadCopy.title}
                         </h3>
 
                         <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-gray-600">
-                          Click to browse and select your image. Transform it
-                          with powerful AI tools.
+                          {uploadCopy.description}
                         </p>
 
                         {/* Supported formats */}
                         <div className="mb-6">
                           <p className="mb-2 text-xs text-gray-500">
-                            Supported formats:
+                            {uploadCopy.supportedFormats}
                           </p>
                           <div className="flex items-center justify-center gap-3">
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                              JPG
-                            </span>
-                            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-                              PNG
-                            </span>
-                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                              WEBP
-                            </span>
+                            {uploadCopy.formats.map((format) => (
+                              <span
+                                key={format}
+                                className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                              >
+                                {format}
+                              </span>
+                            ))}
                           </div>
                         </div>
 
@@ -455,11 +502,11 @@ export default function CreatePage() {
                           className="bg-primary hover:bg-primary/90 text-primary-foreground transform gap-2 px-6 py-2 text-sm font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
                         >
                           <Upload className="h-4 w-4" />
-                          Choose Your Image
+                          {uploadCopy.chooseImage}
                         </Button>
 
                         <p className="mt-3 text-xs text-gray-500">
-                          Select files from your device
+                          {uploadCopy.helperText}
                         </p>
                       </div>
 
@@ -486,10 +533,10 @@ export default function CreatePage() {
                       <div className="mb-3 flex items-start justify-between">
                         <div>
                           <h3 className="mb-0.5 text-sm font-bold">
-                            AI Effects
+                            {effectsCopy.title ?? "AI Effects"}
                           </h3>
                           <p className="text-muted-foreground text-xs">
-                            Transform your image
+                            {effectsCopy.subtitle}
                           </p>
                         </div>
                       </div>
@@ -508,15 +555,11 @@ export default function CreatePage() {
                             >
                               <Scissors className="h-3 w-3" />
                               <span className="text-xs">
-                                {isProcessing
-                                  ? "Processing..."
-                                  : hasTransformation("background")
-                                    ? "Removed ✓"
-                                    : "Remove BG"}
+                                {getEffectLabel("background")}
                               </span>
-                              {!hasTransformation("background") && (
+                              {!hasTransformation("background") && effectsCopy.background.cost && (
                                 <span className="text-muted-foreground ml-1 text-xs">
-                                  (2 credits)
+                                  {effectsCopy.background.cost}
                                 </span>
                               )}
                             </Button>
@@ -547,15 +590,11 @@ export default function CreatePage() {
                             >
                               <Expand className="h-3 w-3" />
                               <span className="text-xs">
-                                {isProcessing
-                                  ? "Processing..."
-                                  : hasTransformation("upscale")
-                                    ? "Upscaled ✓"
-                                    : "AI Upscale"}
+                                {getEffectLabel("upscale")}
                               </span>
-                              {!hasTransformation("upscale") && (
+                              {!hasTransformation("upscale") && effectsCopy.upscale.cost && (
                                 <span className="text-muted-foreground ml-1 text-xs">
-                                  (1 credit)
+                                  {effectsCopy.upscale.cost}
                                 </span>
                               )}
                             </Button>
@@ -582,14 +621,16 @@ export default function CreatePage() {
                               </div>
                               <div>
                                 <h4 className="text-xs font-bold text-green-900">
-                                  Smart Object Crop
+                                  {effectsCopy.objectCrop.sectionTitle}
                                 </h4>
-                                <p className="text-xs text-green-700">FREE</p>
+                                <p className="text-xs text-green-700">
+                                  {effectsCopy.objectCrop.badge}
+                                </p>
                               </div>
                             </div>
 
                             <Input
-                              placeholder="Enter object (e.g., person, car)"
+                              placeholder={effectsCopy.objectCrop.placeholder}
                               value={objectInput}
                               onChange={(e) => {
                                 setObjectInput(e.target.value);
@@ -602,7 +643,7 @@ export default function CreatePage() {
 
                             <div className="rounded-md border border-green-200 bg-green-100/50 p-1.5">
                               <p className="text-xs text-green-800">
-                                ✨ AI crops around specified object in 1:1 ratio
+                                {effectsCopy.objectCrop.helper}
                               </p>
                             </div>
 
@@ -620,11 +661,7 @@ export default function CreatePage() {
                               >
                                 <Target className="h-2 w-2" />
                                 <span className="text-xs">
-                                  {isProcessing
-                                    ? "Processing..."
-                                    : hasTransformation("objectCrop")
-                                      ? "Applied ✓"
-                                      : "Apply"}
+                                  {getEffectLabel("objectCrop")}
                                 </span>
                               </Button>
                               {hasTransformation("objectCrop") && (
@@ -649,7 +686,9 @@ export default function CreatePage() {
                             <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
                               <div className="h-1 w-1 rounded-full bg-blue-500"></div>
                               <span className="text-xs">
-                                {transformations.length} applied
+                                {formatTranslation(effectsCopy.activeLabel, {
+                                  count: transformations.length,
+                                })}
                               </span>
                             </div>
                           </div>
@@ -664,7 +703,7 @@ export default function CreatePage() {
                             className="h-7 w-full gap-1 px-2"
                           >
                             <RotateCcw className="h-3 w-3" />
-                            <span className="text-xs">Clear All</span>
+                            <span className="text-xs">{effectsCopy.clearAll}</span>
                           </Button>
                         )}
 
@@ -682,12 +721,12 @@ export default function CreatePage() {
                             <Button
                               onClick={downloadImage}
                               size="sm"
-                              className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
-                            >
-                              <Download className="h-3 w-3" />
-                              <span className="text-xs">Download</span>
-                            </Button>
-                          )}
+                          className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
+                        >
+                          <Download className="h-3 w-3" />
+                          <span className="text-xs">{common.actions.download}</span>
+                        </Button>
+                      )}
                         </div>
                       </div>
                     </CardContent>
@@ -700,7 +739,9 @@ export default function CreatePage() {
                     <CardContent className="p-2 sm:p-3">
                       <div className="mb-2 flex items-start justify-between">
                         <div>
-                          <h3 className="mb-0.5 text-sm font-bold">Preview</h3>
+                          <h3 className="mb-0.5 text-sm font-bold">
+                            {createCopy.preview.title}
+                          </h3>
                           <p className="text-muted-foreground truncate text-xs">
                             {uploadedImage.name}
                           </p>
@@ -710,6 +751,7 @@ export default function CreatePage() {
                           size="sm"
                           onClick={() => setUploadedImage(null)}
                           className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 rounded-full p-0"
+                          aria-label={createCopy.preview.removeImage}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -723,10 +765,10 @@ export default function CreatePage() {
                                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
                               </div>
                               <p className="text-sm font-semibold">
-                                AI Processing...
+                                {createCopy.preview.processing}
                               </p>
                               <p className="mt-1 text-xs text-white/80">
-                                Please wait
+                                {createCopy.preview.pleaseWait}
                               </p>
                             </div>
                           </div>
@@ -753,12 +795,12 @@ export default function CreatePage() {
                 <div className="mb-2 inline-flex items-center gap-2">
                   <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600"></div>
                   <h2 className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent">
-                    Your Recent Projects
+                    {recentsCopy.title}
                   </h2>
                   <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500"></div>
                 </div>
                 <p className="text-muted-foreground mx-auto max-w-md text-sm">
-                  Continue editing your previous creations
+                  {recentsCopy.subtitle}
                 </p>
               </div>
             </div>
@@ -772,10 +814,10 @@ export default function CreatePage() {
               </div>
               <div className="text-center">
                 <p className="mb-2 text-lg font-semibold text-gray-900">
-                  Loading your projects...
+                  {recentsCopy.loadingTitle}
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  Fetching your creative works
+                  {recentsCopy.loadingSubtitle}
                 </p>
               </div>
             </div>
@@ -831,19 +873,16 @@ export default function CreatePage() {
                           </h3>
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-white/90 drop-shadow-md">
-                              {new Date(project.createdAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year: "numeric",
-                                },
-                              )}
+                              {new Intl.DateTimeFormat(locale, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              }).format(new Date(project.createdAt))}
                             </p>
                             <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                               <div className="rounded-full bg-white/20 px-2 py-1 backdrop-blur-sm">
                                 <span className="text-xs font-medium text-white">
-                                  Edit
+                                  {recentsCopy.editLabel}
                                 </span>
                               </div>
                             </div>
@@ -864,7 +903,10 @@ export default function CreatePage() {
                   <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-3">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
                     <span className="text-sm font-medium text-blue-700">
-                      Showing 12 of {userProjects.length} projects
+                      {formatTranslation(recentsCopy.showingCount, {
+                        count: Math.min(12, userProjects.length),
+                        total: userProjects.length,
+                      })}
                     </span>
                   </div>
                 </div>
@@ -892,11 +934,10 @@ export default function CreatePage() {
 
               <div className="space-y-3">
                 <h3 className="text-xl font-bold text-gray-900">
-                  No projects yet
+                  {recentsCopy.emptyTitle}
                 </h3>
                 <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed">
-                  Start your creative journey by uploading your first image and
-                  transforming it with AI
+                  {recentsCopy.emptyDescription}
                 </p>
               </div>
             </div>

@@ -2,22 +2,24 @@
 
 import { usePathname } from "next/navigation";
 import { BreadcrumbPage } from "../ui/breadcrumb";
+import { useTranslations } from "~/components/language-provider";
 
 export default function BreadcrumbPageClient() {
   const path = usePathname();
+  const translations = useTranslations();
 
   const getPageTitle = (path: string) => {
     switch (path) {
       case "/dashboard":
-        return "Dashboard";
+        return translations.sidebar.items.dashboard;
       case "/dashboard/create":
-        return "Create";
+        return translations.sidebar.items.create;
       case "/dashboard/projects":
-        return "Projects";
+        return translations.sidebar.items.projects;
       case "/dashboard/settings":
-        return "Settings";
+        return translations.sidebar.items.settings;
       default:
-        return "Dashboard";
+        return translations.sidebar.items.dashboard;
     }
   };
 

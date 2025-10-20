@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_saas_db
+    pull_policy: never
+    
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ai-image-editor-saas-app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_saas_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_saas_data:
+

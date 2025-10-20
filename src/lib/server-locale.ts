@@ -24,14 +24,17 @@ function parseAcceptLanguage(headerValue: string | null): Locale | null {
   return normalizeLocale(locales[0]);
 }
 
-export function getRequestLocale(): Locale {
-  const cookieStore = cookies();
+export async function getRequestLocale(): Promise<Locale> {
+  const cookieStore = await cookies();
   const storedLocale = cookieStore.get(LANGUAGE_STORAGE_KEY)?.value;
   if (storedLocale) {
     return normalizeLocale(storedLocale);
   }
 
-  const headerLocale = parseAcceptLanguage(headers().get("accept-language"));
+  const requestHeaders = await headers();
+  const headerLocale = parseAcceptLanguage(
+    requestHeaders.get("accept-language"),
+  );
   if (headerLocale) {
     return headerLocale;
   }

@@ -12,7 +12,8 @@ const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
 
 export async function persistUserLocale(nextLocale: Locale) {
   const locale = normalizeLocale(nextLocale);
-  cookies().set(LANGUAGE_STORAGE_KEY, locale, {
+  const cookieStore = await cookies();
+  cookieStore.set(LANGUAGE_STORAGE_KEY, locale, {
     path: "/",
     maxAge: ONE_YEAR_IN_SECONDS,
     sameSite: "lax",

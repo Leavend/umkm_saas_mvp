@@ -19,10 +19,10 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const initialLocale = getRequestLocale();
+  const initialLocale = await getRequestLocale();
 
   return (
     <html lang={initialLocale} className={`${geist.variable}`}>

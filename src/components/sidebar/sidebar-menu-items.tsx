@@ -5,42 +5,43 @@ import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
+import { useTranslations } from "~/components/language-provider";
+import { useMemo } from "react";
 
 export default function SidebarMenuItems() {
   const path = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
+  const translations = useTranslations();
 
-  let items = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      active: false,
-    },
-    {
-      title: "Create",
-      url: "/dashboard/create",
-      icon: Wand2,
-      active: false,
-    },
-    {
-      title: "Projects",
-      url: "/dashboard/projects",
-      icon: FolderOpen,
-      active: false,
-    },
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings,
-      active: false,
-    },
-  ];
-
-  items = items.map((item) => ({
-    ...item,
-    active: path === item.url,
-  }));
+  const items = useMemo(
+    () =>
+      [
+        {
+          title: translations.sidebar.items.dashboard,
+          url: "/dashboard",
+          icon: LayoutDashboard,
+        },
+        {
+          title: translations.sidebar.items.create,
+          url: "/dashboard/create",
+          icon: Wand2,
+        },
+        {
+          title: translations.sidebar.items.projects,
+          url: "/dashboard/projects",
+          icon: FolderOpen,
+        },
+        {
+          title: translations.sidebar.items.settings,
+          url: "/dashboard/settings",
+          icon: Settings,
+        },
+      ].map((item) => ({
+        ...item,
+        active: path === item.url,
+      })),
+    [path, translations.sidebar.items.create, translations.sidebar.items.dashboard, translations.sidebar.items.projects, translations.sidebar.items.settings],
+  );
 
   const handleMenuClick = () => {
     // Close mobile sidebar when clicking a menu item

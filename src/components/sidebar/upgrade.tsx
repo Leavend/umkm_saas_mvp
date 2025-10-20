@@ -3,8 +3,10 @@
 import { authClient } from "~/lib/auth-client";
 import { Button } from "../ui/button";
 import { Crown, Sparkles } from "lucide-react";
+import { useTranslations } from "~/components/language-provider";
 
 export default function Upgrade() {
+  const translations = useTranslations();
   const upgrade = async () => {
     await authClient.checkout({
       products: [
@@ -24,7 +26,9 @@ export default function Upgrade() {
     >
       <div className="flex items-center gap-2">
         <Crown className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
-        <span className="font-medium">Upgrade</span>
+        <span className="font-medium">
+          {translations.common.actions.upgrade}
+        </span>
         <Sparkles className="h-3 w-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       </div>
 

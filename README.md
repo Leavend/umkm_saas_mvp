@@ -37,7 +37,7 @@ Welcome to the ultimate AI Image Editor SaaS application! This project demonstra
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sahandghavidel/ai-image-editor-saas-app.git
+   git clone https://github.com/Leavend/umkm_saas_mvp.git
    cd ai-image-editor-saas-app
    ```
 

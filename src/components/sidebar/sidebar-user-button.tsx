@@ -5,10 +5,12 @@
 import { UserButton } from "@daveyplate/better-auth-ui";
 import { Settings, User } from "lucide-react";
 
-import { useTranslations } from "~/components/language-provider";
+import { useLanguage, useTranslations } from "~/components/language-provider";
+import { createLocalePath } from "~/lib/locale-path";
 
 export function SidebarUserButton() {
   const translations = useTranslations();
+  const { locale } = useLanguage();
 
   return (
     <UserButton
@@ -18,12 +20,12 @@ export function SidebarUserButton() {
       additionalLinks={[
         {
           label: translations.common.actions.customerPortal,
-          href: "/dashboard/customer-portal",
+          href: createLocalePath(locale, "/dashboard/customer-portal"),
           icon: <User className="h-4 w-4" />,
         },
         {
           label: translations.sidebar.items.settings,
-          href: "/dashboard/settings",
+          href: createLocalePath(locale, "/dashboard/settings"),
           icon: <Settings className="h-4 w-4" />,
         },
       ]}

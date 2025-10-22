@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { Image as ImageKitImage } from "@imagekit/next";
 import { env } from "~/env";
 import { useTranslations, useLanguage } from "~/components/language-provider";
+import { createLocalePath } from "~/lib/locale-path";
 
 interface Project {
   id: string;
@@ -127,8 +128,8 @@ export default function ProjectsPage() {
   ]);
 
   const handleProjectClick = useCallback(() => {
-    router.push("/dashboard/create");
-  }, [router]);
+    router.push(createLocalePath(locale, "/dashboard/create"));
+  }, [locale, router]);
 
   const formatDate = useCallback(
     (value: string | Date) => new Intl.DateTimeFormat(locale).format(new Date(value)),
@@ -169,7 +170,7 @@ export default function ProjectsPage() {
               </p>
             </div>
             <Button
-              onClick={() => router.push("/dashboard/create")}
+              onClick={() => router.push(createLocalePath(locale, "/dashboard/create"))}
               className="gap-2 self-start sm:self-auto"
             >
               <Plus className="h-4 w-4" />
@@ -251,7 +252,9 @@ export default function ProjectsPage() {
                 </p>
                 {!searchQuery && (
                   <Button
-                    onClick={() => router.push("/dashboard/create")}
+                    onClick={() =>
+                      router.push(createLocalePath(locale, "/dashboard/create"))
+                    }
                     className="gap-2"
                   >
                     <Plus className="h-4 w-4" />

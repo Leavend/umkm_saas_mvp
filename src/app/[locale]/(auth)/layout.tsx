@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { getDictionary } from "~/lib/dictionary";
 import type { Locale } from "~/lib/i18n";
+import { createLocalePath } from "~/lib/locale-path";
 
 export default async function AuthLayout({
   children,
@@ -47,7 +48,7 @@ export default async function AuthLayout({
         <div className="bg-grid-white/[0.1] absolute inset-0 bg-[size:30px_30px]" />
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
           <div className="mb-12 flex items-center justify-between gap-3">
-            <Link href="/" className="flex items-center gap-3">
+            <Link href={createLocalePath(locale, "/")} className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-400/30 bg-blue-500/20 backdrop-blur-sm">
                 <Sparkles className="h-7 w-7 text-blue-300" />
               </div>
@@ -97,7 +98,7 @@ export default async function AuthLayout({
 
       <div className="flex flex-1 flex-col justify-center bg-gradient-to-br from-slate-50 to-blue-50/30 px-6 py-12 lg:px-8">
         <div className="mb-6 flex items-center justify-between lg:hidden">
-          <Link href="/" className="inline-flex items-center gap-2">
+          <Link href={createLocalePath(locale, "/")} className="inline-flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
@@ -112,7 +113,7 @@ export default async function AuthLayout({
           <p className="mt-6 text-center text-sm text-slate-600">
             {auth.backToHomePrefix}{" "}
             <Link
-              href="/"
+              href={createLocalePath(locale, "/")}
               className="font-medium text-blue-600 transition-colors hover:text-blue-500"
             >
               {common.actions.backToHomepage}

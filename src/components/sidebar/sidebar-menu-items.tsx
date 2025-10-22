@@ -7,13 +7,23 @@ import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
-import { useTranslations } from "~/components/language-provider";
+import { useLanguage, useTranslations } from "~/components/language-provider";
 import { useMemo } from "react";
+import { createLocalePath, stripLocaleFromPath } from "~/lib/locale-path";
 
 export default function SidebarMenuItems() {
   const path = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
   const translations = useTranslations();
+  const { locale } = useLanguage();
+
+  const normalizedPath = useMemo(() => {
+    const stripped = stripLocaleFromPath(path);
+    if (stripped.length > 1 && stripped.endsWith("/")) {
+      return stripped.slice(0, -1);
+    }
+    return stripped;
+  }, [path]);
 
   const items = useMemo(
     () =>
@@ -38,11 +48,22 @@ export default function SidebarMenuItems() {
           url: "/dashboard/settings",
           icon: Settings,
         },
-      ].map((item) => ({
-        ...item,
-        active: path === item.url,
-      })),
-    [path, translations.sidebar.items.create, translations.sidebar.items.dashboard, translations.sidebar.items.projects, translations.sidebar.items.settings],
+      ].map((item) => {
+        const localizedUrl = createLocalePath(locale, item.url);
+        return {
+          ...item,
+          url: localizedUrl,
+          active: normalizedPath === item.url,
+        };
+      }),
+    [
+      locale,
+      normalizedPath,
+      translations.sidebar.items.create,
+      translations.sidebar.items.dashboard,
+      translations.sidebar.items.projects,
+      translations.sidebar.items.settings,
+    ],
   );
 
   const handleMenuClick = () => {

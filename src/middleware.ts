@@ -1,37 +1,44 @@
 // src/middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import Negotiator from 'negotiator';
-import { match as localeMatcher } from '@formatjs/intl-localematcher';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import Negotiator from "negotiator";
+import { match as localeMatcher } from "@formatjs/intl-localematcher";
 
-const locales = ['en', 'id'];
-const defaultLocale = 'id';
+import {
+  DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
+  normalizeLocale,
+} from "~/lib/i18n";
+import { createLocalePath } from "~/lib/locale-path";
+
+const locales = SUPPORTED_LOCALES;
 
 function getLocale(request: NextRequest): string {
   const headers = {
-    'accept-language': request.headers.get('accept-language') || '',
+    "accept-language": request.headers.get("accept-language") || "",
   };
   const languages = new Negotiator({ headers }).languages();
 
   try {
-    return localeMatcher(languages, locales, defaultLocale);
+    const matched = localeMatcher(languages, locales, DEFAULT_LOCALE);
+    return normalizeLocale(matched);
   } catch (e) {
-    return defaultLocale;
+    return DEFAULT_LOCALE;
   }
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const pathnameHasLocale = locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
   if (pathnameHasLocale) {
-    return;
+    return NextResponse.next();
   }
   const locale = getLocale(request);
-  const newPath = `/${locale}${pathname === '/' ? '' : pathname}`;
-  
+  const newPath = createLocalePath(locale, pathname);
+
   request.nextUrl.pathname = newPath;
   return NextResponse.redirect(request.nextUrl);
 }

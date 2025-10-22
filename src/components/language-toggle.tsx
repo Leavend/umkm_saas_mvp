@@ -9,7 +9,17 @@ import { useRouter, usePathname, useParams } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { persistUserLocale } from "~/actions/set-locale";
-import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
+import {
+  TRANSLATIONS,
+  DEFAULT_LOCALE,
+  type Locale,
+  isSupportedLocale,
+} from "~/lib/i18n";
+import {
+  createLocalePath,
+  extractLocaleFromPath,
+  stripLocaleFromPath,
+} from "~/lib/locale-path";
 
 export type LanguageToggleProps = Omit<
   ComponentProps<typeof Button>,
@@ -28,23 +38,24 @@ export function LanguageToggle({
   const params = useParams();
   const [isPending, startPersistLocale] = useTransition();
 
-  const currentLocale = (params.locale as Locale) || DEFAULT_LOCALE;
+  const paramsLocaleParam = params.locale;
+  const paramsLocale = Array.isArray(paramsLocaleParam)
+    ? paramsLocaleParam[0]
+    : paramsLocaleParam;
+  const pathnameLocale = extractLocaleFromPath(pathname);
+
+  const currentLocale = isSupportedLocale(paramsLocale)
+    ? paramsLocale
+    : pathnameLocale ?? DEFAULT_LOCALE;
   const nextLocale = currentLocale === "en" ? "id" : "en";
 
   const t = TRANSLATIONS[currentLocale].common.language;
   const label = nextLocale === "id" ? t.indonesian : t.english;
   const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
 
-  const getPathWithoutLocale = (path: string, locale: string) => {
-    if (path === `/${locale}`) return "/";
-    return path.replace(`/${locale}`, "");
-  };
-
   const handleToggle = useCallback(() => {
-    const pathWithoutLocale = getPathWithoutLocale(pathname, currentLocale);
-    const newPath = `/${nextLocale}${
-      pathWithoutLocale === "/" ? "" : pathWithoutLocale
-    }`;
+    const pathWithoutLocale = stripLocaleFromPath(pathname);
+    const newPath = createLocalePath(nextLocale, pathWithoutLocale);
     startPersistLocale(() => {
       void persistUserLocale(nextLocale).catch((error) => {
         console.error("Failed to persist locale", error);

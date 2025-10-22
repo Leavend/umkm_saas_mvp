@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { Image as ImageKitImage } from "@imagekit/next";
 import { env } from "~/env";
 import { useTranslations, useLanguage } from "~/components/language-provider";
+import { createLocalePath } from "~/lib/locale-path";
 
 interface Project {
   id: string;
@@ -109,9 +110,9 @@ export default function DashboardPage() {
 
   const handleNavigate = useCallback(
     (path: string) => {
-      router.push(path);
+      router.push(createLocalePath(locale, path));
     },
-    [router],
+    [locale, router],
   );
 
   const formatDate = useCallback(

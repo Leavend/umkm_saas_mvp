@@ -20,6 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import type { Locale, Translations } from "~/lib/i18n";
 import { getDictionary } from "~/lib/dictionary";
+import { createLocalePath } from "~/lib/locale-path";
 
 const FEATURE_CONFIGS = [
   {
@@ -60,6 +61,11 @@ export default async function HomePage({
 }) {
   const dict = await getDictionary(locale);
   const { home, common } = dict;
+
+  const localizedPaths = {
+    signIn: createLocalePath(locale, "/auth/sign-in"),
+    dashboard: createLocalePath(locale, "/dashboard"),
+  } as const;
 
   const featureItems = FEATURE_CONFIGS.map((feature) => ({
     ...feature,
@@ -105,12 +111,12 @@ export default async function HomePage({
 
           <div className="flex items-center gap-3">
             <LanguageToggle className="hidden md:inline-flex" />
-            <Link href="/auth/sign-in">
+            <Link href={localizedPaths.signIn}>
               <Button variant="ghost" size="sm" className="cursor-pointer">
                 {common.actions.signIn}
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link href={localizedPaths.dashboard}>
               <Button size="sm" className="cursor-pointer gap-2">
                 {common.actions.tryFree}
                 <ArrowRight className="h-4 w-4" />
@@ -143,13 +149,13 @@ export default async function HomePage({
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/dashboard">
+              <Link href={localizedPaths.dashboard}>
                 <Button size="lg" className="cursor-pointer gap-2 px-8 py-6 text-base">
                   <Play className="h-5 w-5" />
                   {home.hero.primaryCta}
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href={localizedPaths.dashboard}>
                 <Button
                   variant="outline"
                   size="lg"
@@ -324,7 +330,7 @@ export default async function HomePage({
                   ))}
                 </ul>
 
-                <Link href="/dashboard">
+                <Link href={localizedPaths.dashboard}>
                   <Button className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" size="lg">
                     <Sparkles className="h-4 w-4" />
                     {home.hero.primaryCta}
@@ -348,7 +354,7 @@ export default async function HomePage({
             </h2>
             <p className="mt-4 text-lg text-slate-600">{home.cta.description}</p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/dashboard">
+              <Link href={localizedPaths.dashboard}>
                 <Button
                   size="lg"
                   className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
@@ -357,7 +363,7 @@ export default async function HomePage({
                   {home.cta.primaryCta}
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link href={localizedPaths.dashboard}>
                 <Button
                   variant="outline"
                   size="lg"
@@ -404,7 +410,10 @@ export default async function HomePage({
                     </Link>
                   </li>
                   <li>
-                    <Link href="/dashboard" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href={localizedPaths.dashboard}
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.dashboard}
                     </Link>
                   </li>

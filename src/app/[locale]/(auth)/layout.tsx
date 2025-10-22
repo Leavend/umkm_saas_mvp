@@ -1,15 +1,21 @@
-"use client";
+// src/app/[locale]/(auth)/layout.tsx
 
 import type { ReactNode } from "react";
 import { ImageIcon, Sparkles, Target, Zap } from "lucide-react";
 import Link from "next/link";
 
-// import { LanguageToggle } from "~/components/language-toggle";
-import { useTranslations } from "~/components/language-provider";
+import { getDictionary } from "~/lib/dictionary";
+import type { Locale } from "~/lib/i18n";
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
-  const translations = useTranslations();
-  const { auth, common } = translations;
+export default async function AuthLayout({
+  children,
+  params: { locale },
+}: {
+  children: ReactNode;
+  params: { locale: Locale };
+}) {
+  const dict = await getDictionary(locale);
+  const { auth, common } = dict;
 
   const featureList = [
     {
@@ -49,7 +55,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 {common.brand.name}
               </span>
             </Link>
-            {/* <LanguageToggle variant="outline" size="sm" className="border-blue-400/40 text-blue-50" /> */}
           </div>
 
           <div className="max-w-md">
@@ -100,7 +105,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               {auth.mobileBrand}
             </span>
           </Link>
-          {/* <LanguageToggle size="sm" /> */}
         </div>
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md">

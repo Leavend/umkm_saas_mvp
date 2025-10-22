@@ -1,51 +1,41 @@
-"use client";
+// src/app/[locale]/(auth)/auth/[path]/page.tsx
 
-import { AuthView } from "@daveyplate/better-auth-ui";
-import { useParams } from 'next/navigation';
-import { useTranslations } from "~/components/language-provider";
-import { useMemo } from "react";
+import { getDictionary } from "~/lib/dictionary";
+import type { Locale } from "~/lib/i18n";
 
-export default function AuthPage() {
-  const params = useParams();
-  const path = Array.isArray(params.path) ? params.path.join('/') : params.path;
-  const translations = useTranslations();
-  const { auth, common } = translations;
+import { AuthClientView } from "~/components/auth/auth-client-view";
 
-  const authLocalization = useMemo(() => {
-    return {
-      SIGN_IN: auth.signIn.title,
-      SIGN_IN_DESCRIPTION: auth.signIn.description,
-      SIGN_IN_ACTION: auth.signIn.button,
-      FORGOT_PASSWORD_LINK: auth.signIn.forgotPasswordLink,
+export default async function AuthPage({
+  params: { locale, path },
+}: {
+  params: { locale: Locale; path: string | string[] };
+}) {
+  const dict = await getDictionary(locale);
+  const { auth, common } = dict;
 
-      SIGN_UP: auth.signUp.title,
-      SIGN_UP_DESCRIPTION: auth.signUp.description,
-      SIGN_UP_ACTION: auth.signUp.button,
+  const authLocalization = {
+    SIGN_IN: auth.signIn.title,
+    SIGN_IN_DESCRIPTION: auth.signIn.description,
+    SIGN_IN_ACTION: auth.signIn.button,
+    FORGOT_PASSWORD_LINK: auth.signIn.forgotPasswordLink,
 
-      EMAIL: auth.form.emailLabel,
-      EMAIL_PLACEHOLDER: auth.form.emailPlaceholder,
-      PASSWORD: auth.form.passwordLabel,
-      PASSWORD_PLACEHOLDER: auth.form.passwordPlaceholder,
-      DONT_HAVE_AN_ACCOUNT: auth.form.promptSignUp,
-      ALREADY_HAVE_AN_ACCOUNT: auth.form.promptSignIn,
+    SIGN_UP: auth.signUp.title,
+    SIGN_UP_DESCRIPTION: auth.signUp.description,
+    SIGN_UP_ACTION: auth.signUp.button,
 
-    };
-  }, [auth]);
-
-  if (!path) {
-      return (
-        <div className="flex grow items-center justify-center">
-            {/* Anda bisa ganti dengan komponen Skeleton atau Loader yang lebih baik */}
-            <p>{common.states.loading}</p>
-        </div>
-      );
-  }
+    EMAIL: auth.form.emailLabel,
+    EMAIL_PLACEHOLDER: auth.form.emailPlaceholder,
+    PASSWORD: auth.form.passwordLabel,
+    PASSWORD_PLACEHOLDER: auth.form.passwordPlaceholder,
+    DONT_HAVE_AN_ACCOUNT: auth.form.promptSignUp,
+    ALREADY_HAVE_AN_ACCOUNT: auth.form.promptSignIn,
+  };
 
   return (
     <main className="container flex grow flex-col items-center justify-center self-center p-4 md:p-6">
-      <AuthView
-        path={path as string}
-        redirectTo="/dashboard"
+      <AuthClientView
+        path={path}
+        loadingText={common.states.loading}
         localization={authLocalization}
       />
     </main>

@@ -1,3 +1,5 @@
+// src/components/sidebar/app-sidebar.tsx
+
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +14,7 @@ import SidebarMenuItems from "./sidebar-menu-items";
 import Upgrade from "./upgrade";
 import MobileSidebarClose from "./mobile-sidebar-close";
 import { SidebarBrand } from "~/components/sidebar/sidebar-brand";
-import { LanguageToggle } from "~/components/language-toggle";
+// import { LanguageToggle } from "~/components/language-toggle";
 import { SidebarUserButton } from "~/components/sidebar/sidebar-user-button";
 
 export async function AppSidebar() {
@@ -23,7 +25,7 @@ export async function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-primary mt-6 mb-8 flex flex-col items-start justify-start gap-2 px-2">
             <SidebarBrand />
-            <LanguageToggle className="w-full justify-start" size="sm" />
+            {/* <LanguageToggle className="w-full justify-start" size="sm" /> */}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">

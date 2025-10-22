@@ -1,3 +1,5 @@
+// src/components/language-toggle.tsx
+
 "use client";
 
 import { Languages } from "lucide-react";

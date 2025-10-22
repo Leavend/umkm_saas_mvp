@@ -1,9 +1,11 @@
+// src/lib/server-locale.ts
+
 import { cookies, headers } from "next/headers";
 
 import {
   DEFAULT_LOCALE,
   LANGUAGE_STORAGE_KEY,
-  Locale,
+  type Locale,
   normalizeLocale,
 } from "~/lib/i18n";
 

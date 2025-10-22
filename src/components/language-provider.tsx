@@ -1,3 +1,5 @@
+// src/components/language-provider.tsx
+
 "use client";
 
 import {
@@ -16,13 +18,12 @@ import {
   TRANSLATIONS,
   isSupportedLocale,
   type Locale,
-  type Translations,
 } from "~/lib/i18n";
 
 interface LanguageContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  translations: Translations;
+  translations: (typeof TRANSLATIONS)[Locale];
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);

@@ -1,7 +1,8 @@
+// src/lib/auth.ts
+
 import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-// If your Prisma file is located elsewhere, you can change the path
 import { Polar } from "@polar-sh/sdk";
 import { env } from "~/env";
 import { checkout, polar, portal, webhooks } from "@polar-sh/better-auth";
@@ -15,7 +16,7 @@ const polarClient = new Polar({
 const prisma = new PrismaClient();
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
-    provider: "postgresql", // or "mysql", "postgresql", ...etc
+    provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,

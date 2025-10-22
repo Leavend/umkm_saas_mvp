@@ -1,3 +1,5 @@
+// src/components/sidebar/credits-display.tsx
+
 "use client";
 
 import { Coins, Sparkles } from "lucide-react";

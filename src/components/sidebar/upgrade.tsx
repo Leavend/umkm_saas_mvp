@@ -1,3 +1,5 @@
+// src/components/sidebar/upgrade.tsx
+
 "use client";
 
 import { authClient } from "~/lib/auth-client";

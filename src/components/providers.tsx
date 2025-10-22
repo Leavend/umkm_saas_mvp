@@ -1,3 +1,5 @@
+// src/components/providers.tsx
+
 "use client";
 
 import { AuthUIProvider } from "@daveyplate/better-auth-ui";

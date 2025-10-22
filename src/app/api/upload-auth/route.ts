@@ -1,3 +1,5 @@
+// src/app/api/upload-auth/route.ts
+
 import { getUploadAuthParams } from "@imagekit/next/server";
 import { env } from "~/env";
 

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { ImageIcon, Sparkles, Target, Zap } from "lucide-react";
 import Link from "next/link";
 
-import { LanguageToggle } from "~/components/language-toggle";
+// import { LanguageToggle } from "~/components/language-toggle";
 import { useTranslations } from "~/components/language-provider";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -49,7 +49,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 {common.brand.name}
               </span>
             </Link>
-            <LanguageToggle variant="outline" size="sm" className="border-blue-400/40 text-blue-50" />
+            {/* <LanguageToggle variant="outline" size="sm" className="border-blue-400/40 text-blue-50" /> */}
           </div>
 
           <div className="max-w-md">
@@ -100,7 +100,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               {auth.mobileBrand}
             </span>
           </Link>
-          <LanguageToggle size="sm" />
+          {/* <LanguageToggle size="sm" /> */}
         </div>
 
         <div className="sm:mx-auto sm:w-full sm:max-w-md">

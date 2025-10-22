@@ -62,13 +62,16 @@ export default function SettingsPage() {
       SECURITY: settings.security.title,
       CHANGE_PASSWORD: settings.security.changePasswordLabel,
       CHANGE_PASSWORD_DESCRIPTION: settings.security.changePasswordDescription,
-      CHANGE_PASSWORD_INSTRUCTIONS: settings.security.changePasswordInstructions,
+      CHANGE_PASSWORD_INSTRUCTIONS:
+        settings.security.changePasswordInstructions,
       CURRENT_PASSWORD: settings.security.currentPasswordLabel,
-      CURRENT_PASSWORD_PLACEHOLDER: settings.security.currentPasswordPlaceholder,
+      CURRENT_PASSWORD_PLACEHOLDER:
+        settings.security.currentPasswordPlaceholder,
       NEW_PASSWORD: settings.security.newPasswordLabel,
       NEW_PASSWORD_PLACEHOLDER: settings.security.newPasswordPlaceholder,
       CONFIRM_PASSWORD: settings.security.confirmPasswordLabel,
-      CONFIRM_PASSWORD_PLACEHOLDER: settings.security.confirmPasswordPlaceholder,
+      CONFIRM_PASSWORD_PLACEHOLDER:
+        settings.security.confirmPasswordPlaceholder,
       PASSWORDS_DO_NOT_MATCH: settings.security.passwordsDoNotMatch,
       CHANGE_PASSWORD_SUCCESS: settings.security.changePasswordSuccess,
       // TWO_FACTOR: settings.security.twoFactorLabel,
@@ -116,7 +119,6 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex flex-col items-center justify-center gap-6">
-
             <AccountSettingsCards
               className="w-full max-w-2xl"
               localization={accountLocalization}

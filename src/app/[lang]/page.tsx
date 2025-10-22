@@ -128,7 +128,9 @@ export default async function HomePage({
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-100/30 px-4 py-2 text-sm">
               <Sparkles className="h-4 w-4 text-blue-600" />
-              <span className="font-medium text-blue-700">{home.hero.badge}</span>
+              <span className="font-medium text-blue-700">
+                {home.hero.badge}
+              </span>
             </div>
 
             <h1 className="mb-6 text-4xl font-bold tracking-tight text-slate-800 sm:text-6xl">
@@ -144,7 +146,10 @@ export default async function HomePage({
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link href="/dashboard">
-                <Button size="lg" className="cursor-pointer gap-2 px-8 py-6 text-base">
+                <Button
+                  size="lg"
+                  className="cursor-pointer gap-2 px-8 py-6 text-base"
+                >
                   <Play className="h-5 w-5" />
                   {home.hero.primaryCta}
                 </Button>
@@ -162,11 +167,15 @@ export default async function HomePage({
             </div>
 
             <div className="mt-16 text-center">
-              <p className="mb-8 text-sm text-slate-500">{home.hero.trustedBy}</p>
+              <p className="mb-8 text-sm text-slate-500">
+                {home.hero.trustedBy}
+              </p>
               <div className="grid grid-cols-2 items-center justify-center gap-6 opacity-80 sm:grid-cols-5">
                 {home.metrics.map((metric) => (
                   <div key={metric.label} className="text-center">
-                    <div className="text-2xl font-bold text-slate-700">{metric.value}</div>
+                    <div className="text-2xl font-bold text-slate-700">
+                      {metric.value}
+                    </div>
                     <div className="text-xs text-slate-500">{metric.label}</div>
                   </div>
                 ))}
@@ -185,7 +194,9 @@ export default async function HomePage({
                 {home.features.headingHighlight}
               </span>
             </h2>
-            <p className="mt-4 text-lg text-slate-600">{home.features.description}</p>
+            <p className="mt-4 text-lg text-slate-600">
+              {home.features.description}
+            </p>
           </div>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -203,7 +214,9 @@ export default async function HomePage({
                   <h3 className="mb-2 text-lg font-semibold text-slate-800">
                     {feature.copy.title}
                   </h3>
-                  <p className="text-sm text-slate-600">{feature.copy.description}</p>
+                  <p className="text-sm text-slate-600">
+                    {feature.copy.description}
+                  </p>
                 </CardContent>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 to-blue-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
               </Card>
@@ -218,7 +231,9 @@ export default async function HomePage({
             <h2 className="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">
               {home.howItWorks.heading}
             </h2>
-            <p className="mt-4 text-lg text-slate-600">{home.howItWorks.description}</p>
+            <p className="mt-4 text-lg text-slate-600">
+              {home.howItWorks.description}
+            </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
@@ -248,7 +263,9 @@ export default async function HomePage({
                 {home.testimonials.headingHighlight}
               </span>
             </h2>
-            <p className="mt-4 text-lg text-slate-600">{home.testimonials.description}</p>
+            <p className="mt-4 text-lg text-slate-600">
+              {home.testimonials.description}
+            </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -273,7 +290,9 @@ export default async function HomePage({
                     <div className="font-semibold text-slate-800">
                       {testimonial.name}
                     </div>
-                    <div className="text-sm text-slate-500">{testimonial.role}</div>
+                    <div className="text-sm text-slate-500">
+                      {testimonial.role}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -282,7 +301,10 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section id="pricing" className="bg-gradient-to-br from-slate-50 to-blue-50/50 py-20 sm:py-32">
+      <section
+        id="pricing"
+        className="bg-gradient-to-br from-slate-50 to-blue-50/50 py-20 sm:py-32"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto mb-16 max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">
@@ -291,7 +313,9 @@ export default async function HomePage({
                 {home.pricing.headingHighlight}
               </span>
             </h2>
-            <p className="mt-4 text-lg text-slate-600">{home.pricing.description}</p>
+            <p className="mt-4 text-lg text-slate-600">
+              {home.pricing.description}
+            </p>
           </div>
 
           <div className="mx-auto max-w-lg">
@@ -312,7 +336,9 @@ export default async function HomePage({
                       {home.pricing.priceSuffix}
                     </span>
                   </div>
-                  <p className="mt-2 text-slate-600">{home.pricing.subheading}</p>
+                  <p className="mt-2 text-slate-600">
+                    {home.pricing.subheading}
+                  </p>
                 </div>
 
                 <ul className="mb-8 space-y-4">
@@ -325,7 +351,10 @@ export default async function HomePage({
                 </ul>
 
                 <Link href="/dashboard">
-                  <Button className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" size="lg">
+                  <Button
+                    className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    size="lg"
+                  >
                     <Sparkles className="h-4 w-4" />
                     {home.hero.primaryCta}
                   </Button>
@@ -346,7 +375,9 @@ export default async function HomePage({
             <h2 className="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">
               {home.cta.heading}
             </h2>
-            <p className="mt-4 text-lg text-slate-600">{home.cta.description}</p>
+            <p className="mt-4 text-lg text-slate-600">
+              {home.cta.description}
+            </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Link href="/dashboard">
                 <Button
@@ -385,7 +416,9 @@ export default async function HomePage({
                     {common.brand.name}
                   </span>
                 </div>
-                <p className="max-w-md text-slate-600">{home.footer.description}</p>
+                <p className="max-w-md text-slate-600">
+                  {home.footer.description}
+                </p>
               </div>
 
               <div>
@@ -394,17 +427,26 @@ export default async function HomePage({
                 </h3>
                 <ul className="space-y-3 text-sm text-slate-600">
                   <li>
-                    <Link href="#features" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="#features"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.features}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#pricing" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="#pricing"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.pricing}
                     </Link>
                   </li>
                   <li>
-                    <Link href="/dashboard" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="/dashboard"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.dashboard}
                     </Link>
                   </li>
@@ -417,17 +459,26 @@ export default async function HomePage({
                 </h3>
                 <ul className="space-y-3 text-sm text-slate-600">
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.helpCenter}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.contact}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.privacy}
                     </Link>
                   </li>
@@ -436,7 +487,9 @@ export default async function HomePage({
             </div>
 
             <div className="mt-16 border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
-              <p>&copy; 2025 {common.brand.name}. {home.footer.copyright}</p>
+              <p>
+                &copy; 2025 {common.brand.name}. {home.footer.copyright}
+              </p>
             </div>
           </div>
         </div>

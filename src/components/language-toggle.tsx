@@ -22,7 +22,6 @@ export function LanguageToggle({
   size = "sm",
   ...props
 }: LanguageToggleProps) {
-
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
@@ -67,7 +66,7 @@ export function LanguageToggle({
     >
       <Languages className="h-4 w-4" />
       <span className="hidden text-xs font-medium sm:inline">{label}</span>
-      <span className="sm:hidden text-xs font-semibold uppercase">
+      <span className="text-xs font-semibold uppercase sm:hidden">
         {shortLabel}
       </span>
     </Button>

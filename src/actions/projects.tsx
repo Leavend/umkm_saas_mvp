@@ -24,9 +24,7 @@ export async function createProject(data: CreateProjectData) {
 
     const project = await db.project.create({
       data: {
-        name:
-          data.name ??
-          TRANSLATIONS[DEFAULT_LOCALE].projects.card.untitled,
+        name: data.name ?? TRANSLATIONS[DEFAULT_LOCALE].projects.card.untitled,
         imageUrl: data.imageUrl,
         imageKitId: data.imageKitId,
         filePath: data.filePath,
@@ -66,7 +64,6 @@ export async function getUserProjects() {
     return { success: false, error: "Failed to fetch projects" };
   }
 }
-
 
 export async function deductCredits(
   creditsToDeduct: number,

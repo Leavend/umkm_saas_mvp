@@ -21,7 +21,9 @@ export function CreditsDisplay({ credits }: { credits: number | null }) {
           <span className="text-foreground text-sm font-bold transition-colors duration-200 group-hover:text-yellow-600">
             {credits ?? 0}
           </span>
-          <span className="text-muted-foreground text-xs leading-tight">{label}</span>
+          <span className="text-muted-foreground text-xs leading-tight">
+            {label}
+          </span>
         </div>
       </div>
     </div>

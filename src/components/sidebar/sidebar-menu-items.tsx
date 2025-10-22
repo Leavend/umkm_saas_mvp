@@ -42,7 +42,13 @@ export default function SidebarMenuItems() {
         ...item,
         active: path === item.url,
       })),
-    [path, translations.sidebar.items.create, translations.sidebar.items.dashboard, translations.sidebar.items.projects, translations.sidebar.items.settings],
+    [
+      path,
+      translations.sidebar.items.create,
+      translations.sidebar.items.dashboard,
+      translations.sidebar.items.projects,
+      translations.sidebar.items.settings,
+    ],
   );
 
   const handleMenuClick = () => {

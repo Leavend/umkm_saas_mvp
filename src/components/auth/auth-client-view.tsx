@@ -19,7 +19,7 @@ export function AuthClientView({
   localization,
 }: AuthClientViewProps) {
   const params = useParams();
-  
+
   const viewPath = Array.isArray(path) ? path.join("/") : path;
 
   if (!viewPath) {

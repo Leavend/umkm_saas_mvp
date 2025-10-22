@@ -7,7 +7,9 @@ export const DEFAULT_LOCALE: Locale = "en";
 export const LANGUAGE_STORAGE_KEY = "umkm-saas-language";
 
 export function isSupportedLocale(value: unknown): value is Locale {
-  return typeof value === "string" && SUPPORTED_LOCALES.includes(value as Locale);
+  return (
+    typeof value === "string" && SUPPORTED_LOCALES.includes(value as Locale)
+  );
 }
 
 export function normalizeLocale(value: unknown): Locale {
@@ -197,7 +199,8 @@ export const TRANSLATIONS = {
       },
       cta: {
         heading: "Ready to Transform Your Images?",
-        description: "Join thousands of creators using AI to enhance their visual content",
+        description:
+          "Join thousands of creators using AI to enhance their visual content",
         primaryCta: "Try It Free Now",
         secondaryCta: "View Examples",
       },
@@ -242,13 +245,15 @@ export const TRANSLATIONS = {
       },
       signIn: {
         title: "Sign in to your account",
-        description: "Access your AI Image Editor dashboard and start transforming your images instantly.",
+        description:
+          "Access your AI Image Editor dashboard and start transforming your images instantly.",
         button: "Sign In",
         forgotPasswordLink: "Forgot your password?",
       },
       signUp: {
         title: "Create your account",
-        description: "Join thousands of creators using AI to edit and enhance their images.",
+        description:
+          "Join thousands of creators using AI to edit and enhance their images.",
         button: "Sign Up",
       },
       form: {
@@ -309,8 +314,7 @@ export const TRANSLATIONS = {
     },
     projects: {
       title: "Your Projects",
-      description:
-        "Manage and organize all your AI-generated images",
+      description: "Manage and organize all your AI-generated images",
       projectCountSingular: "project",
       projectCountPlural: "projects",
       newProject: "New Project",
@@ -384,7 +388,7 @@ export const TRANSLATIONS = {
           done: "Cropped ✓",
           tooltip: "Smart object crop",
           placeholder: "Focus object (e.g. shoes, bag, person)",
-          toastApplied: "Smart crop applied focusing on \"{{object}}\"!",
+          toastApplied: 'Smart crop applied focusing on "{{object}}"!',
           toastAlready: "Smart object crop is already applied!",
           toastMissing: "Please enter an object to focus on!",
           toastError: "Failed to apply smart crop",
@@ -440,19 +444,24 @@ export const TRANSLATIONS = {
         emailPlaceholder: "m@example.com",
         emailVerifyChange: "Please check your email to verify the change.",
         avatarLabel: "Avatar",
-        avatarDescription: "Click on the avatar to upload a custom one from your files.",
+        avatarDescription:
+          "Click on the avatar to upload a custom one from your files.",
         avatarInstructions: "An avatar is optional but strongly recommended.",
         uploadAvatar: "Upload Avatar",
         deleteAvatar: "Delete Avatar",
         deleteAccountLabel: "Delete Account",
-        deleteAccountDescription: "Permanently remove your account and all of its contents. This action is not reversible — please continue with caution.",
-        deleteAccountInstructions: "Please confirm the deletion of your account. This action is not reversible, so please continue with caution.",
-        deleteAccountVerify: "Please check your email to verify the deletion of your account.",
+        deleteAccountDescription:
+          "Permanently remove your account and all of its contents. This action is not reversible — please continue with caution.",
+        deleteAccountInstructions:
+          "Please confirm the deletion of your account. This action is not reversible, so please continue with caution.",
+        deleteAccountVerify:
+          "Please check your email to verify the deletion of your account.",
       },
       security: {
         title: "Security",
         changePasswordLabel: "Change Password",
-        changePasswordDescription: "Enter your current password and a new password.",
+        changePasswordDescription:
+          "Enter your current password and a new password.",
         changePasswordInstructions: "Please use 8 characters at minimum.",
         currentPasswordLabel: "Current Password",
         currentPasswordPlaceholder: "Current Password",
@@ -463,11 +472,13 @@ export const TRANSLATIONS = {
         passwordsDoNotMatch: "Passwords do not match",
         changePasswordSuccess: "Your password has been changed.",
         twoFactorLabel: "Two-Factor Authentication",
-        twoFactorCardDescription: "Add an extra layer of security to your account.",
+        twoFactorCardDescription:
+          "Add an extra layer of security to your account.",
         enableTwoFactor: "Enable Two-Factor",
         disableTwoFactor: "Disable Two-Factor",
         twoFactorEnableInstructions: "Please enter your password to enable 2FA",
-        twoFactorDisableInstructions: "Please enter your password to disable 2FA.",
+        twoFactorDisableInstructions:
+          "Please enter your password to disable 2FA.",
         twoFactorEnabled: "Two-factor authentication has been enabled",
         twoFactorDisabled: "Two-Factor Authentication has been disabled",
         sessionsLabel: "Sessions",
@@ -475,7 +486,7 @@ export const TRANSLATIONS = {
         currentSession: "Current Session",
         signout: "Sign Out",
         revoke: "Revoke",
-      }
+      },
     },
     customerPortal: {
       loading: "Loading your customer portal...",
@@ -644,8 +655,7 @@ export const TRANSLATIONS = {
       pricing: {
         headingLeading: "Mulai Berkarya",
         headingHighlight: "Gratis",
-        description:
-          "Tanpa kartu kredit. Langsung ubah gambar Anda sekarang.",
+        description: "Tanpa kartu kredit. Langsung ubah gambar Anda sekarang.",
         badge: "Gratis Dimulai",
         planName: "Paket Gratis",
         price: "Rp0",
@@ -709,13 +719,15 @@ export const TRANSLATIONS = {
       },
       signIn: {
         title: "Masuk ke akun Anda",
-        description: "Akses dasbor Editor Gambar AI dan mulai ubah gambar Anda sekarang.",
+        description:
+          "Akses dasbor Editor Gambar AI dan mulai ubah gambar Anda sekarang.",
         button: "Masuk",
         forgotPasswordLink: "Lupa kata sandi?",
       },
       signUp: {
         title: "Buat akun baru",
-        description: "Bergabunglah dengan ribuan kreator yang menggunakan AI untuk mengedit dan menyempurnakan gambar mereka.",
+        description:
+          "Bergabunglah dengan ribuan kreator yang menggunakan AI untuk mengedit dan menyempurnakan gambar mereka.",
         button: "Daftar",
       },
       form: {
@@ -776,8 +788,7 @@ export const TRANSLATIONS = {
     },
     projects: {
       title: "Proyekmu",
-      description:
-        "Kelola dan atur semua gambar buatan AI Anda",
+      description: "Kelola dan atur semua gambar buatan AI Anda",
       projectCountSingular: "proyek",
       projectCountPlural: "proyek",
       newProject: "Proyek Baru",
@@ -851,7 +862,7 @@ export const TRANSLATIONS = {
           done: "Selesai ✓",
           tooltip: "Potong objek pintar",
           placeholder: "Fokus objek (mis. sepatu, tas, orang)",
-          toastApplied: "Potongan fokus pada \"{{object}}\" diterapkan!",
+          toastApplied: 'Potongan fokus pada "{{object}}" diterapkan!',
           toastAlready: "Potongan objek pintar sudah diterapkan!",
           toastMissing: "Masukkan objek yang ingin difokuskan!",
           toastError: "Gagal menerapkan potongan pintar",
@@ -898,28 +909,37 @@ export const TRANSLATIONS = {
       account: {
         title: "Akun",
         nameLabel: "Nama",
-        nameDescription: "Silakan masukkan nama lengkap Anda, atau nama tampilan.",
+        nameDescription:
+          "Silakan masukkan nama lengkap Anda, atau nama tampilan.",
         nameInstructions: "Harap gunakan maksimal 32 karakter.",
         namePlaceholder: "Nama Anda",
         emailLabel: "Email",
-        emailDescription: "Masukkan alamat email yang ingin Anda gunakan untuk masuk.",
+        emailDescription:
+          "Masukkan alamat email yang ingin Anda gunakan untuk masuk.",
         emailInstructions: "Harap masukkan alamat email yang valid.",
         emailPlaceholder: "m@contoh.com",
-        emailVerifyChange: "Silakan periksa email Anda untuk memverifikasi perubahan.",
+        emailVerifyChange:
+          "Silakan periksa email Anda untuk memverifikasi perubahan.",
         avatarLabel: "Avatar",
-        avatarDescription: "Klik pada avatar untuk mengunggah yang kustom dari file Anda.",
-        avatarInstructions: "Avatar bersifat opsional tetapi sangat disarankan.",
+        avatarDescription:
+          "Klik pada avatar untuk mengunggah yang kustom dari file Anda.",
+        avatarInstructions:
+          "Avatar bersifat opsional tetapi sangat disarankan.",
         uploadAvatar: "Unggah Avatar",
         deleteAvatar: "Hapus Avatar",
         deleteAccountLabel: "Hapus Akun",
-        deleteAccountDescription: "Hapus akun Anda dan semua isinya secara permanen. Tindakan ini tidak dapat dibatalkan — harap lanjutkan dengan hati-hati.",
-        deleteAccountInstructions: "Harap konfirmasi penghapusan akun Anda. Tindakan ini tidak dapat dibatalkan, jadi harap lanjutkan dengan hati-hati.",
-        deleteAccountVerify: "Silakan periksa email Anda untuk memverifikasi penghapusan akun Anda.",
+        deleteAccountDescription:
+          "Hapus akun Anda dan semua isinya secara permanen. Tindakan ini tidak dapat dibatalkan — harap lanjutkan dengan hati-hati.",
+        deleteAccountInstructions:
+          "Harap konfirmasi penghapusan akun Anda. Tindakan ini tidak dapat dibatalkan, jadi harap lanjutkan dengan hati-hati.",
+        deleteAccountVerify:
+          "Silakan periksa email Anda untuk memverifikasi penghapusan akun Anda.",
       },
       security: {
         title: "Keamanan",
         changePasswordLabel: "Ubah Kata Sandi",
-        changePasswordDescription: "Masukkan kata sandi Anda saat ini dan kata sandi baru.",
+        changePasswordDescription:
+          "Masukkan kata sandi Anda saat ini dan kata sandi baru.",
         changePasswordInstructions: "Harap gunakan minimal 8 karakter.",
         currentPasswordLabel: "Kata Sandi Saat Ini",
         currentPasswordPlaceholder: "Kata Sandi Saat Ini",
@@ -930,11 +950,14 @@ export const TRANSLATIONS = {
         passwordsDoNotMatch: "Kata sandi tidak cocok",
         changePasswordSuccess: "Kata sandi Anda telah diubah.",
         twoFactorLabel: "Autentikasi Dua Faktor",
-        twoFactorCardDescription: "Tambahkan lapisan keamanan ekstra ke akun Anda.",
+        twoFactorCardDescription:
+          "Tambahkan lapisan keamanan ekstra ke akun Anda.",
         enableTwoFactor: "Aktifkan Dua Faktor",
         disableTwoFactor: "Nonaktifkan Dua Faktor",
-        twoFactorEnableInstructions: "Masukkan kata sandi Anda untuk mengaktifkan 2FA",
-        twoFactorDisableInstructions: "Masukkan kata sandi Anda untuk menonaktifkan 2FA.",
+        twoFactorEnableInstructions:
+          "Masukkan kata sandi Anda untuk mengaktifkan 2FA",
+        twoFactorDisableInstructions:
+          "Masukkan kata sandi Anda untuk menonaktifkan 2FA.",
         twoFactorEnabled: "Autentikasi dua faktor telah diaktifkan",
         twoFactorDisabled: "Autentikasi Dua Faktor telah dinonaktifkan",
         sessionsLabel: "Sesi",
@@ -942,7 +965,7 @@ export const TRANSLATIONS = {
         currentSession: "Sesi Saat Ini",
         signout: "keluar",
         revoke: "Cabut",
-      }
+      },
     },
     customerPortal: {
       loading: "Memuat portal pelanggan Anda...",

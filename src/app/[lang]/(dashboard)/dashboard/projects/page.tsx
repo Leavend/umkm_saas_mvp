@@ -16,7 +16,13 @@ import {
   Plus,
 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { getUserProjects } from "~/actions/projects";
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -118,20 +124,15 @@ export default function ProjectsPage() {
     }
 
     return sorted;
-  }, [
-    deferredSearchQuery,
-    lang,
-    projectNameFallback,
-    sortBy,
-    userProjects,
-  ]);
+  }, [deferredSearchQuery, lang, projectNameFallback, sortBy, userProjects]);
 
   const handleProjectClick = useCallback(() => {
     router.push("/dashboard/create");
   }, [router]);
 
   const formatDate = useCallback(
-    (value: string | Date) => new Intl.DateTimeFormat(lang).format(new Date(value)),
+    (value: string | Date) =>
+      new Intl.DateTimeFormat(lang).format(new Date(value)),
     [lang],
   );
 
@@ -165,7 +166,8 @@ export default function ProjectsPage() {
                 {projects.title}
               </h1>
               <p className="text-muted-foreground text-base">
-                {projects.description} ({filteredProjects.length} {projectCountLabel})
+                {projects.description} ({filteredProjects.length}{" "}
+                {projectCountLabel})
               </p>
             </div>
             <Button
@@ -306,10 +308,10 @@ export default function ProjectsPage() {
                       <h3 className="truncate text-sm font-medium">
                         {project.name ?? projectNameFallback}
                       </h3>
-                    <div className="mt-1 flex items-center justify-between">
-                      <p className="text-muted-foreground text-xs">
-                        {formatDate(project.createdAt)}
-                      </p>
+                      <div className="mt-1 flex items-center justify-between">
+                        <p className="text-muted-foreground text-xs">
+                          {formatDate(project.createdAt)}
+                        </p>
                         <div className="opacity-0 transition-opacity group-hover:opacity-100">
                           <Button
                             variant="ghost"
@@ -356,11 +358,11 @@ export default function ProjectsPage() {
                             <Calendar className="h-3 w-3" />
                             {formatDate(project.createdAt)}
                           </div>
-                        <div className="flex items-center gap-1">
-                          <ImageIcon className="h-3 w-3" />
-                          {projects.card.imageLabel}
+                          <div className="flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            {projects.card.imageLabel}
+                          </div>
                         </div>
-                      </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <Button

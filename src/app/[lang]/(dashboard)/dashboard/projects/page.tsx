@@ -48,7 +48,7 @@ export default function ProjectsPage() {
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const router = useRouter();
   const translations = useTranslations();
-  const { locale } = useLanguage();
+  const { lang } = useLanguage();
   const { projects, common } = translations;
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
@@ -110,7 +110,7 @@ export default function ProjectsPage() {
         sorted.sort((a, b) =>
           (a.name ?? projectNameFallback).localeCompare(
             b.name ?? projectNameFallback,
-            locale,
+            lang,
             { sensitivity: "base" },
           ),
         );
@@ -120,7 +120,7 @@ export default function ProjectsPage() {
     return sorted;
   }, [
     deferredSearchQuery,
-    locale,
+    lang,
     projectNameFallback,
     sortBy,
     userProjects,
@@ -131,8 +131,8 @@ export default function ProjectsPage() {
   }, [router]);
 
   const formatDate = useCallback(
-    (value: string | Date) => new Intl.DateTimeFormat(locale).format(new Date(value)),
-    [locale],
+    (value: string | Date) => new Intl.DateTimeFormat(lang).format(new Date(value)),
+    [lang],
   );
 
   const projectCountLabel =

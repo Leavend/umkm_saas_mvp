@@ -3,7 +3,6 @@
 "use client";
 
 import { AuthView } from "@daveyplate/better-auth-ui";
-import { useParams } from "next/navigation";
 
 type AuthLocalization = Record<string, string | undefined>;
 
@@ -18,11 +17,16 @@ export function AuthClientView({
   loadingText,
   localization,
 }: AuthClientViewProps) {
-  const params = useParams();
-  
   const viewPath = Array.isArray(path) ? path.join("/") : path;
 
-  if (!viewPath) {
+  const localizedCanonicalMap: Record<string, string> = {
+    masuk: "sign-in",
+    daftar: "sign-up",
+  };
+
+  const canonicalPath = viewPath ? localizedCanonicalMap[viewPath] ?? viewPath : viewPath;
+
+  if (!canonicalPath) {
     return (
       <div className="flex grow items-center justify-center">
         <p>{loadingText}</p>
@@ -32,7 +36,7 @@ export function AuthClientView({
 
   return (
     <AuthView
-      path={viewPath as string}
+      path={canonicalPath as string}
       redirectTo="/dashboard"
       localization={localization}
     />

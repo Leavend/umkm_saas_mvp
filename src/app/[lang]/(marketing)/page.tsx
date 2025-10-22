@@ -1,6 +1,5 @@
-// src/app/[locale]/page.tsx
+// src/app/[lang]/(marketing)/page.tsx
 
-import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
@@ -20,6 +19,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import type { Locale, Translations } from "~/lib/i18n";
 import { getDictionary } from "~/lib/dictionary";
+import { Link } from "~/lib/i18n/navigation";
 
 const FEATURE_CONFIGS = [
   {
@@ -54,10 +54,11 @@ const FEATURE_CONFIGS = [
 }>;
 
 export default async function HomePage({
-  params: { locale },
+  params: { lang },
 }: {
-  params: { locale: Locale };
+  params: { lang: Locale };
 }) {
+  const locale = lang;
   const dict = await getDictionary(locale);
   const { home, common } = dict;
 
@@ -94,6 +95,7 @@ export default async function HomePage({
           <div className="hidden items-center space-x-6 md:flex">
             {navLinks.map((link) => (
               <Link
+                locale={locale}
                 key={link.href}
                 href={link.href}
                 className="text-slate-600 transition-colors hover:text-blue-600"
@@ -105,12 +107,12 @@ export default async function HomePage({
 
           <div className="flex items-center gap-3">
             <LanguageToggle className="hidden md:inline-flex" />
-            <Link href="/auth/sign-in">
+            <Link locale={locale} href="/auth/sign-in">
               <Button variant="ghost" size="sm" className="cursor-pointer">
                 {common.actions.signIn}
               </Button>
             </Link>
-            <Link href="/dashboard">
+            <Link locale={locale} href="/dashboard">
               <Button size="sm" className="cursor-pointer gap-2">
                 {common.actions.tryFree}
                 <ArrowRight className="h-4 w-4" />
@@ -143,13 +145,13 @@ export default async function HomePage({
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/dashboard">
+              <Link locale={locale} href="/dashboard">
                 <Button size="lg" className="cursor-pointer gap-2 px-8 py-6 text-base">
                   <Play className="h-5 w-5" />
                   {home.hero.primaryCta}
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link locale={locale} href="/dashboard">
                 <Button
                   variant="outline"
                   size="lg"
@@ -324,7 +326,7 @@ export default async function HomePage({
                   ))}
                 </ul>
 
-                <Link href="/dashboard">
+                <Link locale={locale} href="/dashboard">
                   <Button className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" size="lg">
                     <Sparkles className="h-4 w-4" />
                     {home.hero.primaryCta}
@@ -348,7 +350,7 @@ export default async function HomePage({
             </h2>
             <p className="mt-4 text-lg text-slate-600">{home.cta.description}</p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Link href="/dashboard">
+              <Link locale={locale} href="/dashboard">
                 <Button
                   size="lg"
                   className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
@@ -357,7 +359,7 @@ export default async function HomePage({
                   {home.cta.primaryCta}
                 </Button>
               </Link>
-              <Link href="/dashboard">
+              <Link locale={locale} href="/dashboard">
                 <Button
                   variant="outline"
                   size="lg"
@@ -394,17 +396,29 @@ export default async function HomePage({
                 </h3>
                 <ul className="space-y-3 text-sm text-slate-600">
                   <li>
-                    <Link href="#features" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="#features"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.features}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#pricing" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="#pricing"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.pricing}
                     </Link>
                   </li>
                   <li>
-                    <Link href="/dashboard" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="/dashboard"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.product.links.dashboard}
                     </Link>
                   </li>
@@ -417,17 +431,29 @@ export default async function HomePage({
                 </h3>
                 <ul className="space-y-3 text-sm text-slate-600">
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.helpCenter}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.contact}
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="transition-colors hover:text-blue-600">
+                    <Link
+                      locale={locale}
+                      href="#"
+                      className="transition-colors hover:text-blue-600"
+                    >
                       {home.footer.support.links.privacy}
                     </Link>
                   </li>

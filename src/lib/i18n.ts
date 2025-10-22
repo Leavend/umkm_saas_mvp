@@ -1,28 +1,26 @@
 // src/lib/i18n.ts
 
-export type Locale = "en" | "id";
+import {
+  LANGUAGE_STORAGE_KEY,
+  defaultLocale,
+  isLocale as isSupportedLocaleValue,
+  locales,
+  normalizeLocale as normalizeLocaleValue,
+  type Locale,
+} from "./i18n/locales";
 
-export const SUPPORTED_LOCALES: Locale[] = ["en", "id"];
-export const DEFAULT_LOCALE: Locale = "en";
-export const LANGUAGE_STORAGE_KEY = "umkm-saas-language";
+export type { Locale } from "./i18n/locales";
+
+export const SUPPORTED_LOCALES: Locale[] = [...locales];
+export const DEFAULT_LOCALE: Locale = defaultLocale;
+export { LANGUAGE_STORAGE_KEY };
 
 export function isSupportedLocale(value: unknown): value is Locale {
-  return typeof value === "string" && SUPPORTED_LOCALES.includes(value as Locale);
+  return isSupportedLocaleValue(value);
 }
 
 export function normalizeLocale(value: unknown): Locale {
-  if (isSupportedLocale(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const normalized = value.toLowerCase();
-    if (normalized.startsWith("id")) {
-      return "id";
-    }
-  }
-
-  return DEFAULT_LOCALE;
+  return normalizeLocaleValue(value);
 }
 
 export const TRANSLATIONS = {

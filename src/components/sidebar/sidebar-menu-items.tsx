@@ -4,45 +4,58 @@
 
 import { LayoutDashboard, Wand2, FolderOpen, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
-import Link from "next/link";
-import { cn } from "~/lib/utils";
-import { useTranslations } from "~/components/language-provider";
 import { useMemo } from "react";
+
+import { useLanguage, useTranslations } from "~/components/language-provider";
+import { Link, localizedHref } from "~/lib/i18n/navigation";
+import { cn } from "~/lib/utils";
+import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 
 export default function SidebarMenuItems() {
   const path = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
   const translations = useTranslations();
+  const { locale } = useLanguage();
 
   const items = useMemo(
     () =>
       [
         {
           title: translations.sidebar.items.dashboard,
-          url: "/dashboard",
+          pathname: "/dashboard" as const,
           icon: LayoutDashboard,
         },
         {
           title: translations.sidebar.items.create,
-          url: "/dashboard/create",
+          pathname: "/dashboard/create" as const,
           icon: Wand2,
         },
         {
           title: translations.sidebar.items.projects,
-          url: "/dashboard/projects",
+          pathname: "/dashboard/projects" as const,
           icon: FolderOpen,
         },
         {
           title: translations.sidebar.items.settings,
-          url: "/dashboard/settings",
+          pathname: "/dashboard/settings" as const,
           icon: Settings,
         },
-      ].map((item) => ({
-        ...item,
-        active: path === item.url,
-      })),
-    [path, translations.sidebar.items.create, translations.sidebar.items.dashboard, translations.sidebar.items.projects, translations.sidebar.items.settings],
+      ].map((item) => {
+        const href = localizedHref(locale, item.pathname);
+        return {
+          ...item,
+          href,
+          active: path === href,
+        };
+      }),
+    [
+      locale,
+      path,
+      translations.sidebar.items.create,
+      translations.sidebar.items.dashboard,
+      translations.sidebar.items.projects,
+      translations.sidebar.items.settings,
+    ],
   );
 
   const handleMenuClick = () => {
@@ -65,7 +78,8 @@ export default function SidebarMenuItems() {
             )}
           >
             <Link
-              href={item.url}
+              locale={locale}
+              href={item.pathname}
               onClick={handleMenuClick}
               className="flex items-center gap-3"
             >

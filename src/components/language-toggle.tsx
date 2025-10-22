@@ -4,12 +4,15 @@
 
 import { Languages } from "lucide-react";
 import { useCallback, useTransition, type ComponentProps } from "react";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
+import { persistUserLocale } from "~/actions/set-locale";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { persistUserLocale } from "~/actions/set-locale";
-import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
+import { TRANSLATIONS, normalizeLocale, type Locale } from "~/lib/i18n";
+import { matchLocalizedPathname } from "~/lib/i18n/matcher";
+import { localizedHref } from "~/lib/i18n/navigation";
+import { resolveLocalizedSlug } from "~/lib/i18n/slug-resolver";
 
 export type LanguageToggleProps = Omit<
   ComponentProps<typeof Button>,
@@ -28,30 +31,49 @@ export function LanguageToggle({
   const params = useParams();
   const [isPending, startPersistLocale] = useTransition();
 
-  const currentLocale = (params.locale as Locale) || DEFAULT_LOCALE;
+  const currentLocale = normalizeLocale(params.lang);
   const nextLocale = currentLocale === "en" ? "id" : "en";
 
   const t = TRANSLATIONS[currentLocale].common.language;
   const label = nextLocale === "id" ? t.indonesian : t.english;
   const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
 
-  const getPathWithoutLocale = (path: string, locale: string) => {
-    if (path === `/${locale}`) return "/";
-    return path.replace(`/${locale}`, "");
-  };
-
   const handleToggle = useCallback(() => {
-    const pathWithoutLocale = getPathWithoutLocale(pathname, currentLocale);
-    const newPath = `/${nextLocale}${
-      pathWithoutLocale === "/" ? "" : pathWithoutLocale
-    }`;
+    const prefix = new RegExp(`^/${currentLocale}`);
+    const pathWithoutLocale = pathname.replace(prefix, "") || "/";
+    const match = matchLocalizedPathname(pathWithoutLocale, currentLocale);
+
+    let targetHref = pathWithoutLocale;
+
+    if (match) {
+      const paramsCopy = { ...match.params };
+      if (paramsCopy.slug) {
+        paramsCopy.slug = resolveLocalizedSlug(
+          match.template,
+          paramsCopy.slug,
+          currentLocale,
+          nextLocale,
+        );
+      }
+
+      targetHref = { pathname: match.template, params: paramsCopy };
+    }
+
+    const nextPath = localizedHref(nextLocale, targetHref);
+
     startPersistLocale(() => {
       void persistUserLocale(nextLocale).catch((error) => {
         console.error("Failed to persist locale", error);
       });
     });
-    router.push(newPath);
-  }, [nextLocale, pathname, currentLocale, router, startPersistLocale]);
+    router.push(nextPath);
+  }, [
+    currentLocale,
+    nextLocale,
+    pathname,
+    router,
+    startPersistLocale,
+  ]);
 
   return (
     <Button

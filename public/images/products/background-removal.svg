@@ -1,0 +1,11 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="24" fill="#E0F2FE"/>
+  <g stroke="#0EA5E9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="96" y="88" width="448" height="248" rx="24" fill="#FFFFFF"/>
+    <path d="M160 256L224 192L288 248L352 184L416 232L480 176"/>
+    <circle cx="208" cy="152" r="20" fill="#38BDF8"/>
+  </g>
+  <text x="320" y="60" text-anchor="middle" font-family="'Inter', sans-serif" font-size="32" fill="#0369A1">
+    Background Removal Preview
+  </text>
+</svg>

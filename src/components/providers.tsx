@@ -3,13 +3,21 @@
 "use client";
 
 import { AuthUIProvider } from "@daveyplate/better-auth-ui";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 
+import { LanguageProvider, useLanguage } from "~/components/language-provider";
 import { authClient } from "~/lib/auth-client";
-import { LanguageProvider } from "~/components/language-provider";
+import { Link as LocalizedLink, type LocalizedLinkProps } from "~/lib/i18n/navigation";
 import type { Locale } from "~/lib/i18n";
+
+const AuthLink = forwardRef<HTMLAnchorElement, Omit<LocalizedLinkProps, "locale">>(
+  (props, ref) => {
+    const { locale } = useLanguage();
+    return <LocalizedLink {...props} locale={locale} ref={ref} />;
+  },
+);
+AuthLink.displayName = "AuthLink";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -44,7 +52,7 @@ export function Providers({ children, initialLocale }: ProvidersProps) {
             console.log("Session check failed:", error);
           }
         }}
-        Link={Link}
+        Link={AuthLink}
       >
         {children}
       </AuthUIProvider>

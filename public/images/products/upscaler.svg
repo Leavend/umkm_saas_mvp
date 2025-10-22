@@ -1,0 +1,13 @@
+<svg width="640" height="360" viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" rx="24" fill="#EDE9FE"/>
+  <g stroke="#8B5CF6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="112" y="72" width="416" height="256" rx="24" fill="#FFFFFF"/>
+    <path d="M192 232H448"/>
+    <path d="M224 176L256 144L304 192L360 128L416 184"/>
+    <circle cx="320" cy="256" r="44" fill="#DDD6FE" stroke="#8B5CF6" stroke-width="6"/>
+    <path d="M320 228V268M300 248H340" stroke="#4C1D95" stroke-width="6"/>
+  </g>
+  <text x="320" y="60" text-anchor="middle" font-family="'Inter', sans-serif" font-size="32" fill="#4C1D95">
+    AI Upscaler Preview
+  </text>
+</svg>

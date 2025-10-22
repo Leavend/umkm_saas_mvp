@@ -1,4 +1,4 @@
-// src/app/[locale]/(auth)/auth/[path]/page.tsx
+// src/app/[lang]/(auth)/auth/[path]/page.tsx
 
 import { getDictionary } from "~/lib/dictionary";
 import type { Locale } from "~/lib/i18n";
@@ -6,10 +6,11 @@ import type { Locale } from "~/lib/i18n";
 import { AuthClientView } from "~/components/auth/auth-client-view";
 
 export default async function AuthPage({
-  params: { locale, path },
+  params: { lang, path },
 }: {
-  params: { locale: Locale; path: string | string[] };
+  params: { lang: Locale; path: string | string[] };
 }) {
+  const locale = lang;
   const dict = await getDictionary(locale);
   const { auth, common } = dict;
 

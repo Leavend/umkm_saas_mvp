@@ -9,12 +9,13 @@ import type { Locale } from "~/lib/i18n";
 
 export default async function AuthLayout({
   children,
-  params: { lang },
+  params,
 }: {
   children: ReactNode;
   params: { lang: Locale };
 }) {
-  const dict = await getDictionary(lang);
+  const { lang } = await params;
+  const dict = await getDictionary(lang); //
   const { auth, common } = dict;
 
   const featureList = [

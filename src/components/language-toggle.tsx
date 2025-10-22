@@ -4,11 +4,12 @@
 
 import { Languages } from "lucide-react";
 import { useCallback, useTransition, type ComponentProps } from "react";
+import { useRouter, usePathname, useParams } from "next/navigation";
 
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { useLanguage, useTranslations } from "~/components/language-provider";
 import { persistUserLocale } from "~/actions/set-locale";
+import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
 
 export type LanguageToggleProps = Omit<
   ComponentProps<typeof Button>,
@@ -21,28 +22,36 @@ export function LanguageToggle({
   size = "sm",
   ...props
 }: LanguageToggleProps) {
-  const { locale, setLocale } = useLanguage();
-  const translations = useTranslations();
-  const [isPending, startPersistLocale] = useTransition();
-  const isEnglish = locale === "en";
-  const nextLocale = isEnglish ? "id" : "en";
 
-  const label = isEnglish
-    ? translations.common.language.indonesian
-    : translations.common.language.english;
-  const shortLabel = isEnglish
-    ? translations.common.language.shortIndonesian
-    : translations.common.language.shortEnglish;
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useParams();
+  const [isPending, startPersistLocale] = useTransition();
+
+  const currentLocale = (params.locale as Locale) || DEFAULT_LOCALE;
+  const nextLocale = currentLocale === "en" ? "id" : "en";
+
+  const t = TRANSLATIONS[currentLocale].common.language;
+  const label = nextLocale === "id" ? t.indonesian : t.english;
+  const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
+
+  const getPathWithoutLocale = (path: string, locale: string) => {
+    if (path === `/${locale}`) return "/";
+    return path.replace(`/${locale}`, "");
+  };
 
   const handleToggle = useCallback(() => {
-    const targetLocale = nextLocale;
-    setLocale(targetLocale);
+    const pathWithoutLocale = getPathWithoutLocale(pathname, currentLocale);
+    const newPath = `/${nextLocale}${
+      pathWithoutLocale === "/" ? "" : pathWithoutLocale
+    }`;
     startPersistLocale(() => {
-      void persistUserLocale(targetLocale).catch((error) => {
+      void persistUserLocale(nextLocale).catch((error) => {
         console.error("Failed to persist locale", error);
       });
     });
-  }, [nextLocale, setLocale, startPersistLocale]);
+    router.push(newPath);
+  }, [nextLocale, pathname, currentLocale, router, startPersistLocale]);
 
   return (
     <Button
@@ -50,7 +59,7 @@ export function LanguageToggle({
       variant={variant}
       size={size}
       onClick={handleToggle}
-      aria-label={`${translations.common.language.toggle} (${label})`}
+      aria-label={`${t.toggle} (${label})`}
       className={cn("min-w-[3rem]", className)}
       aria-busy={isPending}
       disabled={isPending}
@@ -58,7 +67,9 @@ export function LanguageToggle({
     >
       <Languages className="h-4 w-4" />
       <span className="hidden text-xs font-medium sm:inline">{label}</span>
-      <span className="sm:hidden text-xs font-semibold uppercase">{shortLabel}</span>
+      <span className="sm:hidden text-xs font-semibold uppercase">
+        {shortLabel}
+      </span>
     </Button>
   );
 }

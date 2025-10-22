@@ -1,3 +1,5 @@
+// src/components/sidebar/sidebar-brand.tsx
+
 "use client";
 
 import Link from "next/link";

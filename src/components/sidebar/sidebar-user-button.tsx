@@ -1,3 +1,5 @@
+// src/components/sidebar/sidebar-user-button.tsx
+
 "use client";
 
 import { UserButton } from "@daveyplate/better-auth-ui";

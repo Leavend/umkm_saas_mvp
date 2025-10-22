@@ -54,7 +54,7 @@ interface Transformation {
   raw?: string;
 }
 
-type TransformationType = "background" | "upscale" | "objectCrop";
+type TransformationType = "removeBackground" | "upscale" | "objectCrop";
 
 interface UploadAuthResponse {
   signature: string;
@@ -111,8 +111,9 @@ export default function CreatePage() {
     return effectsCopy[type].idle;
   };
 
+  // PERBAIKAN: Gunakan 'in' operator untuk mengecek properti 'cost' secara aman
   const getEffectCost = (type: TransformationType) =>
-    effectsCopy[type].cost ?? "";
+    ("cost" in effectsCopy[type] ? effectsCopy[type].cost : undefined) ?? "";
 
   useEffect(() => {
     const initializeData = async () => {
@@ -215,7 +216,8 @@ export default function CreatePage() {
   // Helper functions to check if transformations exist
   const hasTransformation = (type: TransformationType) => {
     return transformations.some((transform: Transformation) => {
-      if (type === "background" && transform.aiRemoveBackground) return true;
+      // PERBAIKAN: Ubah "background" menjadi "removeBackground"
+      if (type === "removeBackground" && transform.aiRemoveBackground) return true;
       if (type === "upscale" && transform.aiUpscale) return true;
       if (
         type === "objectCrop" &&
@@ -231,7 +233,8 @@ export default function CreatePage() {
   const removeTransformation = (type: TransformationType) => {
     setTransformations((prev) =>
       prev.filter((transform: Transformation) => {
-        if (type === "background" && transform.aiRemoveBackground) return false;
+        // PERBAIKAN: Ubah "background" menjadi "removeBackground"
+        if (type === "removeBackground" && transform.aiRemoveBackground) return false;
         if (type === "upscale" && transform.aiUpscale) return false;
         if (
           type === "objectCrop" &&
@@ -243,7 +246,8 @@ export default function CreatePage() {
       }),
     );
     const removalMessages: Record<TransformationType, string> = {
-      background: createCopy.effects.removeBackground.toastRemoved,
+      // PERBAIKAN: Ubah "background" menjadi "removeBackground"
+      removeBackground: createCopy.effects.removeBackground.toastRemoved,
       upscale: createCopy.effects.upscale.toastRemoved,
       objectCrop: createCopy.effects.objectCrop.toastRemoved,
     };
@@ -254,7 +258,7 @@ export default function CreatePage() {
     if (!uploadedImage) return;
 
     // Check if background removal already applied
-    if (hasTransformation("background")) {
+    if (hasTransformation("removeBackground")) {
       toast.error(createCopy.effects.removeBackground.toastAlready);
       return;
     }
@@ -547,7 +551,7 @@ export default function CreatePage() {
                             <Button
                               onClick={removeBackground}
                               disabled={
-                                isProcessing || hasTransformation("background")
+                                isProcessing || hasTransformation("removeBackground")
                               }
                               variant="outline"
                               size="sm"
@@ -555,18 +559,18 @@ export default function CreatePage() {
                             >
                               <Scissors className="h-3 w-3" />
                               <span className="text-xs">
-                                {getEffectLabel("background")}
+                                {getEffectLabel("removeBackground")}
                               </span>
-                              {!hasTransformation("background") && effectsCopy.background.cost && (
+                              {!hasTransformation("removeBackground") && effectsCopy.removeBackground.cost && (
                                 <span className="text-muted-foreground ml-1 text-xs">
-                                  {effectsCopy.background.cost}
+                                  {effectsCopy.removeBackground.cost}
                                 </span>
                               )}
                             </Button>
-                            {hasTransformation("background") && (
+                            {hasTransformation("removeBackground") && (
                               <Button
                                 onClick={() =>
-                                  removeTransformation("background")
+                                  removeTransformation("removeBackground")
                                 }
                                 disabled={isProcessing}
                                 variant="destructive"

@@ -1,3 +1,5 @@
+// src/components/sidebar/credits.tsx
+
 import { getUserCredits } from "~/actions/users";
 import { CreditsDisplay } from "~/components/sidebar/credits-display";
 

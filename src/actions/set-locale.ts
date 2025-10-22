@@ -1,10 +1,12 @@
+// src/actions/set-locale.ts
+
 "use server";
 
 import { cookies } from "next/headers";
 
 import {
   LANGUAGE_STORAGE_KEY,
-  Locale,
+  type Locale,
   normalizeLocale,
 } from "~/lib/i18n";
 

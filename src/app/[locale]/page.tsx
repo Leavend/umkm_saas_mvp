@@ -1,7 +1,6 @@
-"use client";
+// src/app/[locale]/page.tsx
 
 import Link from "next/link";
-import { useMemo } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -17,10 +16,10 @@ import {
 } from "lucide-react";
 
 import { LanguageToggle } from "~/components/language-toggle";
-import { useTranslations } from "~/components/language-provider";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import type { Translations } from "~/lib/i18n";
+import type { Locale, Translations } from "~/lib/i18n";
+import { getDictionary } from "~/lib/dictionary";
 
 const FEATURE_CONFIGS = [
   {
@@ -54,36 +53,30 @@ const FEATURE_CONFIGS = [
   bgColor: string;
 }>;
 
-export default function HomePage() {
-  const translations = useTranslations();
-  const { home, common } = translations;
+export default async function HomePage({
+  params: { locale },
+}: {
+  params: { locale: Locale };
+}) {
+  const dict = await getDictionary(locale);
+  const { home, common } = dict;
 
-  const featureItems = useMemo(
-    () =>
-      FEATURE_CONFIGS.map((feature) => ({
-        ...feature,
-        copy: home.features.items[feature.key],
-      })),
-    [home.features.items],
-  );
+  const featureItems = FEATURE_CONFIGS.map((feature) => ({
+    ...feature,
+    copy: home.features.items[feature.key],
+  }));
 
-  const navLinks = useMemo(
-    () => [
-      { href: "#features", label: home.nav.features },
-      { href: "#pricing", label: home.nav.pricing },
-      { href: "#testimonials", label: home.nav.reviews },
-    ],
-    [home.nav.features, home.nav.pricing, home.nav.reviews],
-  );
+  const navLinks = [
+    { href: "#features", label: home.nav.features },
+    { href: "#pricing", label: home.nav.pricing },
+    { href: "#testimonials", label: home.nav.reviews },
+  ];
 
-  const howItWorksSteps = useMemo(
-    () => [
-      home.howItWorks.steps.upload,
-      home.howItWorks.steps.choose,
-      home.howItWorks.steps.download,
-    ],
-    [home.howItWorks.steps],
-  );
+  const howItWorksSteps = [
+    home.howItWorks.steps.upload,
+    home.howItWorks.steps.choose,
+    home.howItWorks.steps.download,
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">

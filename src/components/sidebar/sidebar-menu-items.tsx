@@ -1,3 +1,5 @@
+// src/components/sidebar/sidebar-menu-items.tsx
+
 "use client";
 
 import { LayoutDashboard, Wand2, FolderOpen, Settings } from "lucide-react";

@@ -1,3 +1,5 @@
+-- prisma/migrations/20250909061034_t3_stack/migration.sql
+
 -- CreateTable
 CREATE TABLE "public"."user" (
     "id" TEXT NOT NULL,

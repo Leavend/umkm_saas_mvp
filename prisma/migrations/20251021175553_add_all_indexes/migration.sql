@@ -1,3 +1,5 @@
+-- prisma/migrations/20251021175553_add_all_indexes/migration.sql
+
 /*
   Warnings:
 

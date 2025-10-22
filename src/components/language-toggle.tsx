@@ -28,16 +28,16 @@ export function LanguageToggle({
   const params = useParams();
   const [isPending, startPersistLocale] = useTransition();
 
-  const currentLocale = (params.locale as Locale) || DEFAULT_LOCALE;
+  const currentLocale = (params.lang as Locale) || DEFAULT_LOCALE;
   const nextLocale = currentLocale === "en" ? "id" : "en";
 
   const t = TRANSLATIONS[currentLocale].common.language;
   const label = nextLocale === "id" ? t.indonesian : t.english;
   const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
 
-  const getPathWithoutLocale = (path: string, locale: string) => {
-    if (path === `/${locale}`) return "/";
-    return path.replace(`/${locale}`, "");
+  const getPathWithoutLocale = (path: string, lang: string) => {
+    if (path === `/${lang}`) return "/";
+    return path.replace(`/${lang}`, "");
   };
 
   const handleToggle = useCallback(() => {

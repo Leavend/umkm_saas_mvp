@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ name?: string; createdAt?: string | Date } | null>(null);
   const router = useRouter();
   const translations = useTranslations();
-  const { locale } = useLanguage();
+  const { lang } = useLanguage();
   const { dashboard, common, projects: projectsCopy } = translations;
 
   useEffect(() => {
@@ -116,8 +116,8 @@ export default function DashboardPage() {
 
   const formatDate = useCallback(
     (value: string | Date, options?: Intl.DateTimeFormatOptions) =>
-      new Intl.DateTimeFormat(locale, options).format(new Date(value)),
-    [locale],
+      new Intl.DateTimeFormat(lang, options).format(new Date(value)),
+    [lang],
   );
 
   if (isLoading) {

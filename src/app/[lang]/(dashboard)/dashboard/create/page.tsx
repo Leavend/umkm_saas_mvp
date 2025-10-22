@@ -77,7 +77,7 @@ export default function CreatePage() {
   const [objectInput, setObjectInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const translations = useTranslations();
-  const { locale } = useLanguage();
+  const { lang } = useLanguage();
   const { create: createCopy, common } = translations;
   const uploadCopy = createCopy.uploadCard;
   const effectsCopy = createCopy.effects;
@@ -877,7 +877,7 @@ export default function CreatePage() {
                           </h3>
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-white/90 drop-shadow-md">
-                              {new Intl.DateTimeFormat(locale, {
+                              {new Intl.DateTimeFormat(lang, {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",

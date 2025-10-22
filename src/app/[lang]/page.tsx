@@ -1,4 +1,4 @@
-// src/app/[locale]/page.tsx
+// src/app/[lang]/page.tsx
 
 import Link from "next/link";
 import {
@@ -54,11 +54,11 @@ const FEATURE_CONFIGS = [
 }>;
 
 export default async function HomePage({
-  params: { locale },
+  params: { lang },
 }: {
-  params: { locale: Locale };
+  params: { lang: Locale };
 }) {
-  const dict = await getDictionary(locale);
+  const dict = await getDictionary(lang);
   const { home, common } = dict;
 
   const featureItems = FEATURE_CONFIGS.map((feature) => ({

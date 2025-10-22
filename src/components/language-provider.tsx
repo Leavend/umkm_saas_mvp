@@ -21,8 +21,8 @@ import {
 } from "~/lib/i18n";
 
 interface LanguageContextValue {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
+  lang: Locale;
+  setLocale: (lang: Locale) => void;
   translations: (typeof TRANSLATIONS)[Locale];
 }
 
@@ -37,7 +37,7 @@ export function LanguageProvider({
   children,
   initialLocale,
 }: LanguageProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const [lang, setLocaleState] = useState<Locale>(initialLocale);
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
@@ -61,8 +61,8 @@ export function LanguageProvider({
       return;
     }
 
-    persistLocalePreferences(locale);
-  }, [locale, hasHydrated, persistLocalePreferences]);
+    persistLocalePreferences(lang);
+  }, [lang, hasHydrated, persistLocalePreferences]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -112,15 +112,15 @@ export function LanguageProvider({
     [],
   );
 
-  const translations = useMemo(() => TRANSLATIONS[locale], [locale]);
+  const translations = useMemo(() => TRANSLATIONS[lang], [lang]);
 
   const value = useMemo<LanguageContextValue>(
     () => ({
-      locale,
+      lang,
       setLocale,
       translations,
     }),
-    [locale, setLocale, translations],
+    [lang, setLocale, translations],
   );
 
   return (

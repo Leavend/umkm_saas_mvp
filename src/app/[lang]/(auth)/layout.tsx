@@ -74,7 +74,9 @@ export default async function AuthLayout({
                   >
                     <feature.icon className="h-5 w-5" />
                   </div>
-                  <span className="font-medium text-blue-100">{feature.text}</span>
+                  <span className="font-medium text-blue-100">
+                    {feature.text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -83,7 +85,9 @@ export default async function AuthLayout({
           <div className="mt-16 grid grid-cols-3 gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
-                <div className="text-2xl font-bold text-blue-200">{stat.value}</div>
+                <div className="text-2xl font-bold text-blue-200">
+                  {stat.value}
+                </div>
                 <div className="text-sm text-blue-300/70">{stat.label}</div>
               </div>
             ))}

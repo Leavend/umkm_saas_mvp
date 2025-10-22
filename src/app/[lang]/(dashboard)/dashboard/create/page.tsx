@@ -217,7 +217,8 @@ export default function CreatePage() {
   const hasTransformation = (type: TransformationType) => {
     return transformations.some((transform: Transformation) => {
       // PERBAIKAN: Ubah "background" menjadi "removeBackground"
-      if (type === "removeBackground" && transform.aiRemoveBackground) return true;
+      if (type === "removeBackground" && transform.aiRemoveBackground)
+        return true;
       if (type === "upscale" && transform.aiUpscale) return true;
       if (
         type === "objectCrop" &&
@@ -234,7 +235,8 @@ export default function CreatePage() {
     setTransformations((prev) =>
       prev.filter((transform: Transformation) => {
         // PERBAIKAN: Ubah "background" menjadi "removeBackground"
-        if (type === "removeBackground" && transform.aiRemoveBackground) return false;
+        if (type === "removeBackground" && transform.aiRemoveBackground)
+          return false;
         if (type === "upscale" && transform.aiUpscale) return false;
         if (
           type === "objectCrop" &&
@@ -551,7 +553,8 @@ export default function CreatePage() {
                             <Button
                               onClick={removeBackground}
                               disabled={
-                                isProcessing || hasTransformation("removeBackground")
+                                isProcessing ||
+                                hasTransformation("removeBackground")
                               }
                               variant="outline"
                               size="sm"
@@ -561,11 +564,12 @@ export default function CreatePage() {
                               <span className="text-xs">
                                 {getEffectLabel("removeBackground")}
                               </span>
-                              {!hasTransformation("removeBackground") && effectsCopy.removeBackground.cost && (
-                                <span className="text-muted-foreground ml-1 text-xs">
-                                  {effectsCopy.removeBackground.cost}
-                                </span>
-                              )}
+                              {!hasTransformation("removeBackground") &&
+                                effectsCopy.removeBackground.cost && (
+                                  <span className="text-muted-foreground ml-1 text-xs">
+                                    {effectsCopy.removeBackground.cost}
+                                  </span>
+                                )}
                             </Button>
                             {hasTransformation("removeBackground") && (
                               <Button
@@ -596,11 +600,12 @@ export default function CreatePage() {
                               <span className="text-xs">
                                 {getEffectLabel("upscale")}
                               </span>
-                              {!hasTransformation("upscale") && effectsCopy.upscale.cost && (
-                                <span className="text-muted-foreground ml-1 text-xs">
-                                  {effectsCopy.upscale.cost}
-                                </span>
-                              )}
+                              {!hasTransformation("upscale") &&
+                                effectsCopy.upscale.cost && (
+                                  <span className="text-muted-foreground ml-1 text-xs">
+                                    {effectsCopy.upscale.cost}
+                                  </span>
+                                )}
                             </Button>
                             {hasTransformation("upscale") && (
                               <Button
@@ -707,7 +712,9 @@ export default function CreatePage() {
                             className="h-7 w-full gap-1 px-2"
                           >
                             <RotateCcw className="h-3 w-3" />
-                            <span className="text-xs">{effectsCopy.clearAll}</span>
+                            <span className="text-xs">
+                              {effectsCopy.clearAll}
+                            </span>
                           </Button>
                         )}
 
@@ -725,12 +732,14 @@ export default function CreatePage() {
                             <Button
                               onClick={downloadImage}
                               size="sm"
-                          className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
-                        >
-                          <Download className="h-3 w-3" />
-                          <span className="text-xs">{common.actions.download}</span>
-                        </Button>
-                      )}
+                              className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
+                            >
+                              <Download className="h-3 w-3" />
+                              <span className="text-xs">
+                                {common.actions.download}
+                              </span>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>

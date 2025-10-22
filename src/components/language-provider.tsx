@@ -41,7 +41,9 @@ export function LanguageProvider({
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
-    setLocaleState((current) => (current === initialLocale ? current : initialLocale));
+    setLocaleState((current) =>
+      current === initialLocale ? current : initialLocale,
+    );
   }, [initialLocale]);
 
   const persistLocalePreferences = useCallback((value: Locale) => {
@@ -101,16 +103,15 @@ export function LanguageProvider({
     };
   }, []);
 
-  const setLocale = useCallback(
-    (nextLocale: Locale) => {
-      if (!SUPPORTED_LOCALES.includes(nextLocale)) {
-        return;
-      }
+  const setLocale = useCallback((nextLocale: Locale) => {
+    if (!SUPPORTED_LOCALES.includes(nextLocale)) {
+      return;
+    }
 
-      setLocaleState((current) => (current === nextLocale ? current : nextLocale));
-    },
-    [],
-  );
+    setLocaleState((current) =>
+      current === nextLocale ? current : nextLocale,
+    );
+  }, []);
 
   const translations = useMemo(() => TRANSLATIONS[lang], [lang]);
 

@@ -18,13 +18,13 @@ export default function MobileSidebarClose() {
     <div className="absolute top-2 right-2 z-50 mb-4 px-2">
       <Button
         variant="ghost"
-      size="sm"
-      onClick={() => setOpenMobile(false)}
-      className="hover:bg-muted/50 h-8 w-8 p-0"
-      aria-label={translations.common.actions.closeSidebar}
-    >
-      <X className="h-4 w-4" />
-    </Button>
-  </div>
+        size="sm"
+        onClick={() => setOpenMobile(false)}
+        className="hover:bg-muted/50 h-8 w-8 p-0"
+        aria-label={translations.common.actions.closeSidebar}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }

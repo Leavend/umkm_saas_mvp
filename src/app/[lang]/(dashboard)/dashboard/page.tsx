@@ -37,7 +37,10 @@ interface Project {
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
-  const [user, setUser] = useState<{ name?: string; createdAt?: string | Date } | null>(null);
+  const [user, setUser] = useState<{
+    name?: string;
+    createdAt?: string | Date;
+  } | null>(null);
   const router = useRouter();
   const translations = useTranslations();
   const { lang } = useLanguage();
@@ -329,42 +332,43 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                   {displayedProjects.map((project) => {
-                    const projectName = project.name ?? projectsCopy.card.untitled;
+                    const projectName =
+                      project.name ?? projectsCopy.card.untitled;
 
                     return (
-                    <div
-                      key={project.id}
-                      className="group relative cursor-pointer overflow-hidden rounded-lg border transition-all hover:shadow-md"
-                      onClick={() => handleNavigate("/dashboard/create")}
-                    >
-                      <div className="aspect-square overflow-hidden">
-                        <ImageKitImage
-                          urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
-                          src={project.filePath}
-                          alt={projectName}
-                          width={200}
-                          height={200}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          transformation={[
-                            {
-                              width: 200,
-                              height: 200,
-                              crop: "maintain_ratio",
-                              quality: 85,
-                            },
-                          ]}
-                        />
+                      <div
+                        key={project.id}
+                        className="group relative cursor-pointer overflow-hidden rounded-lg border transition-all hover:shadow-md"
+                        onClick={() => handleNavigate("/dashboard/create")}
+                      >
+                        <div className="aspect-square overflow-hidden">
+                          <ImageKitImage
+                            urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
+                            src={project.filePath}
+                            alt={projectName}
+                            width={200}
+                            height={200}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            transformation={[
+                              {
+                                width: 200,
+                                height: 200,
+                                crop: "maintain_ratio",
+                                quality: 85,
+                              },
+                            ]}
+                          />
+                        </div>
+                        <div className="p-3">
+                          <h4 className="truncate text-sm font-medium">
+                            {projectName}
+                          </h4>
+                          <p className="text-muted-foreground text-xs">
+                            {formatDate(project.createdAt)}
+                          </p>
+                        </div>
+                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
                       </div>
-                      <div className="p-3">
-                        <h4 className="truncate text-sm font-medium">
-                          {projectName}
-                        </h4>
-                        <p className="text-muted-foreground text-xs">
-                          {formatDate(project.createdAt)}
-                        </p>
-                      </div>
-                      <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                    </div>
                     );
                   })}
                 </div>

@@ -6,11 +6,12 @@ import type { Locale } from "~/lib/i18n";
 import { AuthClientView } from "~/components/auth/auth-client-view";
 
 export default async function AuthPage({
-  params: { lang, path },
+  params,
 }: {
   params: { lang: Locale; path: string | string[] };
 }) {
-  const dict = await getDictionary(lang);
+  const { lang, path } = await params;
+  const dict = await getDictionary(lang); //
   const { auth, common } = dict;
 
   const authLocalization = {

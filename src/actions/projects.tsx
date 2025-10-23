@@ -37,9 +37,7 @@ const mapServiceErrorToMessage = (error: AppError) => {
   return error.message;
 };
 
-export async function createProject(
-  data: Omit<CreateProjectParams, "userId">,
-) {
+export async function createProject(data: Omit<CreateProjectParams, "userId">) {
   try {
     const userId = await getCurrentUserId();
 

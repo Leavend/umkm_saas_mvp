@@ -2,22 +2,22 @@
 
 "use server";
 
-import { auth } from "~/lib/auth";
-
-import { headers } from "next/headers";
-import { db } from "~/server/db";
+import { selectUserCredits } from "~/server/repositories/user-repository";
+import { getCurrentUserId } from "~/server/auth/session";
 
 export async function getUserCredits() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  try {
+    const userId = await getCurrentUserId();
 
-  if (!session) return null;
+    if (!userId) {
+      return null;
+    }
 
-  const user = await db.user.findUniqueOrThrow({
-    where: { id: session.user.id },
-    select: { credits: true },
-  });
+    const user = await selectUserCredits(userId);
 
-  return user.credits;
+    return user?.credits ?? null;
+  } catch (error) {
+    console.error("Failed to load user credits", error);
+    return null;
+  }
 }

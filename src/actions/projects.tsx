@@ -2,49 +2,69 @@
 
 "use server";
 
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { db } from "~/server/db";
-import { auth } from "~/lib/auth";
-import { headers } from "next/headers";
-import { DEFAULT_LOCALE, TRANSLATIONS } from "~/lib/i18n";
+import {
+  deductCreditsForUser,
+  listProjectsForUser,
+  createProjectForUser,
+  type CreateProjectParams,
+} from "~/server/services/project-service";
+import { getCurrentUserId } from "~/server/auth/session";
+import {
+  AppError,
+  InsufficientCreditsError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "~/lib/errors";
 
-interface CreateProjectData {
-  imageUrl: string;
-  imageKitId: string;
-  filePath: string;
-  name?: string;
-}
+const mapServiceErrorToMessage = (error: AppError) => {
+  if (error instanceof UnauthorizedError) {
+    return "Unauthorized access. Please sign in.";
+  }
 
-export async function createProject(data: CreateProjectData) {
+  if (error instanceof ValidationError) {
+    return error.message;
+  }
+
+  if (error instanceof InsufficientCreditsError) {
+    return "Insufficient credits.";
+  }
+
+  if (error instanceof NotFoundError) {
+    return "Unable to complete the request. Please try again.";
+  }
+
+  return error.message;
+};
+
+export async function createProject(
+  data: Omit<CreateProjectParams, "userId">,
+) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const userId = await getCurrentUserId();
 
-    if (!session?.user?.id) {
-      throw new Error("Unauthorized");
+    if (!userId) {
+      return {
+        success: false,
+        error: "Unauthorized access. Please sign in.",
+      };
     }
 
-    // Ambil nama default dari terjemahan
-    // Pastikan DEFAULT_LOCALE adalah 'en' atau 'id' yang valid
-    const defaultProjectName =
-      TRANSLATIONS[DEFAULT_LOCALE]?.projects?.card?.untitled ??
-      "Untitled Project";
-
-    const project = await db.project.create({
-      data: {
-        name: data.name ?? defaultProjectName, // Gunakan nama default yang sudah diambil
-        imageUrl: data.imageUrl,
-        imageKitId: data.imageKitId,
-        filePath: data.filePath,
-        userId: session.user.id,
-      },
+    const result = await createProjectForUser({
+      ...data,
+      userId,
     });
 
-    return { success: true, project };
+    if (!result.ok) {
+      return {
+        success: false,
+        error: mapServiceErrorToMessage(result.error),
+      };
+    }
+
+    return { success: true, project: result.value };
   } catch (error) {
     console.error("Project creation error:", error);
-    // Berikan pesan error yang lebih generik ke client
     return {
       success: false,
       error: "Failed to create project. Please try again.",
@@ -54,33 +74,25 @@ export async function createProject(data: CreateProjectData) {
 
 export async function getUserProjects() {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
+    const userId = await getCurrentUserId();
 
-    // Handle kasus session tidak ada dengan lebih baik
-    if (!session?.user?.id) {
-      // Bisa return array kosong atau error spesifik
+    if (!userId) {
       console.warn("getUserProjects called without active session.");
-      return { success: true, projects: [] }; // Kembalikan array kosong
-      // throw new Error("Unauthorized"); // Atau lempar error jika user harus selalu login
+      return { success: true, projects: [] };
     }
 
-    const projects = await db.project.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      orderBy: {
-        createdAt: "desc", // Index pada [userId, createdAt] akan membantu ini
-      },
-      // Pertimbangkan pagination jika jumlah project bisa sangat banyak
-      // take: 50, // Contoh: Ambil 50 project terbaru
-    });
+    const result = await listProjectsForUser(userId);
 
-    return { success: true, projects };
+    if (!result.ok) {
+      return {
+        success: false,
+        error: mapServiceErrorToMessage(result.error),
+      };
+    }
+
+    return { success: true, projects: result.value };
   } catch (error) {
     console.error("Projects fetch error:", error);
-    // Berikan pesan error yang lebih generik ke client
     return {
       success: false,
       error: "Failed to fetch projects. Please try again.",
@@ -93,69 +105,31 @@ export async function deductCredits(
   operation?: string,
 ) {
   try {
-    if (
-      !creditsToDeduct ||
-      typeof creditsToDeduct !== "number" ||
-      creditsToDeduct <= 0 ||
-      !Number.isInteger(creditsToDeduct)
-    ) {
-      console.error(`Invalid credit amount received: ${creditsToDeduct}`);
-      return { success: false, error: "Invalid credit amount specified." };
-    }
+    const userId = await getCurrentUserId();
 
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session?.user?.id) {
+    if (!userId) {
       console.warn("deductCredits called without active session.");
       return { success: false, error: "Unauthorized access. Please sign in." };
     }
 
-    const result = await db.$transaction(async (tx) => {
-      const user = await tx.user.findUnique({
-        where: { id: session.user.id },
-        select: { credits: true },
-      });
+    const result = await deductCreditsForUser(userId, creditsToDeduct);
 
-      if (!user) {
-        throw new Error("User not found during transaction.");
-      }
+    if (!result.ok) {
+      const errorMessage = mapServiceErrorToMessage(result.error);
+      console.error(
+        `Credit deduction error${
+          operation ? ` for operation: ${operation}` : ""
+        }: ${errorMessage}`,
+      );
+      return { success: false, error: errorMessage };
+    }
 
-      if (user.credits < creditsToDeduct) {
-        return { success: false, error: "Insufficient credits." };
-      }
-
-      const updatedUser = await tx.user.update({
-        where: { id: session.user.id },
-        data: {
-          credits: {
-            decrement: creditsToDeduct,
-          },
-        },
-        select: { credits: true },
-      });
-
-      return { success: true, remainingCredits: updatedUser.credits };
-    });
-
-    return result;
-  } catch (error: unknown) {
+    return { success: true, remainingCredits: result.value.remainingCredits };
+  } catch (error) {
     console.error(
       `Credit deduction error${operation ? ` for operation: ${operation}` : ""}:`,
       error,
     );
-
-    if (
-      error instanceof PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return { success: false, error: "User not found during credit update." };
-    }
-
-    if (
-      error instanceof Error &&
-      error.message === "User not found during transaction."
-    ) {
-      return { success: false, error: "User not found during credit update." };
-    }
 
     return {
       success: false,

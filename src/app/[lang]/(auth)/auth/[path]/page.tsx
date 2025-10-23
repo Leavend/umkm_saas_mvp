@@ -1,17 +1,23 @@
-// src/app/[locale]/(auth)/auth/[path]/page.tsx
+// src/app/[lang]/(auth)/auth/[path]/page.tsx
 
 import { getDictionary } from "~/lib/dictionary";
 import type { Locale } from "~/lib/i18n";
 
 import { AuthClientView } from "~/components/auth/auth-client-view";
 
+type AuthParams = {
+  lang: Locale;
+  path: string;
+};
+
 export default async function AuthPage({
   params,
 }: {
-  params: { lang: Locale; path: string | string[] };
+  params: Promise<AuthParams>;
 }) {
   const { lang, path } = await params;
-  const dict = await getDictionary(lang); //
+
+  const dict = getDictionary(lang);
   const { auth, common } = dict;
 
   const authLocalization = {

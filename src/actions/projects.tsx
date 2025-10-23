@@ -27,8 +27,9 @@ export async function createProject(data: CreateProjectData) {
 
     // Ambil nama default dari terjemahan
     // Pastikan DEFAULT_LOCALE adalah 'en' atau 'id' yang valid
-    const defaultProjectName = TRANSLATIONS[DEFAULT_LOCALE]?.projects?.card?.untitled ?? "Untitled Project";
-
+    const defaultProjectName =
+      TRANSLATIONS[DEFAULT_LOCALE]?.projects?.card?.untitled ??
+      "Untitled Project";
 
     const project = await db.project.create({
       data: {
@@ -44,7 +45,10 @@ export async function createProject(data: CreateProjectData) {
   } catch (error) {
     console.error("Project creation error:", error);
     // Berikan pesan error yang lebih generik ke client
-    return { success: false, error: "Failed to create project. Please try again." };
+    return {
+      success: false,
+      error: "Failed to create project. Please try again.",
+    };
   }
 }
 
@@ -56,7 +60,7 @@ export async function getUserProjects() {
 
     // Handle kasus session tidak ada dengan lebih baik
     if (!session?.user?.id) {
-       // Bisa return array kosong atau error spesifik
+      // Bisa return array kosong atau error spesifik
       console.warn("getUserProjects called without active session.");
       return { success: true, projects: [] }; // Kembalikan array kosong
       // throw new Error("Unauthorized"); // Atau lempar error jika user harus selalu login
@@ -76,8 +80,11 @@ export async function getUserProjects() {
     return { success: true, projects };
   } catch (error) {
     console.error("Projects fetch error:", error);
-     // Berikan pesan error yang lebih generik ke client
-    return { success: false, error: "Failed to fetch projects. Please try again." };
+    // Berikan pesan error yang lebih generik ke client
+    return {
+      success: false,
+      error: "Failed to fetch projects. Please try again.",
+    };
   }
 }
 
@@ -88,7 +95,7 @@ export async function deductCredits(
   try {
     if (
       !creditsToDeduct ||
-      typeof creditsToDeduct !== 'number' ||
+      typeof creditsToDeduct !== "number" ||
       creditsToDeduct <= 0 ||
       !Number.isInteger(creditsToDeduct)
     ) {
@@ -98,8 +105,8 @@ export async function deductCredits(
 
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session?.user?.id) {
-       console.warn("deductCredits called without active session.");
-       return { success: false, error: "Unauthorized access. Please sign in." };
+      console.warn("deductCredits called without active session.");
+      return { success: false, error: "Unauthorized access. Please sign in." };
     }
 
     const result = await db.$transaction(async (tx) => {
@@ -130,21 +137,30 @@ export async function deductCredits(
     });
 
     return result;
-
   } catch (error: unknown) {
     console.error(
       `Credit deduction error${operation ? ` for operation: ${operation}` : ""}:`,
       error,
     );
 
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        return { success: false, error: "User not found during credit update." };
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return { success: false, error: "User not found during credit update." };
     }
 
-     if (error instanceof Error && error.message === "User not found during transaction.") {
-        return { success: false, error: "User not found during credit update." };
-     }
+    if (
+      error instanceof Error &&
+      error.message === "User not found during transaction."
+    ) {
+      return { success: false, error: "User not found during credit update." };
+    }
 
-    return { success: false, error: "An unexpected error occurred while deducting credits. Please try again." };
+    return {
+      success: false,
+      error:
+        "An unexpected error occurred while deducting credits. Please try again.",
+    };
   }
 }

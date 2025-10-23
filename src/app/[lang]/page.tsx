@@ -1,15 +1,23 @@
 // src/app/[lang]/page.tsx
 
-import type { Locale } from "~/lib/i18n";
+import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
 import { getDictionary } from "~/lib/dictionary";
 import { buildHomePageContent } from "~/features/homepage/content-builder";
 import { LandingPage } from "~/features/homepage/components/landing-page";
 
+export function generateStaticParams() {
+  return SUPPORTED_LOCALES.map((lang) => ({ lang }));
+}
+
 export default async function HomePage({
-  params: { lang },
+  params,
 }: {
-  params: { lang: Locale };
+  params: Promise<{ lang: string }>;
 }) {
+  const { lang } = await params;
+
+  assertValidLocale(lang);
+
   const dictionary = getDictionary(lang);
   const content = buildHomePageContent(dictionary);
 

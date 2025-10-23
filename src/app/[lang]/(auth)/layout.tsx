@@ -5,16 +5,23 @@ import { ImageIcon, Sparkles, Target, Zap } from "lucide-react";
 import Link from "next/link";
 
 import { getDictionary } from "~/lib/dictionary";
-import type { Locale } from "~/lib/i18n";
+import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
+
+export function generateStaticParams() {
+  return SUPPORTED_LOCALES.map((lang) => ({ lang }));
+}
 
 export default async function AuthLayout({
   children,
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ lang: Locale }>;
+  params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
+
+  assertValidLocale(lang);
+
   const dict = getDictionary(lang);
   const { auth, common } = dict;
 

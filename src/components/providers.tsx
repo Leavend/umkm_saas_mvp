@@ -4,11 +4,10 @@
 
 import { AuthUIProvider } from "@daveyplate/better-auth-ui";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Hapus useParams dari sini
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { authClient } from "~/lib/auth-client";
-// Import useLanguage
 import { LanguageProvider, useLanguage } from "~/components/language-provider";
 import type { Locale } from "~/lib/i18n";
 
@@ -17,13 +16,15 @@ interface ProvidersProps {
   initialLocale: Locale;
 }
 
-// Komponen Internal untuk mengakses context
+interface NavigateOptions {
+  scroll?: boolean;
+  shallow?: boolean;
+}
+
 function AuthUIWithLocale({ children }: { children: ReactNode }) {
   const router = useRouter();
-  // Gunakan useLanguage untuk mendapatkan locale saat ini dari context
   const { lang: currentLocale } = useLanguage();
 
-  // Fungsi helper tetap sama
   const prefixLocaleIfNeeded = (path: string) => {
     if (path.startsWith("/en/") || path.startsWith("/id/")) {
       return path;
@@ -43,10 +44,10 @@ function AuthUIWithLocale({ children }: { children: ReactNode }) {
   return (
     <AuthUIProvider
       authClient={authClient}
-      navigate={(path: string, options?: any) => {
+      navigate={(path: string, options?: NavigateOptions) => {
         router.push(prefixLocaleIfNeeded(path), options);
       }}
-      replace={(path: string, options?: any) => {
+      replace={(path: string, options?: NavigateOptions) => {
         router.replace(prefixLocaleIfNeeded(path), options);
       }}
       onSessionChange={async () => {
@@ -56,7 +57,6 @@ function AuthUIWithLocale({ children }: { children: ReactNode }) {
           if (session.data?.user && typeof window !== "undefined") {
             const currentPath = window.location.pathname;
             if (currentPath.includes("/auth/")) {
-              // Gunakan currentLocale dari useLanguage
               router.push(`/${currentLocale}/dashboard`);
             }
           }
@@ -73,7 +73,6 @@ function AuthUIWithLocale({ children }: { children: ReactNode }) {
 
 export function Providers({ children, initialLocale }: ProvidersProps) {
   return (
-    // LanguageProvider membungkus AuthUIWithLocale
     <LanguageProvider initialLocale={initialLocale}>
       <AuthUIWithLocale>{children}</AuthUIWithLocale>
     </LanguageProvider>

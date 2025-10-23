@@ -1,8 +1,8 @@
 // src/lib/i18n.ts
 
-export type Locale = "en" | "id";
+export const SUPPORTED_LOCALES = ["en", "id"] as const;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
-export const SUPPORTED_LOCALES: Locale[] = ["en", "id"];
 export const DEFAULT_LOCALE: Locale = "en";
 export const LANGUAGE_STORAGE_KEY = "umkm-saas-language";
 
@@ -10,6 +10,14 @@ export function isSupportedLocale(value: unknown): value is Locale {
   return (
     typeof value === "string" && SUPPORTED_LOCALES.includes(value as Locale)
   );
+}
+
+export function assertValidLocale(value: string): asserts value is Locale {
+  if (!isSupportedLocale(value)) {
+    throw new Error(
+      `Invalid locale: ${value}. Supported locales are: ${SUPPORTED_LOCALES.join(", ")}`,
+    );
+  }
 }
 
 export function normalizeLocale(value: unknown): Locale {

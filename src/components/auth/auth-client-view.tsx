@@ -35,7 +35,7 @@ export function AuthClientView({
 
   return (
     <AuthView
-      path={viewPath as string}
+      path={viewPath}
       redirectTo={redirectToPath}
       localization={localization}
     />

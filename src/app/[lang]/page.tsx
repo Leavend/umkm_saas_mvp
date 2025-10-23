@@ -10,7 +10,7 @@ export default async function HomePage({
 }: {
   params: { lang: Locale };
 }) {
-  const dictionary = await getDictionary(lang);
+  const dictionary = getDictionary(lang);
   const content = buildHomePageContent(dictionary);
 
   return <LandingPage content={content} />;

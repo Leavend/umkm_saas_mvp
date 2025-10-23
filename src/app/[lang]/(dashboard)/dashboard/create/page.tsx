@@ -1,3 +1,5 @@
+// src/app/[lang]/(dashboard)/dashboard/create/page.tsx
+
 "use client";
 
 import { RedirectToSignIn, SignedIn } from "@daveyplate/better-auth-ui";
@@ -83,35 +85,23 @@ export default function CreatePage() {
   const effectsCopy = createCopy.effects;
   const recentsCopy = createCopy.recents;
 
+  // Lebih toleran terhadap variasi teks error dari server
   const resolveCreditError = (error?: string | null) => {
-    if (!error) {
-      return createCopy.toasts.paymentFailed;
-    }
-
-    if (error === "Invalid credit amount") {
-      return createCopy.toasts.invalidCredits;
-    }
-
-    if (error === "Insufficient credits") {
-      return createCopy.toasts.insufficientCredits;
-    }
-
+    if (!error) return createCopy.toasts.paymentFailed;
+    const e = error.toLowerCase();
+    if (e.includes("invalid credit amount")) return createCopy.toasts.invalidCredits;
+    if (e.includes("insufficient credits")) return createCopy.toasts.insufficientCredits;
+    if (e.includes("unauthorized")) return createCopy.toasts.paymentFailed;
     return error;
   };
 
   const getEffectLabel = (type: TransformationType) => {
-    if (isProcessing) {
-      return effectsCopy[type].processing;
-    }
-
-    if (hasTransformation(type)) {
-      return effectsCopy[type].done;
-    }
-
+    if (isProcessing) return effectsCopy[type].processing;
+    if (hasTransformation(type)) return effectsCopy[type].done;
     return effectsCopy[type].idle;
   };
 
-  // PERBAIKAN: Gunakan 'in' operator untuk mengecek properti 'cost' secara aman
+  // keep tertinggal bila dibutuhkan untuk UI harga
   const getEffectCost = (type: TransformationType) =>
     ("cost" in effectsCopy[type] ? effectsCopy[type].cost : undefined) ?? "";
 
@@ -119,8 +109,6 @@ export default function CreatePage() {
     const initializeData = async () => {
       try {
         await authClient.getSession();
-
-        // Fetch user projects
         const projectsResult = await getUserProjects();
         if (projectsResult.success && projectsResult.projects) {
           setUserProjects(projectsResult.projects);
@@ -165,7 +153,7 @@ export default function CreatePage() {
         ...authParams,
       });
 
-      const uploadedData = {
+      const uploadedData: UploadedImage = {
         fileId: result.fileId ?? "",
         url: result.url ?? "",
         name: result.name ?? file.name,
@@ -174,7 +162,6 @@ export default function CreatePage() {
 
       setUploadedImage(uploadedData);
 
-      // Save project to database using server action
       try {
         const projectResult = await createProject({
           imageUrl: uploadedData.url,
@@ -184,16 +171,12 @@ export default function CreatePage() {
         });
 
         if (projectResult.success) {
-          // Refresh projects list
           const updatedProjects = await getUserProjects();
           if (updatedProjects.success && updatedProjects.projects) {
             setUserProjects(updatedProjects.projects);
           }
         } else {
-          console.error(
-            "Failed to save project to database:",
-            projectResult.error,
-          );
+          console.error("Failed to save project to database:", projectResult.error);
         }
       } catch (dbError) {
         console.error("Database save error:", dbError);
@@ -208,47 +191,29 @@ export default function CreatePage() {
     }
   };
 
-  // Function to get live preview transformation
-  const getLivePreviewTransformations = () => {
-    return [...transformations];
-  };
+  const getLivePreviewTransformations = () => [...transformations];
 
-  // Helper functions to check if transformations exist
   const hasTransformation = (type: TransformationType) => {
     return transformations.some((transform: Transformation) => {
-      // PERBAIKAN: Ubah "background" menjadi "removeBackground"
-      if (type === "removeBackground" && transform.aiRemoveBackground)
-        return true;
+      if (type === "removeBackground" && transform.aiRemoveBackground) return true;
       if (type === "upscale" && transform.aiUpscale) return true;
-      if (
-        type === "objectCrop" &&
-        transform.raw?.includes("fo-") &&
-        transform.raw?.includes("ar-1-1")
-      )
+      if (type === "objectCrop" && transform.raw?.includes("fo-") && transform.raw?.includes("ar-1-1"))
         return true;
       return false;
     });
   };
 
-  // Function to remove specific transformation
   const removeTransformation = (type: TransformationType) => {
     setTransformations((prev) =>
       prev.filter((transform: Transformation) => {
-        // PERBAIKAN: Ubah "background" menjadi "removeBackground"
-        if (type === "removeBackground" && transform.aiRemoveBackground)
-          return false;
+        if (type === "removeBackground" && transform.aiRemoveBackground) return false;
         if (type === "upscale" && transform.aiUpscale) return false;
-        if (
-          type === "objectCrop" &&
-          transform.raw?.includes("fo-") &&
-          transform.raw?.includes("ar-1-1")
-        )
+        if (type === "objectCrop" && transform.raw?.includes("fo-") && transform.raw?.includes("ar-1-1"))
           return false;
         return true;
       }),
     );
     const removalMessages: Record<TransformationType, string> = {
-      // PERBAIKAN: Ubah "background" menjadi "removeBackground"
       removeBackground: createCopy.effects.removeBackground.toastRemoved,
       upscale: createCopy.effects.upscale.toastRemoved,
       objectCrop: createCopy.effects.objectCrop.toastRemoved,
@@ -258,36 +223,33 @@ export default function CreatePage() {
 
   const removeBackground = async () => {
     if (!uploadedImage) return;
-
-    // Check if background removal already applied
     if (hasTransformation("removeBackground")) {
       toast.error(createCopy.effects.removeBackground.toastAlready);
       return;
     }
 
     setIsProcessing(true);
-
     try {
-      // Deduct credits first
       const creditResult = await deductCredits(2, "background removal");
-
       if (!creditResult.success) {
         toast.error(resolveCreditError(creditResult.error));
         setIsProcessing(false);
         return;
       }
 
-      // Apply background removal transformation
       setTransformations((prev) => [...prev, { aiRemoveBackground: true }]);
+
+      // ✅ Narrow union dengan "in"
+      const remainingCredits =
+        "remainingCredits" in creditResult ? creditResult.remainingCredits : 0;
 
       setTimeout(() => {
         setIsProcessing(false);
         toast.success(
           formatTranslation(createCopy.effects.removeBackground.toastApplied, {
-            remaining: creditResult.remainingCredits ?? 0,
+            remaining: remainingCredits,
           }),
         );
-        // Refresh to update sidebar credits display
         router.refresh();
       }, 3000);
     } catch (error) {
@@ -299,36 +261,33 @@ export default function CreatePage() {
 
   const upscaleImage = async () => {
     if (!uploadedImage) return;
-
-    // Check if upscale already applied
     if (hasTransformation("upscale")) {
       toast.error(createCopy.effects.upscale.toastAlready);
       return;
     }
 
     setIsProcessing(true);
-
     try {
-      // Deduct credits first
       const creditResult = await deductCredits(1, "upscaling");
-
       if (!creditResult.success) {
         toast.error(resolveCreditError(creditResult.error));
         setIsProcessing(false);
         return;
       }
 
-      // Apply upscaling transformation
       setTransformations((prev) => [...prev, { aiUpscale: true }]);
+
+      // ✅ Narrow union dengan "in"
+      const remainingCredits =
+        "remainingCredits" in creditResult ? creditResult.remainingCredits : 0;
 
       setTimeout(() => {
         setIsProcessing(false);
         toast.success(
           formatTranslation(createCopy.effects.upscale.toastApplied, {
-            remaining: creditResult.remainingCredits ?? 0,
+            remaining: remainingCredits,
           }),
         );
-        // Refresh to update sidebar credits display
         router.refresh();
       }, 3000);
     } catch (error) {
@@ -340,23 +299,17 @@ export default function CreatePage() {
 
   const objectCrop = async () => {
     if (!uploadedImage) return;
-
-    // Check if object crop already applied
     if (hasTransformation("objectCrop")) {
       toast.error(createCopy.effects.objectCrop.toastAlready);
       return;
     }
-
-    // Validate object input
     if (!objectInput.trim()) {
       toast.error(createCopy.effects.objectCrop.toastMissing);
       return;
     }
 
     setIsProcessing(true);
-
     try {
-      // Apply smart object crop using the user's input with 1:1 aspect ratio
       const cleanInput = objectInput.trim().toLowerCase();
       const transformation = { raw: `fo-${cleanInput},ar-1-1` };
 
@@ -385,10 +338,10 @@ export default function CreatePage() {
   const downloadImage = () => {
     if (!uploadedImage) return;
 
-    // Get the actual rendered image URL from the main preview
+    // Ambil URL img yang sedang dirender (dengan transformasi)
     const mainImage = document.querySelector('img[width="800"][height="600"]');
     const url =
-      (mainImage as HTMLImageElement)?.src ??
+      (mainImage as HTMLImageElement | null)?.src ??
       `${env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}${uploadedImage.filePath}`;
 
     window.open(url, "_blank");
@@ -435,15 +388,11 @@ export default function CreatePage() {
                       <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br"></div>
                       <div className="relative z-10">
                         <div className="relative mb-6">
-                          {/* Animated loading rings */}
                           <div className="border-muted border-t-primary mx-auto h-16 w-16 animate-spin rounded-full border-4"></div>
                           <div
                             className="border-r-primary/70 absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-transparent"
-                            style={{
-                              animationDelay: "0.5s",
-                              animationDirection: "reverse",
-                            }}
-                          ></div>
+                            style={{ animationDelay: "0.5s", animationDirection: "reverse" }}
+                          />
                         </div>
                         <h3 className="text-foreground mb-2 text-lg font-bold">
                           {common.states.uploadingImage}
@@ -452,16 +401,13 @@ export default function CreatePage() {
                           {common.states.uploadingDescription}
                         </p>
                         <div className="bg-muted mx-auto mt-4 h-2 w-48 overflow-hidden rounded-full">
-                          <div className="bg-primary h-full animate-pulse rounded-full"></div>
+                          <div className="bg-primary h-full animate-pulse rounded-full" />
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="group border-border from-muted/30 via-background to-muted/50 hover:border-primary/50 hover:bg-muted/40 relative overflow-hidden rounded-2xl border-2 border-dashed bg-gradient-to-br p-6 text-center transition-all duration-300 hover:shadow-xl sm:p-12">
-                      {/* Background decoration */}
-                      <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-
-                      {/* Floating icons background */}
+                      <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       <div className="absolute top-4 right-4 opacity-20 transition-opacity duration-300 group-hover:opacity-40">
                         <ImageIcon className="h-8 w-8 text-blue-400" />
                       </div>
@@ -470,21 +416,15 @@ export default function CreatePage() {
                       </div>
 
                       <div className="relative z-10">
-                        {/* Main icon with gradient background */}
                         <div className="bg-primary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl">
                           <ImageIcon className="text-primary-foreground h-12 w-12" />
                         </div>
-
-                        {/* Content */}
                         <h3 className="text-foreground mb-3 text-xl font-bold">
                           {uploadCopy.title}
                         </h3>
-
                         <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-gray-600">
                           {uploadCopy.description}
                         </p>
-
-                        {/* Supported formats */}
                         <div className="mb-6">
                           <p className="mb-2 text-xs text-gray-500">
                             {uploadCopy.supportedFormats}
@@ -500,8 +440,6 @@ export default function CreatePage() {
                             ))}
                           </div>
                         </div>
-
-                        {/* Call to action button */}
                         <Button
                           onClick={selectFile}
                           size="default"
@@ -510,14 +448,11 @@ export default function CreatePage() {
                           <Upload className="h-4 w-4" />
                           {uploadCopy.chooseImage}
                         </Button>
-
                         <p className="mt-3 text-xs text-gray-500">
                           {uploadCopy.helperText}
                         </p>
                       </div>
-
-                      {/* Hover effect border */}
-                      <div className="bg-primary/10 absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                      <div className="bg-primary/10 absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     </div>
                   )}
 
@@ -532,18 +467,14 @@ export default function CreatePage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-3">
-                {/* Left Side - Effects and Controls (1/3 width) - Order 2 on mobile */}
+                {/* Left */}
                 <div className="order-2 space-y-2 sm:space-y-3 lg:order-1 lg:col-span-1">
                   <Card className="shadow-lg">
                     <CardContent className="p-2 sm:p-3">
                       <div className="mb-3 flex items-start justify-between">
                         <div>
-                          <h3 className="mb-0.5 text-sm font-bold">
-                            {effectsCopy.title ?? "AI Effects"}
-                          </h3>
-                          <p className="text-muted-foreground text-xs">
-                            {effectsCopy.subtitle}
-                          </p>
+                          <h3 className="mb-0.5 text-sm font-bold">{effectsCopy.title ?? "AI Effects"}</h3>
+                          <p className="text-muted-foreground text-xs">{effectsCopy.subtitle}</p>
                         </div>
                       </div>
 
@@ -552,30 +483,22 @@ export default function CreatePage() {
                           <div className="group relative">
                             <Button
                               onClick={removeBackground}
-                              disabled={
-                                isProcessing ||
-                                hasTransformation("removeBackground")
-                              }
+                              disabled={isProcessing || hasTransformation("removeBackground")}
                               variant="outline"
                               size="sm"
                               className="h-8 w-full gap-1 px-2 text-xs hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
                             >
                               <Scissors className="h-3 w-3" />
-                              <span className="text-xs">
-                                {getEffectLabel("removeBackground")}
-                              </span>
-                              {!hasTransformation("removeBackground") &&
-                                effectsCopy.removeBackground.cost && (
-                                  <span className="text-muted-foreground ml-1 text-xs">
-                                    {effectsCopy.removeBackground.cost}
-                                  </span>
-                                )}
+                              <span className="text-xs">{getEffectLabel("removeBackground")}</span>
+                              {!hasTransformation("removeBackground") && effectsCopy.removeBackground.cost && (
+                                <span className="text-muted-foreground ml-1 text-xs">
+                                  {effectsCopy.removeBackground.cost}
+                                </span>
+                              )}
                             </Button>
                             {hasTransformation("removeBackground") && (
                               <Button
-                                onClick={() =>
-                                  removeTransformation("removeBackground")
-                                }
+                                onClick={() => removeTransformation("removeBackground")}
                                 disabled={isProcessing}
                                 variant="destructive"
                                 size="sm"
@@ -589,23 +512,18 @@ export default function CreatePage() {
                           <div className="group relative">
                             <Button
                               onClick={upscaleImage}
-                              disabled={
-                                isProcessing || hasTransformation("upscale")
-                              }
+                              disabled={isProcessing || hasTransformation("upscale")}
                               variant="outline"
                               size="sm"
                               className="h-8 w-full gap-1 px-2 text-xs hover:border-blue-200 hover:bg-blue-50 disabled:opacity-50"
                             >
                               <Expand className="h-3 w-3" />
-                              <span className="text-xs">
-                                {getEffectLabel("upscale")}
-                              </span>
-                              {!hasTransformation("upscale") &&
-                                effectsCopy.upscale.cost && (
-                                  <span className="text-muted-foreground ml-1 text-xs">
-                                    {effectsCopy.upscale.cost}
-                                  </span>
-                                )}
+                              <span className="text-xs">{getEffectLabel("upscale")}</span>
+                              {!hasTransformation("upscale") && effectsCopy.upscale.cost && (
+                                <span className="text-muted-foreground ml-1 text-xs">
+                                  {effectsCopy.upscale.cost}
+                                </span>
+                              )}
                             </Button>
                             {hasTransformation("upscale") && (
                               <Button
@@ -622,7 +540,7 @@ export default function CreatePage() {
                         </div>
 
                         <div className="rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-2">
-                          {/* Smart Object Crop Section */}
+                          {/* Smart Object Crop */}
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
                               <div className="rounded-full bg-green-500 p-1">
@@ -641,12 +559,8 @@ export default function CreatePage() {
                             <Input
                               placeholder={effectsCopy.objectCrop.placeholder}
                               value={objectInput}
-                              onChange={(e) => {
-                                setObjectInput(e.target.value);
-                              }}
-                              disabled={
-                                isProcessing || hasTransformation("objectCrop")
-                              }
+                              onChange={(e) => setObjectInput(e.target.value)}
+                              disabled={isProcessing || hasTransformation("objectCrop")}
                               className="h-7 border-green-200 bg-white text-xs focus:border-green-400 focus:ring-green-400"
                             />
 
@@ -660,24 +574,18 @@ export default function CreatePage() {
                               <Button
                                 onClick={objectCrop}
                                 disabled={
-                                  isProcessing ||
-                                  hasTransformation("objectCrop") ||
-                                  !objectInput.trim()
+                                  isProcessing || hasTransformation("objectCrop") || !objectInput.trim()
                                 }
                                 variant="default"
                                 size="sm"
                                 className="h-7 flex-1 gap-1 bg-green-600 px-2 text-white hover:bg-green-700"
                               >
                                 <Target className="h-2 w-2" />
-                                <span className="text-xs">
-                                  {getEffectLabel("objectCrop")}
-                                </span>
+                                <span className="text-xs">{getEffectLabel("objectCrop")}</span>
                               </Button>
                               {hasTransformation("objectCrop") && (
                                 <Button
-                                  onClick={() =>
-                                    removeTransformation("objectCrop")
-                                  }
+                                  onClick={() => removeTransformation("objectCrop")}
                                   disabled={isProcessing}
                                   variant="outline"
                                   size="sm"
@@ -693,7 +601,7 @@ export default function CreatePage() {
                         {transformations.length > 0 && (
                           <div className="py-1 text-center">
                             <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
-                              <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                              <div className="h-1 w-1 rounded-full bg-blue-500" />
                               <span className="text-xs">
                                 {formatTranslation(effectsCopy.activeLabel, {
                                   count: transformations.length,
@@ -712,19 +620,12 @@ export default function CreatePage() {
                             className="h-7 w-full gap-1 px-2"
                           >
                             <RotateCcw className="h-3 w-3" />
-                            <span className="text-xs">
-                              {effectsCopy.clearAll}
-                            </span>
+                            <span className="text-xs">{effectsCopy.clearAll}</span>
                           </Button>
                         )}
 
                         <div className="grid gap-2 border-t pt-2 sm:grid-cols-2">
-                          <Button
-                            variant="outline"
-                            onClick={selectFile}
-                            size="sm"
-                            className="h-7 gap-1 px-2"
-                          >
+                          <Button variant="outline" onClick={selectFile} size="sm" className="h-7 gap-1 px-2">
                             <Upload className="h-3 w-3" />
                             <span className="text-xs">Upload</span>
                           </Button>
@@ -735,9 +636,7 @@ export default function CreatePage() {
                               className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
                             >
                               <Download className="h-3 w-3" />
-                              <span className="text-xs">
-                                {common.actions.download}
-                              </span>
+                              <span className="text-xs">{common.actions.download}</span>
                             </Button>
                           )}
                         </div>
@@ -746,18 +645,14 @@ export default function CreatePage() {
                   </Card>
                 </div>
 
-                {/* Right Side - Image Preview (2/3 width) - Order 1 on mobile */}
+                {/* Right - Preview */}
                 <div className="order-1 space-y-2 sm:space-y-3 lg:order-2 lg:col-span-2">
                   <Card className="shadow-lg">
                     <CardContent className="p-2 sm:p-3">
                       <div className="mb-2 flex items-start justify-between">
                         <div>
-                          <h3 className="mb-0.5 text-sm font-bold">
-                            {createCopy.preview.title}
-                          </h3>
-                          <p className="text-muted-foreground truncate text-xs">
-                            {uploadedImage.name}
-                          </p>
+                          <h3 className="mb-0.5 text-sm font-bold">{createCopy.preview.title}</h3>
+                          <p className="text-muted-foreground truncate text-xs">{uploadedImage.name}</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -775,14 +670,10 @@ export default function CreatePage() {
                           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 backdrop-blur-sm">
                             <div className="text-center text-white">
                               <div className="relative mb-2">
-                                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                               </div>
-                              <p className="text-sm font-semibold">
-                                {createCopy.preview.processing}
-                              </p>
-                              <p className="mt-1 text-xs text-white/80">
-                                {createCopy.preview.pleaseWait}
-                              </p>
+                              <p className="text-sm font-semibold">{createCopy.preview.processing}</p>
+                              <p className="mt-1 text-xs text-white/80">{createCopy.preview.pleaseWait}</p>
                             </div>
                           </div>
                         )}
@@ -802,19 +693,19 @@ export default function CreatePage() {
               </div>
             )}
           </div>
+
+          {/* Recents */}
           <div className="border-t border-gray-200 bg-white px-2 py-3 sm:px-4 sm:py-4">
             <div className="mx-auto max-w-7xl">
               <div className="mb-6 text-center">
                 <div className="mb-2 inline-flex items-center gap-2">
-                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600"></div>
+                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600" />
                   <h2 className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent">
                     {recentsCopy.title}
                   </h2>
-                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500"></div>
+                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500" />
                 </div>
-                <p className="text-muted-foreground mx-auto max-w-md text-sm">
-                  {recentsCopy.subtitle}
-                </p>
+                <p className="text-muted-foreground mx-auto max-w-md text-sm">{recentsCopy.subtitle}</p>
               </div>
             </div>
           </div>
@@ -822,22 +713,18 @@ export default function CreatePage() {
           {isLoadingProjects ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="relative mb-6">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-                <div className="animate-reverse absolute inset-0 h-12 w-12 animate-spin rounded-full border-4 border-transparent border-r-purple-600"></div>
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+                <div className="animate-reverse absolute inset-0 h-12 w-12 animate-spin rounded-full border-4 border-transparent border-r-purple-600" />
               </div>
               <div className="text-center">
-                <p className="mb-2 text-lg font-semibold text-gray-900">
-                  {recentsCopy.loadingTitle}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {recentsCopy.loadingSubtitle}
-                </p>
+                <p className="mb-2 text-lg font-semibold text-gray-900">{recentsCopy.loadingTitle}</p>
+                <p className="text-muted-foreground text-sm">{recentsCopy.loadingSubtitle}</p>
               </div>
             </div>
           ) : userProjects.length > 0 ? (
             <div className="mb-12">
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                {userProjects.slice(0, 12).map((project, _index) => (
+                {userProjects.slice(0, 12).map((project) => (
                   <div
                     key={project.id}
                     className="group relative cursor-pointer"
@@ -852,10 +739,7 @@ export default function CreatePage() {
                     }}
                   >
                     <div className="relative aspect-square overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:border-blue-300 hover:shadow-2xl">
-                      {/* Hover overlay with gradient */}
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-600/0 transition-all duration-500 group-hover:from-blue-500/20 group-hover:to-purple-600/20"></div>
-
-                      {/* Main image */}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-600/0 transition-all duration-500 group-hover:from-blue-500/20 group-hover:to-purple-600/20" />
                       <div className="relative h-full w-full overflow-hidden">
                         <ImageKitImage
                           urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
@@ -865,20 +749,12 @@ export default function CreatePage() {
                           height={300}
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                           transformation={[
-                            {
-                              width: 300,
-                              height: 300,
-                              crop: "maintain_ratio",
-                              quality: 90,
-                            },
+                            { width: 300, height: 300, crop: "maintain_ratio", quality: 90 },
                           ]}
                         />
-
-                        {/* Shimmer effect on hover */}
-                        <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100"></div>
+                        <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
                       </div>
 
-                      {/* Content overlay */}
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 transform bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-transform duration-300 group-hover:translate-y-0">
                         <div className="space-y-1">
                           <h3 className="truncate text-sm font-bold text-white drop-shadow-lg">
@@ -894,27 +770,23 @@ export default function CreatePage() {
                             </p>
                             <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                               <div className="rounded-full bg-white/20 px-2 py-1 backdrop-blur-sm">
-                                <span className="text-xs font-medium text-white">
-                                  {recentsCopy.editLabel}
-                                </span>
+                                <span className="text-xs font-medium text-white">{recentsCopy.editLabel}</span>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Corner accent */}
-                      <div className="absolute top-0 right-0 h-0 w-0 border-t-[20px] border-l-[20px] border-t-blue-500 border-l-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                      <div className="absolute top-0 right-0 h-0 w-0 border-t-[20px] border-l-[20px] border-t-blue-500 border-l-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Show more indicator if there are more than 12 projects */}
               {userProjects.length > 12 && (
                 <div className="mt-8 text-center">
                   <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-3">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
                     <span className="text-sm font-medium text-blue-700">
                       {formatTranslation(recentsCopy.showingCount, {
                         count: Math.min(12, userProjects.length),
@@ -928,27 +800,22 @@ export default function CreatePage() {
           ) : (
             <div className="py-16 text-center">
               <div className="relative mx-auto mb-8">
-                {/* Animated background circles */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-100 to-purple-100"></div>
+                  <div className="h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-100 to-purple-100" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div
                     className="h-24 w-24 animate-pulse rounded-full bg-gradient-to-br from-blue-200 to-purple-200"
                     style={{ animationDelay: "1s" }}
-                  ></div>
+                  />
                 </div>
-
-                {/* Icon container */}
                 <div className="relative z-10 mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-white shadow-lg">
                   <ImageIcon className="h-10 w-10 text-gray-400" />
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {recentsCopy.emptyTitle}
-                </h3>
+                <h3 className="text-xl font-bold text-gray-900">{recentsCopy.emptyTitle}</h3>
                 <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed">
                   {recentsCopy.emptyDescription}
                 </p>

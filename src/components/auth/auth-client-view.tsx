@@ -4,6 +4,7 @@
 
 import { AuthView } from "@daveyplate/better-auth-ui";
 import { useParams } from "next/navigation";
+import type { Locale } from "~/lib/i18n";
 
 type AuthLocalization = Record<string, string | undefined>;
 
@@ -19,8 +20,10 @@ export function AuthClientView({
   localization,
 }: AuthClientViewProps) {
   const params = useParams();
+  const lang = params.lang as Locale;
 
   const viewPath = Array.isArray(path) ? path.join("/") : path;
+  const redirectToPath = `/${lang}/dashboard`;
 
   if (!viewPath) {
     return (
@@ -33,7 +36,7 @@ export function AuthClientView({
   return (
     <AuthView
       path={viewPath as string}
-      redirectTo="/dashboard"
+      redirectTo={redirectToPath}
       localization={localization}
     />
   );

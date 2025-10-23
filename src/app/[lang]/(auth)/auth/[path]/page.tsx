@@ -1,21 +1,29 @@
 // src/app/[lang]/(auth)/auth/[path]/page.tsx
 
 import { getDictionary } from "~/lib/dictionary";
-import type { Locale } from "~/lib/i18n";
+import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
 
 import { AuthClientView } from "~/components/auth/auth-client-view";
 
-type AuthParams = {
-  lang: Locale;
-  path: string;
-};
+export function generateStaticParams() {
+  const paths = ["sign-in", "sign-up"];
+
+  return SUPPORTED_LOCALES.flatMap((lang) =>
+    paths.map((path) => ({
+      lang,
+      path,
+    })),
+  );
+}
 
 export default async function AuthPage({
   params,
 }: {
-  params: Promise<AuthParams>;
+  params: Promise<{ lang: string; path: string }>;
 }) {
   const { lang, path } = await params;
+
+  assertValidLocale(lang);
 
   const dict = getDictionary(lang);
   const { auth, common } = dict;

@@ -104,8 +104,8 @@ export default function CreatePage() {
   };
 
   // keep tertinggal bila dibutuhkan untuk UI harga
-  const getEffectCost = (type: TransformationType) =>
-    ("cost" in effectsCopy[type] ? effectsCopy[type].cost : undefined) ?? "";
+  // const getEffectCost = (type: TransformationType) =>
+  //   ("cost" in effectsCopy[type] ? effectsCopy[type].cost : undefined) ?? "";
 
   useEffect(() => {
     const initializeData = async () => {

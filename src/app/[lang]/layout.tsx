@@ -1,4 +1,4 @@
-// src/app/layout.tsx
+// src/app/[lang]/layout.tsx
 
 import "~/styles/globals.css";
 
@@ -7,7 +7,11 @@ import { Geist } from "next/font/google";
 import { Toaster } from "sonner";
 
 import { Providers } from "~/components/providers";
-import { getRequestLocale } from "~/lib/server-locale";
+import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
+
+export function generateStaticParams() {
+  return SUPPORTED_LOCALES.map((lang) => ({ lang }));
+}
 
 export const metadata: Metadata = {
   title: "AI Image Editor",
@@ -23,13 +27,19 @@ const geist = Geist({
 
 export default async function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const initialLocale = await getRequestLocale();
+  params,
+}: Readonly<{
+  children: React.ReactNode;
+  params: Promise<{ lang: string }>;
+}>) {
+  const { lang } = await params;
+
+  assertValidLocale(lang);
 
   return (
-    <html lang={initialLocale} className={`${geist.variable}`}>
+    <html lang={lang} className={`${geist.variable}`}>
       <body>
-        <Providers initialLocale={initialLocale}>
+        <Providers initialLocale={lang}>
           {children}
           <Toaster />
         </Providers>

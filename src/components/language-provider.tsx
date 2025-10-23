@@ -74,24 +74,30 @@ export function LanguageProvider({
 
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (stored && isSupportedLocale(stored)) {
-      setLocaleState((current) =>
-        current === stored ? current : (stored as Locale),
-      );
+      // ✅ Hapus 'as Locale' karena type guard sudah menjamin stored adalah Locale
+      setLocaleState((current) => (current === stored ? current : stored));
     } else if (stored && !isSupportedLocale(stored)) {
       window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
     }
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== LANGUAGE_STORAGE_KEY || !event.newValue) {
+      if (event.key !== LANGUAGE_STORAGE_KEY) {
         return;
       }
 
-      if (!isSupportedLocale(event.newValue)) {
+      const next = event.newValue;
+      if (!next) {
         return;
       }
 
+      if (!isSupportedLocale(next)) {
+        return;
+      }
+
+      const nextLocale = next;
+      // now nextLocale is narrowed to Locale by the type guard
       setLocaleState((current) =>
-        current === event.newValue ? current : (event.newValue as Locale),
+        current === nextLocale ? current : nextLocale,
       );
     };
 

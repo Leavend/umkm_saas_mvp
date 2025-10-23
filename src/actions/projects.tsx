@@ -10,7 +10,7 @@ import {
 } from "~/server/services/project-service";
 import { getCurrentUserId } from "~/server/auth/session";
 import {
-  AppError,
+  type AppError,
   InsufficientCreditsError,
   NotFoundError,
   UnauthorizedError,

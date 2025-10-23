@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { persistUserLocale } from "~/actions/set-locale";
 import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
+import { stripLocaleFromPathname } from "~/lib/routing";
 
 export type LanguageToggleProps = Omit<
   ComponentProps<typeof Button>,
@@ -34,16 +35,10 @@ export function LanguageToggle({
   const label = nextLocale === "id" ? t.indonesian : t.english;
   const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
 
-  const getPathWithoutLocale = (path: string, lang: string) => {
-    if (path === `/${lang}`) return "/";
-    return path.replace(`/${lang}`, "");
-  };
-
   const handleToggle = useCallback(() => {
-    const pathWithoutLocale = getPathWithoutLocale(pathname, currentLocale);
-    const newPath = `/${nextLocale}${
-      pathWithoutLocale === "/" ? "" : pathWithoutLocale
-    }`;
+    const pathWithoutLocale = stripLocaleFromPathname(pathname, currentLocale);
+    const normalizedPath = pathWithoutLocale === "/" ? "" : pathWithoutLocale;
+    const newPath = `/${nextLocale}${normalizedPath}`;
     startPersistLocale(() => {
       void persistUserLocale(nextLocale).catch((error) => {
         console.error("Failed to persist locale", error);

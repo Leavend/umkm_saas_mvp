@@ -239,9 +239,7 @@ export default function CreatePage() {
 
       setTransformations((prev) => [...prev, { aiRemoveBackground: true }]);
 
-      // ✅ Narrow union dengan "in"
-      const remainingCredits =
-        "remainingCredits" in creditResult ? creditResult.remainingCredits : 0;
+      const remainingCredits = creditResult.remainingCredits ?? 0;
 
       setTimeout(() => {
         setIsProcessing(false);
@@ -277,9 +275,7 @@ export default function CreatePage() {
 
       setTransformations((prev) => [...prev, { aiUpscale: true }]);
 
-      // ✅ Narrow union dengan "in"
-      const remainingCredits =
-        "remainingCredits" in creditResult ? creditResult.remainingCredits : 0;
+      const remainingCredits = creditResult.remainingCredits ?? 0;
 
       setTimeout(() => {
         setIsProcessing(false);

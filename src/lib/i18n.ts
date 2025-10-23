@@ -984,7 +984,7 @@ export const TRANSLATIONS = {
   },
 } as const;
 
-export type Translations = typeof TRANSLATIONS.en;
+export type Translations = (typeof TRANSLATIONS)[Locale];
 export type TranslationNamespace = keyof Translations;
 
 export function formatTranslation(

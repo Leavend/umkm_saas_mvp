@@ -89,8 +89,10 @@ export default function CreatePage() {
   const resolveCreditError = (error?: string | null) => {
     if (!error) return createCopy.toasts.paymentFailed;
     const e = error.toLowerCase();
-    if (e.includes("invalid credit amount")) return createCopy.toasts.invalidCredits;
-    if (e.includes("insufficient credits")) return createCopy.toasts.insufficientCredits;
+    if (e.includes("invalid credit amount"))
+      return createCopy.toasts.invalidCredits;
+    if (e.includes("insufficient credits"))
+      return createCopy.toasts.insufficientCredits;
     if (e.includes("unauthorized")) return createCopy.toasts.paymentFailed;
     return error;
   };
@@ -176,7 +178,10 @@ export default function CreatePage() {
             setUserProjects(updatedProjects.projects);
           }
         } else {
-          console.error("Failed to save project to database:", projectResult.error);
+          console.error(
+            "Failed to save project to database:",
+            projectResult.error,
+          );
         }
       } catch (dbError) {
         console.error("Database save error:", dbError);
@@ -195,9 +200,14 @@ export default function CreatePage() {
 
   const hasTransformation = (type: TransformationType) => {
     return transformations.some((transform: Transformation) => {
-      if (type === "removeBackground" && transform.aiRemoveBackground) return true;
+      if (type === "removeBackground" && transform.aiRemoveBackground)
+        return true;
       if (type === "upscale" && transform.aiUpscale) return true;
-      if (type === "objectCrop" && transform.raw?.includes("fo-") && transform.raw?.includes("ar-1-1"))
+      if (
+        type === "objectCrop" &&
+        transform.raw?.includes("fo-") &&
+        transform.raw?.includes("ar-1-1")
+      )
         return true;
       return false;
     });
@@ -206,9 +216,14 @@ export default function CreatePage() {
   const removeTransformation = (type: TransformationType) => {
     setTransformations((prev) =>
       prev.filter((transform: Transformation) => {
-        if (type === "removeBackground" && transform.aiRemoveBackground) return false;
+        if (type === "removeBackground" && transform.aiRemoveBackground)
+          return false;
         if (type === "upscale" && transform.aiUpscale) return false;
-        if (type === "objectCrop" && transform.raw?.includes("fo-") && transform.raw?.includes("ar-1-1"))
+        if (
+          type === "objectCrop" &&
+          transform.raw?.includes("fo-") &&
+          transform.raw?.includes("ar-1-1")
+        )
           return false;
         return true;
       }),
@@ -387,7 +402,10 @@ export default function CreatePage() {
                           <div className="border-muted border-t-primary mx-auto h-16 w-16 animate-spin rounded-full border-4"></div>
                           <div
                             className="border-r-primary/70 absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-transparent"
-                            style={{ animationDelay: "0.5s", animationDirection: "reverse" }}
+                            style={{
+                              animationDelay: "0.5s",
+                              animationDirection: "reverse",
+                            }}
                           />
                         </div>
                         <h3 className="text-foreground mb-2 text-lg font-bold">
@@ -469,8 +487,12 @@ export default function CreatePage() {
                     <CardContent className="p-2 sm:p-3">
                       <div className="mb-3 flex items-start justify-between">
                         <div>
-                          <h3 className="mb-0.5 text-sm font-bold">{effectsCopy.title ?? "AI Effects"}</h3>
-                          <p className="text-muted-foreground text-xs">{effectsCopy.subtitle}</p>
+                          <h3 className="mb-0.5 text-sm font-bold">
+                            {effectsCopy.title ?? "AI Effects"}
+                          </h3>
+                          <p className="text-muted-foreground text-xs">
+                            {effectsCopy.subtitle}
+                          </p>
                         </div>
                       </div>
 
@@ -479,22 +501,30 @@ export default function CreatePage() {
                           <div className="group relative">
                             <Button
                               onClick={removeBackground}
-                              disabled={isProcessing || hasTransformation("removeBackground")}
+                              disabled={
+                                isProcessing ||
+                                hasTransformation("removeBackground")
+                              }
                               variant="outline"
                               size="sm"
                               className="h-8 w-full gap-1 px-2 text-xs hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
                             >
                               <Scissors className="h-3 w-3" />
-                              <span className="text-xs">{getEffectLabel("removeBackground")}</span>
-                              {!hasTransformation("removeBackground") && effectsCopy.removeBackground.cost && (
-                                <span className="text-muted-foreground ml-1 text-xs">
-                                  {effectsCopy.removeBackground.cost}
-                                </span>
-                              )}
+                              <span className="text-xs">
+                                {getEffectLabel("removeBackground")}
+                              </span>
+                              {!hasTransformation("removeBackground") &&
+                                effectsCopy.removeBackground.cost && (
+                                  <span className="text-muted-foreground ml-1 text-xs">
+                                    {effectsCopy.removeBackground.cost}
+                                  </span>
+                                )}
                             </Button>
                             {hasTransformation("removeBackground") && (
                               <Button
-                                onClick={() => removeTransformation("removeBackground")}
+                                onClick={() =>
+                                  removeTransformation("removeBackground")
+                                }
                                 disabled={isProcessing}
                                 variant="destructive"
                                 size="sm"
@@ -508,18 +538,23 @@ export default function CreatePage() {
                           <div className="group relative">
                             <Button
                               onClick={upscaleImage}
-                              disabled={isProcessing || hasTransformation("upscale")}
+                              disabled={
+                                isProcessing || hasTransformation("upscale")
+                              }
                               variant="outline"
                               size="sm"
                               className="h-8 w-full gap-1 px-2 text-xs hover:border-blue-200 hover:bg-blue-50 disabled:opacity-50"
                             >
                               <Expand className="h-3 w-3" />
-                              <span className="text-xs">{getEffectLabel("upscale")}</span>
-                              {!hasTransformation("upscale") && effectsCopy.upscale.cost && (
-                                <span className="text-muted-foreground ml-1 text-xs">
-                                  {effectsCopy.upscale.cost}
-                                </span>
-                              )}
+                              <span className="text-xs">
+                                {getEffectLabel("upscale")}
+                              </span>
+                              {!hasTransformation("upscale") &&
+                                effectsCopy.upscale.cost && (
+                                  <span className="text-muted-foreground ml-1 text-xs">
+                                    {effectsCopy.upscale.cost}
+                                  </span>
+                                )}
                             </Button>
                             {hasTransformation("upscale") && (
                               <Button
@@ -556,7 +591,9 @@ export default function CreatePage() {
                               placeholder={effectsCopy.objectCrop.placeholder}
                               value={objectInput}
                               onChange={(e) => setObjectInput(e.target.value)}
-                              disabled={isProcessing || hasTransformation("objectCrop")}
+                              disabled={
+                                isProcessing || hasTransformation("objectCrop")
+                              }
                               className="h-7 border-green-200 bg-white text-xs focus:border-green-400 focus:ring-green-400"
                             />
 
@@ -570,18 +607,24 @@ export default function CreatePage() {
                               <Button
                                 onClick={objectCrop}
                                 disabled={
-                                  isProcessing || hasTransformation("objectCrop") || !objectInput.trim()
+                                  isProcessing ||
+                                  hasTransformation("objectCrop") ||
+                                  !objectInput.trim()
                                 }
                                 variant="default"
                                 size="sm"
                                 className="h-7 flex-1 gap-1 bg-green-600 px-2 text-white hover:bg-green-700"
                               >
                                 <Target className="h-2 w-2" />
-                                <span className="text-xs">{getEffectLabel("objectCrop")}</span>
+                                <span className="text-xs">
+                                  {getEffectLabel("objectCrop")}
+                                </span>
                               </Button>
                               {hasTransformation("objectCrop") && (
                                 <Button
-                                  onClick={() => removeTransformation("objectCrop")}
+                                  onClick={() =>
+                                    removeTransformation("objectCrop")
+                                  }
                                   disabled={isProcessing}
                                   variant="outline"
                                   size="sm"
@@ -616,12 +659,19 @@ export default function CreatePage() {
                             className="h-7 w-full gap-1 px-2"
                           >
                             <RotateCcw className="h-3 w-3" />
-                            <span className="text-xs">{effectsCopy.clearAll}</span>
+                            <span className="text-xs">
+                              {effectsCopy.clearAll}
+                            </span>
                           </Button>
                         )}
 
                         <div className="grid gap-2 border-t pt-2 sm:grid-cols-2">
-                          <Button variant="outline" onClick={selectFile} size="sm" className="h-7 gap-1 px-2">
+                          <Button
+                            variant="outline"
+                            onClick={selectFile}
+                            size="sm"
+                            className="h-7 gap-1 px-2"
+                          >
                             <Upload className="h-3 w-3" />
                             <span className="text-xs">Upload</span>
                           </Button>
@@ -632,7 +682,9 @@ export default function CreatePage() {
                               className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
                             >
                               <Download className="h-3 w-3" />
-                              <span className="text-xs">{common.actions.download}</span>
+                              <span className="text-xs">
+                                {common.actions.download}
+                              </span>
                             </Button>
                           )}
                         </div>
@@ -647,8 +699,12 @@ export default function CreatePage() {
                     <CardContent className="p-2 sm:p-3">
                       <div className="mb-2 flex items-start justify-between">
                         <div>
-                          <h3 className="mb-0.5 text-sm font-bold">{createCopy.preview.title}</h3>
-                          <p className="text-muted-foreground truncate text-xs">{uploadedImage.name}</p>
+                          <h3 className="mb-0.5 text-sm font-bold">
+                            {createCopy.preview.title}
+                          </h3>
+                          <p className="text-muted-foreground truncate text-xs">
+                            {uploadedImage.name}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
@@ -668,8 +724,12 @@ export default function CreatePage() {
                               <div className="relative mb-2">
                                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                               </div>
-                              <p className="text-sm font-semibold">{createCopy.preview.processing}</p>
-                              <p className="mt-1 text-xs text-white/80">{createCopy.preview.pleaseWait}</p>
+                              <p className="text-sm font-semibold">
+                                {createCopy.preview.processing}
+                              </p>
+                              <p className="mt-1 text-xs text-white/80">
+                                {createCopy.preview.pleaseWait}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -701,7 +761,9 @@ export default function CreatePage() {
                   </h2>
                   <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500" />
                 </div>
-                <p className="text-muted-foreground mx-auto max-w-md text-sm">{recentsCopy.subtitle}</p>
+                <p className="text-muted-foreground mx-auto max-w-md text-sm">
+                  {recentsCopy.subtitle}
+                </p>
               </div>
             </div>
           </div>
@@ -713,8 +775,12 @@ export default function CreatePage() {
                 <div className="animate-reverse absolute inset-0 h-12 w-12 animate-spin rounded-full border-4 border-transparent border-r-purple-600" />
               </div>
               <div className="text-center">
-                <p className="mb-2 text-lg font-semibold text-gray-900">{recentsCopy.loadingTitle}</p>
-                <p className="text-muted-foreground text-sm">{recentsCopy.loadingSubtitle}</p>
+                <p className="mb-2 text-lg font-semibold text-gray-900">
+                  {recentsCopy.loadingTitle}
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  {recentsCopy.loadingSubtitle}
+                </p>
               </div>
             </div>
           ) : userProjects.length > 0 ? (
@@ -745,7 +811,12 @@ export default function CreatePage() {
                           height={300}
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                           transformation={[
-                            { width: 300, height: 300, crop: "maintain_ratio", quality: 90 },
+                            {
+                              width: 300,
+                              height: 300,
+                              crop: "maintain_ratio",
+                              quality: 90,
+                            },
                           ]}
                         />
                         <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
@@ -766,7 +837,9 @@ export default function CreatePage() {
                             </p>
                             <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                               <div className="rounded-full bg-white/20 px-2 py-1 backdrop-blur-sm">
-                                <span className="text-xs font-medium text-white">{recentsCopy.editLabel}</span>
+                                <span className="text-xs font-medium text-white">
+                                  {recentsCopy.editLabel}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -811,7 +884,9 @@ export default function CreatePage() {
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-xl font-bold text-gray-900">{recentsCopy.emptyTitle}</h3>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {recentsCopy.emptyTitle}
+                </h3>
                 <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed">
                   {recentsCopy.emptyDescription}
                 </p>

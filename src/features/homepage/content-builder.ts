@@ -1,12 +1,6 @@
 // src/features/homepage/content-builder.ts
 
-import {
-  Expand,
-  Scissors,
-  Target,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import { Expand, Scissors, Target, Zap, type LucideIcon } from "lucide-react";
 
 import type { Translations } from "~/lib/i18n";
 

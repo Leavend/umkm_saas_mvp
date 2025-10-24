@@ -14,12 +14,24 @@ const polarClient = new Polar({
 });
 
 const prisma = new PrismaClient();
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  // Tambahkan social providers
+  socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+      scope: ["openid", "email", "profile"],
+      // Always get refresh token
+      accessType: "offline",
+      prompt: "select_account consent",
+    },
   },
   plugins: [
     polar({
@@ -56,7 +68,6 @@ export const auth = betterAuth({
             }
 
             const productId = order.data.productId;
-
             let creditsToAdd = 0;
 
             switch (productId) {

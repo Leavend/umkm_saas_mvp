@@ -2,17 +2,12 @@
 
 import { getDictionary } from "~/lib/dictionary";
 import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
-
 import { AuthClientView } from "~/components/auth/auth-client-view";
 
 export function generateStaticParams() {
   const paths = ["sign-in", "sign-up"];
-
   return SUPPORTED_LOCALES.flatMap((lang) =>
-    paths.map((path) => ({
-      lang,
-      path,
-    })),
+    paths.map((path) => ({ lang, path })),
   );
 }
 
@@ -22,13 +17,13 @@ export default async function AuthPage({
   params: Promise<{ lang: string; path: string }>;
 }) {
   const { lang, path } = await params;
-
   assertValidLocale(lang);
 
   const dict = getDictionary(lang);
   const { auth, common } = dict;
 
   const authLocalization = {
+    // Existing localizations
     SIGN_IN: auth.signIn.title,
     SIGN_IN_DESCRIPTION: auth.signIn.description,
     SIGN_IN_ACTION: auth.signIn.button,
@@ -44,6 +39,11 @@ export default async function AuthPage({
     PASSWORD_PLACEHOLDER: auth.form.passwordPlaceholder,
     DONT_HAVE_AN_ACCOUNT: auth.form.promptSignUp,
     ALREADY_HAVE_AN_ACCOUNT: auth.form.promptSignIn,
+
+    // Google OAuth translations
+    GOOGLE_CONTINUE:
+      lang === "id" ? "Lanjutkan dengan Google" : "Continue with Google",
+    OR: lang === "id" ? "atau" : "or",
   };
 
   return (

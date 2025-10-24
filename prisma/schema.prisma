@@ -14,7 +14,7 @@ datasource db {
 
 model User {
   id            String    @id
-  name          String
+  name          String?
   email         String
   emailVerified Boolean   @default(false)
   image         String?
@@ -59,10 +59,14 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
+
+  rawProfile            Json?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@unique([providerId, accountId])
+  @@index([providerId])
+  @@index([accountId])
   @@index([userId])
   @@map("account")
 }

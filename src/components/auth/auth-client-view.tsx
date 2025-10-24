@@ -1,10 +1,9 @@
 // src/components/auth/auth-client-view.tsx
-
 "use client";
 
-import { AuthView } from "@daveyplate/better-auth-ui";
 import { useParams } from "next/navigation";
 import type { Locale } from "~/lib/i18n";
+import { CustomAuthView } from "./custom-auth-view";
 
 type AuthLocalization = Record<string, string | undefined>;
 
@@ -20,10 +19,9 @@ export function AuthClientView({
   localization,
 }: AuthClientViewProps) {
   const params = useParams();
-  const lang = params.lang as Locale;
+  const lang = (params.lang as Locale) || "id";
 
   const viewPath = Array.isArray(path) ? path.join("/") : path;
-  const redirectToPath = `/${lang}/dashboard`;
 
   if (!viewPath) {
     return (
@@ -33,10 +31,11 @@ export function AuthClientView({
     );
   }
 
+  // Use CustomAuthView instead of AuthView directly
   return (
-    <AuthView
+    <CustomAuthView
       path={viewPath}
-      redirectTo={redirectToPath}
+      loadingText={loadingText}
       localization={localization}
     />
   );

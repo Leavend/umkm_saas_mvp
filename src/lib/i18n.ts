@@ -272,6 +272,13 @@ export const TRANSLATIONS = {
         promptSignUp: "Don’t have an account? Sign up",
         promptSignIn: "Already have an account? Sign in",
       },
+      socialProviders: {
+        google: {
+          signIn: "Sign in with Google",
+          signUp: "Sign up with Google",
+          continue: "Continue with Google",
+        },
+      },
       backToHomePrefix: "Back to",
       mobileBrand: "AI Image Editor",
     },
@@ -745,6 +752,13 @@ export const TRANSLATIONS = {
         passwordPlaceholder: "Masukkan kata sandi Anda",
         promptSignUp: "Belum punya akun? Daftar",
         promptSignIn: "Sudah punya akun? Masuk",
+      },
+      socialProviders: {
+        google: {
+          signIn: "Masuk dengan Google",
+          signUp: "Daftar dengan Google",
+          continue: "Lanjutkan dengan Google",
+        },
       },
       backToHomePrefix: "Kembali ke",
       mobileBrand: "Editor Gambar AI",

@@ -3,31 +3,42 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useMemo } from "react";
+
 import { BreadcrumbPage } from "../ui/breadcrumb";
-import { useTranslations } from "~/components/language-provider";
+import { useTranslations, useLanguage } from "~/components/language-provider";
+import { stripLocaleFromPathname } from "~/lib/routing";
 
 export default function BreadcrumbPageClient() {
   const path = usePathname();
   const translations = useTranslations();
 
-  const getPageTitle = (path: string) => {
-    switch (path) {
+  const { lang } = useLanguage();
+  const { items } = translations.sidebar;
+
+  const normalizedPath = useMemo(
+    () => stripLocaleFromPathname(path, lang),
+    [lang, path],
+  );
+
+  const pageTitle = useMemo(() => {
+    switch (normalizedPath) {
       case "/dashboard":
-        return translations.sidebar.items.dashboard;
+        return items.dashboard;
       case "/dashboard/create":
-        return translations.sidebar.items.create;
+        return items.create;
       case "/dashboard/projects":
-        return translations.sidebar.items.projects;
+        return items.projects;
       case "/dashboard/settings":
-        return translations.sidebar.items.settings;
+        return items.settings;
       default:
-        return translations.sidebar.items.dashboard;
+        return items.dashboard;
     }
-  };
+  }, [items, normalizedPath]);
 
   return (
     <BreadcrumbPage className="text-foreground text-sm font-medium">
-      {getPageTitle(path)}
+      {pageTitle}
     </BreadcrumbPage>
   );
 }

@@ -44,7 +44,9 @@ export default async function AuthPage({
     ALREADY_HAVE_AN_ACCOUNT: auth.form.promptSignIn,
 
     GOOGLE_CONTINUE:
-      lang === "id" ? auth.socialProviders.google.continue : "Continue with Google",
+      lang === "id"
+        ? auth.socialProviders.google.continue
+        : "Continue with Google",
     OR: lang === "id" ? "atau" : "or",
   };
 
@@ -58,4 +60,3 @@ export default async function AuthPage({
     </main>
   );
 }
-

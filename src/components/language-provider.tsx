@@ -19,6 +19,7 @@ import {
   isSupportedLocale,
   type Locale,
 } from "~/lib/i18n";
+import { addLocalePrefixToPath } from "~/lib/routing";
 
 interface LanguageContextValue {
   lang: Locale;
@@ -150,4 +151,13 @@ export function useLanguage() {
 export function useTranslations() {
   const { translations } = useLanguage();
   return translations;
+}
+
+export function useLocalePath() {
+  const { lang } = useLanguage();
+
+  return useCallback(
+    (path: string) => addLocalePrefixToPath(path, lang),
+    [lang],
+  );
 }

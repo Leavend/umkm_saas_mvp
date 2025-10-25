@@ -45,7 +45,6 @@ export function CustomAuthView({
 
   return (
     <div className="w-full max-w-sm space-y-4">
-
       <AuthView
         path={path}
         redirectTo={redirectToPath}

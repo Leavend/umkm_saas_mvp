@@ -8,7 +8,12 @@ import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
 // Gunakan hook Client Component
-import { useTranslations, useLanguage } from "~/components/language-provider";
+import {
+  useTranslations,
+  useLanguage,
+  useLocalePath,
+} from "~/components/language-provider";
+
 import { useMemo } from "react";
 // Import helper untuk strip locale (jika belum)
 import { stripLocaleFromPathname } from "~/lib/routing";
@@ -18,9 +23,13 @@ export default function SidebarMenuItems() {
   const { setOpenMobile, isMobile } = useSidebar();
   const translations = useTranslations();
   const { lang } = useLanguage(); // Dapatkan locale saat ini ('en' atau 'id')
+  const toLocalePath = useLocalePath();
 
   // Dapatkan path saat ini tanpa locale untuk menentukan state 'active'
-  const currentPathWithoutLocale = useMemo(() => stripLocaleFromPathname(fullPath, lang), [fullPath, lang]);
+  const currentPathWithoutLocale = useMemo(
+    () => stripLocaleFromPathname(fullPath, lang),
+    [fullPath, lang],
+  );
 
   const items = useMemo(
     () =>
@@ -50,21 +59,24 @@ export default function SidebarMenuItems() {
           icon: Settings,
         },
       ].map((item) => {
-          // Logika 'active': anggap '/' sama dengan '/dashboard'
-          const isActive = item.basePath === "/dashboard"
-              ? currentPathWithoutLocale === item.basePath || currentPathWithoutLocale === '/'
-              : currentPathWithoutLocale === item.basePath;
+        // Logika 'active': anggap '/' sama dengan '/dashboard'
+        const isActive =
+          item.basePath === "/dashboard"
+            ? currentPathWithoutLocale === item.basePath ||
+              currentPathWithoutLocale === "/"
+            : currentPathWithoutLocale === item.basePath;
 
-          return {
-            ...item,
-            // ----- Perubahan Kunci: Buat URL lengkap dengan locale -----
-            url: `/${lang}${item.basePath}`, // <-- Pastikan href selalu punya locale
-            active: isActive,
-          };
+        return {
+          ...item,
+          // ----- Perubahan Kunci: Buat URL lengkap dengan locale -----
+          url: toLocalePath(item.basePath),
+          active: isActive,
+        };
       }),
     [
       currentPathWithoutLocale,
       lang, // Tambahkan lang dependency
+      toLocalePath,
       translations.sidebar.items,
     ],
   );
@@ -112,4 +124,3 @@ export default function SidebarMenuItems() {
     </>
   );
 }
-

@@ -23,7 +23,9 @@ function getLocale(request: NextRequest): Locale {
     console.log(`Middleware: Found valid locale from cookie: ${cookieLocale}`);
     return cookieLocale;
   }
-  console.log(`Middleware: No valid cookie locale found (value: ${cookieLocale})`);
+  console.log(
+    `Middleware: No valid cookie locale found (value: ${cookieLocale})`,
+  );
 
   // Jika tidak ada cookie, coba header
   const acceptLanguage = request.headers.get("accept-language");
@@ -46,7 +48,9 @@ function getLocale(request: NextRequest): Locale {
         `Middleware: No languages in header, using default: ${defaultLocaleString}`,
       );
       // Pastikan defaultLocaleString adalah Locale
-      return isSupportedLocale(defaultLocaleString) ? defaultLocaleString : 'id';
+      return isSupportedLocale(defaultLocaleString)
+        ? defaultLocaleString
+        : "id";
     }
 
     const matchedLocale = localeMatcher(
@@ -58,7 +62,7 @@ function getLocale(request: NextRequest): Locale {
       `Middleware: Matched locale from header/default: ${matchedLocale}`,
     );
     // Pastikan hasil matcher adalah Locale
-     return isSupportedLocale(matchedLocale) ? matchedLocale : 'id';
+    return isSupportedLocale(matchedLocale) ? matchedLocale : "id";
   } catch (e) {
     console.error("Middleware: Failed to match locale:", e);
     console.log(
@@ -72,7 +76,9 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const currentCookie = request.cookies.get(LANGUAGE_STORAGE_KEY)?.value;
 
-  console.log(`Middleware: Processing request for ${pathname}. Current cookie: ${currentCookie}`);
+  console.log(
+    `Middleware: Processing request for ${pathname}. Current cookie: ${currentCookie}`,
+  );
 
   // Skip middleware for static files and API routes
   if (
@@ -91,22 +97,26 @@ export function middleware(request: NextRequest) {
   }
 
   // Check if pathname already has a supported locale prefix
-  const pathnameLocale = pathname.split('/')[1];
+  const pathnameLocale = pathname.split("/")[1];
   const pathnameHasValidLocale = isSupportedLocale(pathnameLocale);
 
-
   if (pathnameHasValidLocale) {
-     console.log(`Middleware: Path already has locale: ${pathnameLocale}. Cookie is: ${currentCookie}. Proceeding.`);
+    console.log(
+      `Middleware: Path already has locale: ${pathnameLocale}. Cookie is: ${currentCookie}. Proceeding.`,
+    );
     // ---- Sinkronisasi Cookie jika URL dan Cookie tidak cocok ----
     if (pathnameLocale !== currentCookie) {
-        console.log(`Middleware: Path locale (${pathnameLocale}) differs from cookie (${currentCookie}). Updating cookie.`);
-        const response = NextResponse.next();
-        response.cookies.set(LANGUAGE_STORAGE_KEY, pathnameLocale, { // <-- pathnameLocale sudah pasti Locale (string) di sini
-            path: "/",
-            maxAge: 60 * 60 * 24 * 365, // 1 year
-            sameSite: "lax",
-        });
-        return response;
+      console.log(
+        `Middleware: Path locale (${pathnameLocale}) differs from cookie (${currentCookie}). Updating cookie.`,
+      );
+      const response = NextResponse.next();
+      response.cookies.set(LANGUAGE_STORAGE_KEY, pathnameLocale, {
+        // <-- pathnameLocale sudah pasti Locale (string) di sini
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: "lax",
+      });
+      return response;
     }
     return NextResponse.next();
   }
@@ -117,25 +127,24 @@ export function middleware(request: NextRequest) {
   const redirectUrl = new URL(newPathname, request.url);
 
   console.log(
-    `Middleware: Path ${pathname} needs locale. Cookie was ${currentCookie}. Determined locale: ${locale}. Redirecting to ${redirectUrl.pathname}`
+    `Middleware: Path ${pathname} needs locale. Cookie was ${currentCookie}. Determined locale: ${locale}. Redirecting to ${redirectUrl.pathname}`,
   );
 
   // Redirect and set the cookie (jika belum ada atau berbeda)
   const response = NextResponse.redirect(redirectUrl, 307);
-   if (currentCookie !== locale) {
-       console.log(`Middleware: Setting/Updating cookie to ${locale} during redirect.`);
-       response.cookies.set(LANGUAGE_STORAGE_KEY, locale, {
-           path: "/",
-           maxAge: 60 * 60 * 24 * 365,
-           sameSite: "lax",
-       });
-   }
+  if (currentCookie !== locale) {
+    console.log(
+      `Middleware: Setting/Updating cookie to ${locale} during redirect.`,
+    );
+    response.cookies.set(LANGUAGE_STORAGE_KEY, locale, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+  }
   return response;
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next|api/|favicon.ico|.*\\..*).*)',
-  ],
+  matcher: ["/((?!_next|api/|favicon.ico|.*\\..*).*)"],
 };
-

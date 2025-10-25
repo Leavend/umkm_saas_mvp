@@ -32,7 +32,11 @@ import { Input } from "~/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Image as ImageKitImage } from "@imagekit/next";
 import { env } from "~/env";
-import { useTranslations, useLanguage } from "~/components/language-provider";
+import {
+  useTranslations,
+  useLanguage,
+  useLocalePath,
+} from "~/components/language-provider";
 
 interface Project {
   id: string;
@@ -57,6 +61,7 @@ export default function ProjectsPage() {
   const router = useRouter();
   const translations = useTranslations();
   const { lang } = useLanguage();
+  const toLocalePath = useLocalePath();
   const { projects, common } = translations;
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
@@ -128,9 +133,16 @@ export default function ProjectsPage() {
     return sorted;
   }, [deferredSearchQuery, lang, projectNameFallback, sortBy, userProjects]);
 
+  const navigateTo = useCallback(
+    (path: string) => {
+      router.push(toLocalePath(path));
+    },
+    [router, toLocalePath],
+  );
+
   const handleProjectClick = useCallback(() => {
-    router.push("/dashboard/create");
-  }, [router]);
+    navigateTo("/dashboard/create");
+  }, [navigateTo]);
 
   const formatDate = useCallback(
     (value: string | Date) =>
@@ -173,7 +185,7 @@ export default function ProjectsPage() {
               </p>
             </div>
             <Button
-              onClick={() => router.push("/dashboard/create")}
+              onClick={() => navigateTo("/dashboard/create")}
               className="gap-2 self-start sm:self-auto"
             >
               <Plus className="h-4 w-4" />
@@ -255,7 +267,7 @@ export default function ProjectsPage() {
                 </p>
                 {!searchQuery && (
                   <Button
-                    onClick={() => router.push("/dashboard/create")}
+                    onClick={() => navigateTo("/dashboard/create")}
                     className="gap-2"
                   >
                     <Plus className="h-4 w-4" />

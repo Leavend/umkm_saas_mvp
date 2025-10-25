@@ -23,7 +23,11 @@ import { Button } from "~/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Image as ImageKitImage } from "@imagekit/next";
 import { env } from "~/env";
-import { useTranslations, useLanguage } from "~/components/language-provider";
+import {
+  useTranslations,
+  useLanguage,
+  useLocalePath,
+} from "~/components/language-provider";
 
 interface Project {
   id: string;
@@ -46,6 +50,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const translations = useTranslations();
   const { lang } = useLanguage();
+  const toLocalePath = useLocalePath();
   const { dashboard, common, projects: projectsCopy } = translations;
 
   useEffect(() => {
@@ -114,9 +119,9 @@ export default function DashboardPage() {
 
   const handleNavigate = useCallback(
     (path: string) => {
-      router.push(path);
+      router.push(toLocalePath(path));
     },
-    [router],
+    [router, toLocalePath],
   );
 
   const formatDate = useCallback(

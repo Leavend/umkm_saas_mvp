@@ -14,16 +14,19 @@ export function generateStaticParams() {
 export default async function AuthPage({
   params,
 }: {
-  params: Promise<{ lang: string; path: string }>;
+  params: Promise<{ lang: string; path: string | string[] }>;
 }) {
-  const { lang, path } = await params;
+  const awaitedParams = await params;
+  const { lang, path: rawPath } = awaitedParams;
+
   assertValidLocale(lang);
+
+  const viewPath = Array.isArray(rawPath) ? rawPath.join("/") : rawPath;
 
   const dict = getDictionary(lang);
   const { auth, common } = dict;
 
   const authLocalization = {
-    // Existing localizations
     SIGN_IN: auth.signIn.title,
     SIGN_IN_DESCRIPTION: auth.signIn.description,
     SIGN_IN_ACTION: auth.signIn.button,
@@ -40,19 +43,19 @@ export default async function AuthPage({
     DONT_HAVE_AN_ACCOUNT: auth.form.promptSignUp,
     ALREADY_HAVE_AN_ACCOUNT: auth.form.promptSignIn,
 
-    // Google OAuth translations
     GOOGLE_CONTINUE:
-      lang === "id" ? "Lanjutkan dengan Google" : "Continue with Google",
+      lang === "id" ? auth.socialProviders.google.continue : "Continue with Google",
     OR: lang === "id" ? "atau" : "or",
   };
 
   return (
     <main className="container flex grow flex-col items-center justify-center self-center p-4 md:p-6">
       <AuthClientView
-        path={path}
+        path={viewPath}
         loadingText={common.states.loading}
         localization={authLocalization}
       />
     </main>
   );
 }
+

@@ -23,9 +23,9 @@ type Content = HomePageContent;
 
 interface LandingPageProps {
   content: Content;
+  lang: string;
 }
-
-export const LandingPage = ({ content }: LandingPageProps) => {
+export const LandingPage = ({ content, lang }: LandingPageProps) => {
   const {
     brandName,
     navLinks,
@@ -45,18 +45,19 @@ export const LandingPage = ({ content }: LandingPageProps) => {
         brandName={brandName}
         navLinks={navLinks}
         actions={actions}
+        lang={lang}
       />
       <div className="border-b border-slate-200 bg-slate-50/95 px-4 py-3 md:hidden">
         <LanguageToggle className="w-full justify-center" />
       </div>
 
-      <HeroSection hero={hero} />
+      <HeroSection hero={hero} lang={lang} />
       <FeaturesSection features={features} />
       <HowItWorksSection howItWorks={howItWorks} />
       <TestimonialsSection testimonials={testimonials} />
-      <PricingSection pricing={pricing} />
-      <CtaSection cta={cta} />
-      <Footer brandName={brandName} footer={footer} />
+      <PricingSection pricing={pricing} lang={lang} />
+      <CtaSection cta={cta} lang={lang} />
+      <Footer brandName={brandName} footer={footer} lang={lang} />
     </div>
   );
 };
@@ -65,12 +66,14 @@ interface LandingNavigationProps {
   brandName: string;
   navLinks: Content["navLinks"];
   actions: Content["actions"];
+  lang: string;
 }
 
 const LandingNavigation = ({
   brandName,
   navLinks,
   actions,
+  lang,
 }: LandingNavigationProps) => (
   <nav className="sticky top-0 z-50 border-b border-slate-200/60 bg-slate-50/95 backdrop-blur supports-[backdrop-filter]:bg-slate-50/80">
     <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -97,12 +100,14 @@ const LandingNavigation = ({
 
       <div className="flex items-center gap-3">
         <LanguageToggle className="hidden md:inline-flex" />
-        <Link href="/auth/sign-in">
+        {/* ----- Perubahan 6: Gunakan `lang` pada href Sign In ----- */}
+        <Link href={`/${lang}/auth/sign-in`}>
           <Button variant="ghost" size="sm" className="cursor-pointer">
             {actions.signIn}
           </Button>
         </Link>
-        <Link href="/dashboard">
+        {/* ----- Perubahan 7: Gunakan `lang` pada href Try Free (Dashboard) ----- */}
+        <Link href={`/${lang}/dashboard`}>
           <Button size="sm" className="cursor-pointer gap-2">
             {actions.tryFree}
             <ArrowRight className="h-4 w-4" />
@@ -115,9 +120,10 @@ const LandingNavigation = ({
 
 interface HeroSectionProps {
   hero: Content["hero"];
+  lang: String;
 }
 
-const HeroSection = ({ hero }: HeroSectionProps) => (
+const HeroSection = ({ hero, lang }: HeroSectionProps) => (
   <section className="relative overflow-hidden py-20 sm:py-32">
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl text-center">
@@ -138,7 +144,7 @@ const HeroSection = ({ hero }: HeroSectionProps) => (
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href="/dashboard">
+          <Link href={`/${lang}/dashboard`}>
             <Button
               size="lg"
               className="cursor-pointer gap-2 px-8 py-6 text-base"
@@ -147,7 +153,7 @@ const HeroSection = ({ hero }: HeroSectionProps) => (
               {hero.primaryCta}
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href={`/${lang}/dashboard`}>
             <Button
               variant="outline"
               size="lg"
@@ -305,9 +311,10 @@ const TestimonialsSection = ({ testimonials }: TestimonialsSectionProps) => (
 
 interface PricingSectionProps {
   pricing: Content["pricing"];
+  lang: String;
 }
 
-const PricingSection = ({ pricing }: PricingSectionProps) => (
+const PricingSection = ({ pricing, lang }: PricingSectionProps) => (
   <section
     id="pricing"
     className="bg-gradient-to-br from-slate-50 to-blue-50/50 py-20 sm:py-32"
@@ -352,8 +359,7 @@ const PricingSection = ({ pricing }: PricingSectionProps) => (
                 </li>
               ))}
             </ul>
-
-            <Link href="/dashboard">
+            <Link href={`/${lang}/dashboard`}>
               <Button
                 className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 size="lg"
@@ -375,9 +381,10 @@ const PricingSection = ({ pricing }: PricingSectionProps) => (
 
 interface CtaSectionProps {
   cta: Content["cta"];
+  lang: String;
 }
 
-const CtaSection = ({ cta }: CtaSectionProps) => (
+const CtaSection = ({ cta, lang }: CtaSectionProps) => (
   <section className="bg-gradient-to-r from-blue-100/70 to-purple-100/70 py-20 sm:py-32">
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
@@ -386,7 +393,7 @@ const CtaSection = ({ cta }: CtaSectionProps) => (
         </h2>
         <p className="mt-4 text-lg text-slate-600">{cta.description}</p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href="/dashboard">
+          <Link href={`/${lang}/dashboard`}>
             <Button
               size="lg"
               className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
@@ -395,7 +402,7 @@ const CtaSection = ({ cta }: CtaSectionProps) => (
               {cta.primaryCta}
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href={`/${lang}/dashboard`}>
             <Button
               variant="outline"
               size="lg"
@@ -414,9 +421,10 @@ const CtaSection = ({ cta }: CtaSectionProps) => (
 interface FooterProps {
   brandName: string;
   footer: Content["footer"];
+  lang: String;
 }
 
-const Footer = ({ brandName, footer }: FooterProps) => (
+const Footer = ({ brandName, footer, lang }: FooterProps) => (
   <footer className="border-t border-slate-200 bg-slate-100">
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="py-16">
@@ -456,7 +464,7 @@ const Footer = ({ brandName, footer }: FooterProps) => (
               </li>
               <li>
                 <Link
-                  href="/dashboard"
+                  href={`/${lang}/dashboard`}
                   className="transition-colors hover:text-blue-600"
                 >
                   {footer.product.links.dashboard}

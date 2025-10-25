@@ -1,4 +1,5 @@
 // src/components/auth/auth-client-view.tsx
+
 "use client";
 
 import { useParams } from "next/navigation";
@@ -8,7 +9,7 @@ import { CustomAuthView } from "./custom-auth-view";
 type AuthLocalization = Record<string, string | undefined>;
 
 interface AuthClientViewProps {
-  path: string | string[];
+  path: string;
   loadingText: string;
   localization: AuthLocalization;
 }
@@ -21,9 +22,7 @@ export function AuthClientView({
   const params = useParams();
   const lang = (params.lang as Locale) || "id";
 
-  const viewPath = Array.isArray(path) ? path.join("/") : path;
-
-  if (!viewPath) {
+  if (!path) {
     return (
       <div className="flex grow items-center justify-center">
         <p>{loadingText}</p>
@@ -31,10 +30,9 @@ export function AuthClientView({
     );
   }
 
-  // Use CustomAuthView instead of AuthView directly
   return (
     <CustomAuthView
-      path={viewPath}
+      path={path}
       loadingText={loadingText}
       localization={localization}
     />

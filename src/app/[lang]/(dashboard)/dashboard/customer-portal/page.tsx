@@ -1,3 +1,5 @@
+// src/app/[lang]/(dashboard)/dashboard/customer-portal/page.tsx
+
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import CustomerPortalRedirect from "~/components/CustomerPortalRedirect";

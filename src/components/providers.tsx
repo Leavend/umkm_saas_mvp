@@ -10,6 +10,8 @@ import type { ReactNode } from "react";
 import { authClient } from "~/lib/auth-client";
 import { LanguageProvider, useLanguage } from "~/components/language-provider";
 import type { Locale } from "~/lib/i18n";
+import { SUPPORTED_LOCALES } from "~/lib/i18n";
+
 
 interface ProvidersProps {
   children: ReactNode;
@@ -23,32 +25,46 @@ interface NavigateOptions {
 
 function AuthUIWithLocale({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { lang: currentLocale } = useLanguage();
+  const { lang: currentLocale } = useLanguage(); // Dapatkan locale saat ini
 
-  const prefixLocaleIfNeeded = (path: string) => {
-    if (path.startsWith("/en/") || path.startsWith("/id/")) {
-      return path;
+  const prefixLocaleIfNeeded = (path: string): string => {
+    // Cek apakah path sudah memiliki prefix locale yang valid
+    const hasValidLocalePrefix = SUPPORTED_LOCALES.some(
+      (loc) => path === `/${loc}` || path.startsWith(`/${loc}/`),
+    );
+
+    if (hasValidLocalePrefix) {
+      return path; // Sudah punya, jangan ubah
     }
-    if (path === "/en" || path === "/id") {
-      return path;
-    }
+
+    // Jika path root '/', tambahkan locale
     if (path === "/") {
       return `/${currentLocale}`;
     }
+
+    // Jika path mulai dengan '/', tambahkan locale di depan
     if (path.startsWith("/")) {
+      // Hindari // jika path sudah /
       return `/${currentLocale}${path}`;
     }
+
+    console.warn(`AuthUIProvider: Path "${path}" is relative or unexpected, not prefixing locale.`);
     return path;
   };
 
   return (
     <AuthUIProvider
       authClient={authClient}
+      // ----- Perubahan: Modifikasi navigate dan replace -----
       navigate={(path: string, options?: NavigateOptions) => {
-        router.push(prefixLocaleIfNeeded(path), options);
+        const prefixedPath = prefixLocaleIfNeeded(path);
+        console.log(`AuthUI Navigating: ${path} -> ${prefixedPath}`); // Logging
+        router.push(prefixedPath, options);
       }}
       replace={(path: string, options?: NavigateOptions) => {
-        router.replace(prefixLocaleIfNeeded(path), options);
+        const prefixedPath = prefixLocaleIfNeeded(path);
+        console.log(`AuthUI Replacing: ${path} -> ${prefixedPath}`); // Logging
+        router.replace(prefixedPath, options);
       }}
       onSessionChange={async () => {
         router.refresh();
@@ -56,7 +72,9 @@ function AuthUIWithLocale({ children }: { children: ReactNode }) {
           const session = await authClient.getSession();
           if (session.data?.user && typeof window !== "undefined") {
             const currentPath = window.location.pathname;
-            if (currentPath.includes("/auth/")) {
+            const authPathRegex = /^\/(en|id)\/auth\//;
+            if (authPathRegex.test(currentPath)) {
+              console.log(`AuthUI SessionChange: Redirecting from ${currentPath} to /${currentLocale}/dashboard`);
               router.push(`/${currentLocale}/dashboard`);
             }
           }

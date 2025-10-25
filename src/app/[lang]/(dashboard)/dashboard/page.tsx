@@ -1,3 +1,5 @@
+// src/app/[lang]/(dashboard)/dashboard/page.tsx
+
 "use client";
 
 import { RedirectToSignIn, SignedIn } from "@daveyplate/better-auth-ui";

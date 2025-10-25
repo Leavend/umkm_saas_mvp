@@ -14,12 +14,13 @@ export default async function HomePage({
 }: {
   params: Promise<{ lang: string }>;
 }) {
-  const { lang } = await params;
+  const awaitedParams = await params;
+  const { lang } = awaitedParams;
 
   assertValidLocale(lang);
 
   const dictionary = getDictionary(lang);
   const content = buildHomePageContent(dictionary);
 
-  return <LandingPage content={content} />;
+  return <LandingPage content={content} lang={lang} />;
 }

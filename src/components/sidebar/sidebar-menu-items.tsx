@@ -1,58 +1,75 @@
 // src/components/sidebar/sidebar-menu-items.tsx
 
-"use client";
+"use client"; // Ini Client Component
 
 import { LayoutDashboard, Wand2, FolderOpen, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
-import { useTranslations } from "~/components/language-provider";
+// Gunakan hook Client Component
+import { useTranslations, useLanguage } from "~/components/language-provider";
 import { useMemo } from "react";
+// Import helper untuk strip locale (jika belum)
+import { stripLocaleFromPathname } from "~/lib/routing";
 
 export default function SidebarMenuItems() {
-  const path = usePathname();
+  const fullPath = usePathname(); // e.g., /en/dashboard/settings
   const { setOpenMobile, isMobile } = useSidebar();
   const translations = useTranslations();
+  const { lang } = useLanguage(); // Dapatkan locale saat ini ('en' atau 'id')
+
+  // Dapatkan path saat ini tanpa locale untuk menentukan state 'active'
+  const currentPathWithoutLocale = useMemo(() => stripLocaleFromPathname(fullPath, lang), [fullPath, lang]);
 
   const items = useMemo(
     () =>
       [
         {
+          key: "dashboard",
           title: translations.sidebar.items.dashboard,
-          url: "/dashboard",
+          basePath: "/dashboard", // Path dasar tanpa locale
           icon: LayoutDashboard,
         },
         {
+          key: "create",
           title: translations.sidebar.items.create,
-          url: "/dashboard/create",
+          basePath: "/dashboard/create",
           icon: Wand2,
         },
         {
+          key: "projects",
           title: translations.sidebar.items.projects,
-          url: "/dashboard/projects",
+          basePath: "/dashboard/projects",
           icon: FolderOpen,
         },
         {
+          key: "settings",
           title: translations.sidebar.items.settings,
-          url: "/dashboard/settings",
+          basePath: "/dashboard/settings",
           icon: Settings,
         },
-      ].map((item) => ({
-        ...item,
-        active: path === item.url,
-      })),
+      ].map((item) => {
+          // Logika 'active': anggap '/' sama dengan '/dashboard'
+          const isActive = item.basePath === "/dashboard"
+              ? currentPathWithoutLocale === item.basePath || currentPathWithoutLocale === '/'
+              : currentPathWithoutLocale === item.basePath;
+
+          return {
+            ...item,
+            // ----- Perubahan Kunci: Buat URL lengkap dengan locale -----
+            url: `/${lang}${item.basePath}`, // <-- Pastikan href selalu punya locale
+            active: isActive,
+          };
+      }),
     [
-      path,
-      translations.sidebar.items.create,
-      translations.sidebar.items.dashboard,
-      translations.sidebar.items.projects,
-      translations.sidebar.items.settings,
+      currentPathWithoutLocale,
+      lang, // Tambahkan lang dependency
+      translations.sidebar.items,
     ],
   );
 
   const handleMenuClick = () => {
-    // Close mobile sidebar when clicking a menu item
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -61,7 +78,7 @@ export default function SidebarMenuItems() {
   return (
     <>
       {items.map((item) => (
-        <SidebarMenuItem key={item.title}>
+        <SidebarMenuItem key={item.key}>
           <SidebarMenuButton
             asChild
             isActive={item.active}
@@ -70,8 +87,9 @@ export default function SidebarMenuItems() {
               item.active && "bg-primary/15 text-primary shadow-sm",
             )}
           >
+            {/* ----- Perubahan Kunci: Gunakan item.url yang sudah ber-locale ----- */}
             <Link
-              href={item.url}
+              href={item.url} // <-- Pastikan href ini selalu punya locale
               onClick={handleMenuClick}
               className="flex items-center gap-3"
             >
@@ -94,3 +112,4 @@ export default function SidebarMenuItems() {
     </>
   );
 }
+

@@ -226,7 +226,7 @@ export default function DashboardPage() {
                         month: "short",
                         year: "numeric",
                       })
-                    : "N/A"}
+                    : common.states.notAvailable}
                 </div>
                 <p className="text-muted-foreground text-xs">
                   {dashboard.stats.memberSince.description}

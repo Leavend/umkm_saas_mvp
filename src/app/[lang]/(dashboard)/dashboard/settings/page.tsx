@@ -53,7 +53,7 @@ export default function SettingsPage() {
       // DELETE_ACCOUNT_DESCRIPTION: settings.account.deleteAccountDescription,
       // DELETE_ACCOUNT_INSTRUCTIONS: settings.account.deleteAccountInstructions,
       // DELETE_ACCOUNT_VERIFY: settings.account.deleteAccountVerify,
-      SAVE: common.actions.save ?? "Save",
+      SAVE: common.actions.save,
     };
   }, [settings, common]);
 
@@ -87,7 +87,7 @@ export default function SettingsPage() {
       CURRENT_SESSION: settings.security.currentSession,
       REVOKE: settings.security.revoke,
       SIGN_OUT: settings.security.signout,
-      SAVE: common.actions.save ?? "Save",
+      SAVE: common.actions.save,
     };
   }, [settings, common]);
 

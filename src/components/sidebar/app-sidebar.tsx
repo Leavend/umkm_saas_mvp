@@ -15,10 +15,7 @@ import Upgrade from "./upgrade"; // Client Component
 import MobileSidebarClose from "./mobile-sidebar-close"; // Client Component
 import { SidebarBrand } from "~/components/sidebar/sidebar-brand"; // Client Component
 import { SidebarUserButton } from "~/components/sidebar/sidebar-user-button"; // Client Component
-import { type Locale } from "~/lib/i18n";
-
-// Terima 'lang' dari DashboardLayout
-export async function AppSidebar({ lang }: { lang: Locale }) {
+export async function AppSidebar() {
   // Anda tidak perlu getDictionary di sini kecuali ada teks statis
   // Komponen klien di bawah akan mendapatkan terjemahan dari Context Provider
 

@@ -69,6 +69,7 @@ export const TRANSLATIONS = {
         upgrade: "Upgrade",
         customerPortal: "Customer Portal",
         save: "Save",
+        upload: "Upload",
       },
       states: {
         loading: "Loading...",
@@ -83,6 +84,7 @@ export const TRANSLATIONS = {
         uploadingImage: "Uploading your image",
         uploadingDescription: "Processing your file with AI magic ✨",
         startDownload: "Download started!",
+        notAvailable: "Not available",
       },
     },
     home: {
@@ -551,6 +553,7 @@ export const TRANSLATIONS = {
         upgrade: "Tambah Kredit",
         customerPortal: "Portal Pelanggan",
         save: "Simpan",
+        upload: "Unggah",
       },
       states: {
         loading: "Memuat...",
@@ -565,6 +568,7 @@ export const TRANSLATIONS = {
         uploadingImage: "Mengunggah gambar",
         uploadingDescription: "Memproses file dengan keajaiban AI ✨",
         startDownload: "Pengunduhan dimulai!",
+        notAvailable: "Belum tersedia",
       },
     },
     home: {

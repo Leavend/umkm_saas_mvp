@@ -75,7 +75,7 @@ export default function SidebarMenuItems() {
       }),
     [
       currentPathWithoutLocale,
-      lang, // Tambahkan lang dependency
+      // lang, // Tambahkan lang dependency
       toLocalePath,
       translations.sidebar.items,
     ],

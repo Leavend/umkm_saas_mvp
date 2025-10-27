@@ -18,7 +18,7 @@ import {
 } from "~/components/ui/breadcrumb";
 import BreadcrumbPageClient from "~/components/sidebar/breadcrumb-page-client";
 import { LanguageToggle } from "~/components/language-toggle";
-import { assertValidLocale, type Locale } from "~/lib/i18n";
+import { assertValidLocale } from "~/lib/i18n";
 // (Optional) import { getDictionary } from "~/lib/dictionary";
 
 export const metadata: Metadata = {
@@ -27,18 +27,14 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-// ----- Perubahan 1: Tambahkan async -----
 export default async function DashboardLayout({
   children,
   params,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-  // ----- Perubahan 2: Tipe params sekarang Promise -----
-  params: Promise<{ lang: Locale }>; // <-- params adalah Promise
-}>) {
-  // ----- Perubahan 3: Await params -----
-  const awaitedParams = await params;
-  const { lang } = awaitedParams; // <-- Akses lang dari hasil await
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
   assertValidLocale(lang);
 
   // const dictionary = getDictionary(lang); // Ambil dictionary jika perlu di layout
@@ -46,7 +42,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       {/* ----- Perubahan 4: Panggil AppSidebar dengan await dan teruskan lang ----- */}
-      <AppSidebar lang={lang} />
+      <AppSidebar />
       <SidebarInset className="flex h-screen flex-col">
         <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/40 sticky top-0 z-10 border-b px-6 py-3 shadow-sm backdrop-blur">
           <div className="flex shrink-0 grow items-center gap-3">

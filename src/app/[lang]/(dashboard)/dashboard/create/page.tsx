@@ -80,7 +80,7 @@ export default function CreatePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const translations = useTranslations();
   const { lang } = useLanguage();
-  const { create: createCopy, common } = translations;
+  const { create: createCopy, common, projects: projectsCopy } = translations;
   const uploadCopy = createCopy.uploadCard;
   const effectsCopy = createCopy.effects;
   const recentsCopy = createCopy.recents;
@@ -488,7 +488,7 @@ export default function CreatePage() {
                       <div className="mb-3 flex items-start justify-between">
                         <div>
                           <h3 className="mb-0.5 text-sm font-bold">
-                            {effectsCopy.title ?? "AI Effects"}
+                            {effectsCopy.title}
                           </h3>
                           <p className="text-muted-foreground text-xs">
                             {effectsCopy.subtitle}
@@ -673,7 +673,9 @@ export default function CreatePage() {
                             className="h-7 gap-1 px-2"
                           >
                             <Upload className="h-3 w-3" />
-                            <span className="text-xs">Upload</span>
+                            <span className="text-xs">
+                              {common.actions.upload}
+                            </span>
                           </Button>
                           {transformations.length > 0 && (
                             <Button
@@ -794,7 +796,7 @@ export default function CreatePage() {
                       setUploadedImage({
                         fileId: project.imageKitId,
                         url: project.imageUrl,
-                        name: project.name ?? "Untitled",
+                        name: project.name ?? projectsCopy.card.untitled,
                         filePath: project.filePath,
                       });
                       setTransformations([]);
@@ -806,7 +808,7 @@ export default function CreatePage() {
                         <ImageKitImage
                           urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
                           src={project.filePath}
-                          alt={project.name ?? "Project"}
+                          alt={project.name ?? projectsCopy.card.untitled}
                           width={300}
                           height={300}
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -825,7 +827,7 @@ export default function CreatePage() {
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 transform bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-transform duration-300 group-hover:translate-y-0">
                         <div className="space-y-1">
                           <h3 className="truncate text-sm font-bold text-white drop-shadow-lg">
-                            {project.name ?? "Untitled Project"}
+                            {project.name ?? projectsCopy.card.untitled}
                           </h3>
                           <div className="flex items-center justify-between">
                             <p className="text-xs text-white/90 drop-shadow-md">

@@ -4,13 +4,19 @@
 
 import { Languages } from "lucide-react";
 import { useCallback, useTransition, type ComponentProps } from "react";
-import { useRouter, usePathname, useParams } from "next/navigation";
+import {
+  useRouter,
+  usePathname,
+  useParams,
+  useSearchParams,
+} from "next/navigation";
 
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { persistUserLocale } from "~/actions/set-locale";
 import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
 import { stripLocaleFromPathname } from "~/lib/routing";
+import { useLanguage } from "~/components/language-provider";
 
 export type LanguageToggleProps = Omit<
   ComponentProps<typeof Button>,
@@ -26,7 +32,9 @@ export function LanguageToggle({
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
+  const searchParams = useSearchParams();
   const [isPending, startPersistLocale] = useTransition();
+  const { setLocale } = useLanguage();
 
   const currentLocale = (params.lang as Locale) || DEFAULT_LOCALE;
   const nextLocale = currentLocale === "en" ? "id" : "en";
@@ -36,16 +44,32 @@ export function LanguageToggle({
   const shortLabel = nextLocale === "id" ? t.shortIndonesian : t.shortEnglish;
 
   const handleToggle = useCallback(() => {
+    const targetLocale = nextLocale;
+    setLocale(targetLocale);
+
     const pathWithoutLocale = stripLocaleFromPathname(pathname, currentLocale);
     const normalizedPath = pathWithoutLocale === "/" ? "" : pathWithoutLocale;
-    const newPath = `/${nextLocale}${normalizedPath}`;
+    const query = searchParams?.toString();
+    const hash =
+      typeof window !== "undefined" && window.location.hash
+        ? window.location.hash
+        : "";
+    const newPath = `/${targetLocale}${normalizedPath}${query ? `?${query}` : ""}${hash}`;
     startPersistLocale(() => {
-      void persistUserLocale(nextLocale).catch((error) => {
+      void persistUserLocale(targetLocale).catch((error) => {
         console.error("Failed to persist locale", error);
       });
     });
-    router.push(newPath);
-  }, [nextLocale, pathname, currentLocale, router, startPersistLocale]);
+    router.replace(newPath);
+  }, [
+    currentLocale,
+    pathname,
+    router,
+    searchParams,
+    setLocale,
+    startPersistLocale,
+    nextLocale,
+  ]);
 
   return (
     <Button

@@ -120,7 +120,7 @@ const LandingNavigation = ({
 
 interface HeroSectionProps {
   hero: Content["hero"];
-  lang: String;
+  lang: string;
 }
 
 const HeroSection = ({ hero, lang }: HeroSectionProps) => (
@@ -311,7 +311,7 @@ const TestimonialsSection = ({ testimonials }: TestimonialsSectionProps) => (
 
 interface PricingSectionProps {
   pricing: Content["pricing"];
-  lang: String;
+  lang: string;
 }
 
 const PricingSection = ({ pricing, lang }: PricingSectionProps) => (
@@ -381,7 +381,7 @@ const PricingSection = ({ pricing, lang }: PricingSectionProps) => (
 
 interface CtaSectionProps {
   cta: Content["cta"];
-  lang: String;
+  lang: string;
 }
 
 const CtaSection = ({ cta, lang }: CtaSectionProps) => (
@@ -421,7 +421,7 @@ const CtaSection = ({ cta, lang }: CtaSectionProps) => (
 interface FooterProps {
   brandName: string;
   footer: Content["footer"];
-  lang: String;
+  lang: string;
 }
 
 const Footer = ({ brandName, footer, lang }: FooterProps) => (

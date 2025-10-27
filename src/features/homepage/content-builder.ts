@@ -4,6 +4,15 @@ import { Expand, Scissors, Target, Zap, type LucideIcon } from "lucide-react";
 
 import type { Translations } from "~/lib/i18n";
 
+export type MetricTranslationEntry = Translations["home"]["metrics"][number];
+export type MetricKey = MetricTranslationEntry["key"];
+
+export interface HomePageMetric {
+  key: MetricKey;
+  label: string;
+  value: string;
+}
+
 export type FeatureKey = keyof Translations["home"]["features"]["items"];
 
 export interface FeatureCardContent {
@@ -30,7 +39,7 @@ export interface HomePageContent {
     primaryCta: string;
     secondaryCta: string;
     trustedBy: string;
-    metrics: Translations["home"]["metrics"];
+    metrics: HomePageMetric[];
   };
   features: {
     headingLeading: string;
@@ -85,6 +94,7 @@ const FEATURE_CONFIGS = [
 
 export const buildHomePageContent = (
   translations: Translations,
+  metricValues: Partial<Record<MetricKey, string>> = {},
 ): HomePageContent => {
   const { home, common } = translations;
 
@@ -124,7 +134,11 @@ export const buildHomePageContent = (
       primaryCta: home.hero.primaryCta,
       secondaryCta: home.hero.secondaryCta,
       trustedBy: home.hero.trustedBy,
-      metrics: home.metrics,
+      metrics: home.metrics.map<HomePageMetric>((metric) => ({
+        key: metric.key,
+        label: metric.label,
+        value: metricValues[metric.key] ?? metric.fallbackValue,
+      })),
     },
     features: {
       headingLeading: home.features.headingLeading,

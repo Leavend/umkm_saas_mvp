@@ -4,8 +4,10 @@ import type { ReactNode } from "react";
 import { ImageIcon, Sparkles, Target, Zap } from "lucide-react";
 import Link from "next/link";
 
+import type { MetricKey } from "~/features/homepage/content-builder";
 import { getDictionary } from "~/lib/dictionary";
 import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
+import { fetchHomePageMetricValues } from "~/server/services/homepage-metrics-service";
 
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((lang) => ({ lang }));
@@ -23,7 +25,20 @@ export default async function AuthLayout({
   assertValidLocale(lang);
 
   const dict = getDictionary(lang);
-  const { auth, common } = dict;
+  const { auth, common, home } = dict;
+
+  const metricValues = await fetchHomePageMetricValues(lang);
+
+  const fallbackMetricMap = home.metrics.reduce<Record<MetricKey, string>>(
+    (acc, metric) => {
+      acc[metric.key] = metric.fallbackValue;
+      return acc;
+    },
+    {} as Record<MetricKey, string>,
+  );
+
+  const getMetricValue = (key: MetricKey) =>
+    metricValues[key] ?? fallbackMetricMap[key];
 
   const featureList = [
     {
@@ -44,9 +59,9 @@ export default async function AuthLayout({
   ] as const;
 
   const stats = [
-    { value: "10K+", label: auth.stats.images },
-    { value: "2.5K+", label: auth.stats.users },
-    { value: "4.8★", label: auth.stats.rating },
+    { value: getMetricValue("imagesProcessed"), label: auth.stats.images },
+    { value: getMetricValue("activeUsers"), label: auth.stats.users },
+    { value: getMetricValue("userRating"), label: auth.stats.rating },
   ];
 
   return (

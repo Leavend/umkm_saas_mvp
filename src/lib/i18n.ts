@@ -118,11 +118,31 @@ export const TRANSLATIONS = {
         trustedBy: "Trusted by thousands of creators worldwide",
       },
       metrics: [
-        { value: "10K+", label: "Images Processed" },
-        { value: "2.5K+", label: "Active Users" },
-        { value: "99.9%", label: "Uptime" },
-        { value: "4.8★", label: "User Rating" },
-        { value: "24/7", label: "AI Processing" },
+        {
+          key: "imagesProcessed",
+          label: "Images Processed",
+          fallbackValue: "10K+",
+        },
+        {
+          key: "activeUsers",
+          label: "Active Users",
+          fallbackValue: "2.5K+",
+        },
+        {
+          key: "uptime",
+          label: "Uptime",
+          fallbackValue: "99.9%",
+        },
+        {
+          key: "userRating",
+          label: "User Rating",
+          fallbackValue: "4.8★",
+        },
+        {
+          key: "aiProcessing",
+          label: "AI Processing",
+          fallbackValue: "24/7",
+        },
       ],
       features: {
         headingLeading: "Powerful AI Tools at Your",
@@ -602,11 +622,31 @@ export const TRANSLATIONS = {
         trustedBy: "Dipercaya ribuan kreator di seluruh dunia",
       },
       metrics: [
-        { value: "10K+", label: "Gambar Diproses" },
-        { value: "2.5K+", label: "Pengguna Aktif" },
-        { value: "99.9%", label: "Waktu Aktif" },
-        { value: "4.8★", label: "Nilai Pengguna" },
-        { value: "24/7", label: "Pemrosesan AI" },
+        {
+          key: "imagesProcessed",
+          label: "Gambar Diproses",
+          fallbackValue: "10K+",
+        },
+        {
+          key: "activeUsers",
+          label: "Pengguna Aktif",
+          fallbackValue: "2.5K+",
+        },
+        {
+          key: "uptime",
+          label: "Waktu Aktif",
+          fallbackValue: "99.9%",
+        },
+        {
+          key: "userRating",
+          label: "Nilai Pengguna",
+          fallbackValue: "4.8★",
+        },
+        {
+          key: "aiProcessing",
+          label: "Pemrosesan AI",
+          fallbackValue: "24/7",
+        },
       ],
       features: {
         headingLeading: "Alat AI Kuat di",

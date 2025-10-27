@@ -24,6 +24,7 @@ model User {
   accounts      Account[]
   projects      Project[]
   credits       Int       @default(10)
+  lastDailyCreditAt DateTime?
 
   @@unique([email])
   @@map("user")

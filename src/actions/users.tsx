@@ -2,8 +2,8 @@
 
 "use server";
 
-import { selectUserCredits } from "~/server/repositories/user-repository";
 import { getCurrentUserId } from "~/server/auth/session";
+import { ensureDailyCreditForUser } from "~/server/services/user-service";
 
 export async function getUserCredits() {
   try {
@@ -13,9 +13,9 @@ export async function getUserCredits() {
       return null;
     }
 
-    const user = await selectUserCredits(userId);
+    const { credits } = await ensureDailyCreditForUser(userId);
 
-    return user?.credits ?? null;
+    return credits;
   } catch (error) {
     console.error("Failed to load user credits", error);
     return null;

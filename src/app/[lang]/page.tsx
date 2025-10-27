@@ -14,8 +14,7 @@ export default async function HomePage({
 }: {
   params: Promise<{ lang: string }>;
 }) {
-  const awaitedParams = await params;
-  const { lang } = awaitedParams;
+  const { lang } = await params;
 
   assertValidLocale(lang);
 

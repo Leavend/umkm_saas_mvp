@@ -2,6 +2,7 @@
 
 import "~/styles/globals.css";
 
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import {
   SidebarInset,
@@ -59,7 +60,9 @@ export default async function DashboardLayout({
               </BreadcrumbList>
             </Breadcrumb>
             <div className="ml-auto">
-              <LanguageToggle size="sm" />
+              <Suspense fallback={null}>
+                <LanguageToggle size="sm" />
+              </Suspense>
             </div>
           </div>
         </header>

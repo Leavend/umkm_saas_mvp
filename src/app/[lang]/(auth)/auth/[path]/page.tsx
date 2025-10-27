@@ -16,8 +16,7 @@ export default async function AuthPage({
 }: {
   params: Promise<{ lang: string; path: string | string[] }>;
 }) {
-  const awaitedParams = await params;
-  const { lang, path: rawPath } = awaitedParams;
+  const { lang, path: rawPath } = await params;
 
   assertValidLocale(lang);
 

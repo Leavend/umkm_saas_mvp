@@ -16,7 +16,7 @@ import {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   TRANSLATIONS,
-  isSupportedLocale,
+  normalizeLocale,
   type Locale,
 } from "~/lib/i18n";
 import { addLocalePrefixToPath } from "~/lib/routing";
@@ -29,6 +29,8 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+const STORAGE_MAX_AGE = 60 * 60 * 24 * 365;
+
 interface LanguageProviderProps {
   children: ReactNode;
   initialLocale: Locale;
@@ -39,7 +41,7 @@ export function LanguageProvider({
   initialLocale,
 }: LanguageProviderProps) {
   const [lang, setLocaleState] = useState<Locale>(initialLocale);
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     setLocaleState((current) =>
@@ -53,62 +55,53 @@ export function LanguageProvider({
     }
 
     if (typeof document !== "undefined") {
-      const oneYearInSeconds = 60 * 60 * 24 * 365;
-      document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${oneYearInSeconds}; SameSite=Lax`;
+      document.cookie = `${LANGUAGE_STORAGE_KEY}=${value}; path=/; max-age=${STORAGE_MAX_AGE}; SameSite=Lax`;
       document.documentElement.setAttribute("lang", value);
     }
   }, []);
 
   useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-
-    persistLocalePreferences(lang);
-  }, [lang, hasHydrated, persistLocalePreferences]);
-
-  useEffect(() => {
     if (typeof window === "undefined") {
-      setHasHydrated(true);
+      setIsHydrated(true);
       return;
     }
 
-    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (stored && isSupportedLocale(stored)) {
-      // ✅ Hapus 'as Locale' karena type guard sudah menjamin stored adalah Locale
-      setLocaleState((current) => (current === stored ? current : stored));
-    } else if (stored && !isSupportedLocale(stored)) {
-      window.localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+    const storedValue = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (storedValue) {
+      const resolved = normalizeLocale(storedValue, initialLocale);
+      if (resolved !== storedValue) {
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, resolved);
+      }
+      setLocaleState((current) => (current === resolved ? current : resolved));
     }
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key !== LANGUAGE_STORAGE_KEY) {
+      if (event.key !== LANGUAGE_STORAGE_KEY || !event.newValue) {
         return;
       }
 
-      const next = event.newValue;
-      if (!next) {
-        return;
-      }
+      const nextLocale = normalizeLocale(event.newValue, initialLocale);
 
-      if (!isSupportedLocale(next)) {
-        return;
-      }
-
-      const nextLocale = next;
-      // now nextLocale is narrowed to Locale by the type guard
       setLocaleState((current) =>
         current === nextLocale ? current : nextLocale,
       );
     };
 
     window.addEventListener("storage", handleStorageChange);
-    setHasHydrated(true);
+    setIsHydrated(true);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, [initialLocale]);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    persistLocalePreferences(lang);
+  }, [lang, isHydrated, persistLocalePreferences]);
 
   const setLocale = useCallback((nextLocale: Locale) => {
     if (!SUPPORTED_LOCALES.includes(nextLocale)) {

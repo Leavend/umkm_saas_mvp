@@ -14,7 +14,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { persistUserLocale } from "~/actions/set-locale";
-import { TRANSLATIONS, DEFAULT_LOCALE, type Locale } from "~/lib/i18n";
+import { TRANSLATIONS, DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
 import { stripLocaleFromPathname } from "~/lib/routing";
 import { useLanguage } from "~/components/language-provider";
 
@@ -31,12 +31,12 @@ export function LanguageToggle({
 }: LanguageToggleProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useParams();
+  const params = useParams<{ lang?: string }>();
   const searchParams = useSearchParams();
   const [isPending, startPersistLocale] = useTransition();
   const { setLocale } = useLanguage();
 
-  const currentLocale = (params.lang as Locale) || DEFAULT_LOCALE;
+  const currentLocale = normalizeLocale(params?.lang, DEFAULT_LOCALE);
   const nextLocale = currentLocale === "en" ? "id" : "en";
 
   const t = TRANSLATIONS[currentLocale].common.language;

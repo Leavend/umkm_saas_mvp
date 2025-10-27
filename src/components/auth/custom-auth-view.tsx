@@ -6,7 +6,7 @@ import { AuthView } from "@daveyplate/better-auth-ui";
 import { Button } from "~/components/ui/button";
 import { useParams } from "next/navigation";
 import { authClient } from "~/lib/auth-client";
-import type { Locale } from "~/lib/i18n";
+import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
 
 interface CustomAuthViewProps {
   path: string;
@@ -19,8 +19,8 @@ export function CustomAuthView({
   loadingText,
   localization,
 }: CustomAuthViewProps) {
-  const params = useParams();
-  const lang = (params.lang as Locale) || "id";
+  const params = useParams<{ lang?: string }>();
+  const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
 
   const redirectToPath = `/${lang}/dashboard`;
 

@@ -1,6 +1,7 @@
 // src/features/homepage/components/landing-page.tsx
 
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -48,7 +49,9 @@ export const LandingPage = ({ content, lang }: LandingPageProps) => {
         lang={lang}
       />
       <div className="border-b border-slate-200 bg-slate-50/95 px-4 py-3 md:hidden">
-        <LanguageToggle className="w-full justify-center" />
+        <Suspense fallback={null}>
+          <LanguageToggle className="w-full justify-center" />
+        </Suspense>
       </div>
 
       <HeroSection hero={hero} lang={lang} />
@@ -99,7 +102,9 @@ const LandingNavigation = ({
       </div>
 
       <div className="flex items-center gap-3">
-        <LanguageToggle className="hidden md:inline-flex" />
+        <Suspense fallback={null}>
+          <LanguageToggle className="hidden md:inline-flex" />
+        </Suspense>
         {/* ----- Perubahan 6: Gunakan `lang` pada href Sign In ----- */}
         <Link href={`/${lang}/auth/sign-in`}>
           <Button variant="ghost" size="sm" className="cursor-pointer">

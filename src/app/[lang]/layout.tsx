@@ -28,10 +28,10 @@ const geist = Geist({
 export default async function RootLayout({
   children,
   params,
-}: Readonly<{
+}: {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
-}>) {
+}) {
   const { lang } = await params;
 
   assertValidLocale(lang);

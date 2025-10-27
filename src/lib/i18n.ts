@@ -20,19 +20,33 @@ export function assertValidLocale(value: string): asserts value is Locale {
   }
 }
 
-export function normalizeLocale(value: unknown): Locale {
+export function normalizeLocale(
+  value: unknown,
+  fallback: Locale = DEFAULT_LOCALE,
+): Locale {
   if (isSupportedLocale(value)) {
     return value;
   }
 
   if (typeof value === "string") {
     const normalized = value.toLowerCase();
-    if (normalized.startsWith("id")) {
-      return "id";
+
+    const exactMatch = SUPPORTED_LOCALES.find(
+      (locale) => locale.toLowerCase() === normalized,
+    );
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    const partialMatch = SUPPORTED_LOCALES.find((locale) =>
+      normalized.startsWith(locale.toLowerCase()),
+    );
+    if (partialMatch) {
+      return partialMatch;
     }
   }
 
-  return DEFAULT_LOCALE;
+  return fallback;
 }
 
 export const TRANSLATIONS = {

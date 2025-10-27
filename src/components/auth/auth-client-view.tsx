@@ -2,8 +2,12 @@
 
 "use client";
 
-import { useParams } from "next/navigation";
-import type { Locale } from "~/lib/i18n";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+import { useLocalePath } from "~/components/language-provider";
+import { useSession } from "~/lib/auth-client";
+
 import { CustomAuthView } from "./custom-auth-view";
 
 type AuthLocalization = Record<string, string | undefined>;
@@ -19,10 +23,28 @@ export function AuthClientView({
   loadingText,
   localization,
 }: AuthClientViewProps) {
-  const params = useParams();
-  const lang = (params.lang as Locale) || "id";
+  const router = useRouter();
+  const toLocalePath = useLocalePath();
+  const { data: session, isPending } = useSession();
+  const userId = session?.user?.id;
 
-  if (!path) {
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    router.replace(toLocalePath("/dashboard"));
+  }, [router, toLocalePath, userId]);
+
+  if (!path || isPending) {
+    return (
+      <div className="flex grow items-center justify-center">
+        <p>{loadingText}</p>
+      </div>
+    );
+  }
+
+  if (userId) {
     return (
       <div className="flex grow items-center justify-center">
         <p>{loadingText}</p>

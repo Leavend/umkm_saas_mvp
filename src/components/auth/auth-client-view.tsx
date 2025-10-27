@@ -2,8 +2,10 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+
+import { authViewPaths, getViewByPath } from "@daveyplate/better-auth-ui";
 
 import { useLocalePath } from "~/components/language-provider";
 import { useSession } from "~/lib/auth-client";
@@ -27,14 +29,21 @@ export function AuthClientView({
   const toLocalePath = useLocalePath();
   const { data: session, isPending } = useSession();
   const userId = session?.user?.id;
+  const activeView = useMemo(
+    () => getViewByPath(authViewPaths, path?.split("?")[0]),
+    [path],
+  );
+  const shouldRedirectToDashboard = Boolean(
+    userId && activeView !== "SIGN_OUT",
+  );
 
   useEffect(() => {
-    if (!userId) {
+    if (!shouldRedirectToDashboard) {
       return;
     }
 
     router.replace(toLocalePath("/dashboard"));
-  }, [router, toLocalePath, userId]);
+  }, [router, toLocalePath, shouldRedirectToDashboard]);
 
   if (!path || isPending) {
     return (
@@ -44,7 +53,7 @@ export function AuthClientView({
     );
   }
 
-  if (userId) {
+  if (shouldRedirectToDashboard) {
     return (
       <div className="flex grow items-center justify-center">
         <p>{loadingText}</p>

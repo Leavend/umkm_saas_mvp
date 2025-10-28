@@ -1120,7 +1120,7 @@ export default function CreatePage() {
 
   const renderCreditBadge = (label?: string) =>
     label ? (
-      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 uppercase">
+      <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2 py-0x5 text-[10px] font-semibold text-blue-700 uppercase shadow-sm whitespace-nowrap">
         {label}
       </span>
     ) : null;

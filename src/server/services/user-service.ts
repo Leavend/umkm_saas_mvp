@@ -1,8 +1,11 @@
+// src/server/services/user-service.ts
+
 import { Prisma } from "@prisma/client";
 
 import { db } from "~/server/db";
 
 const DAILY_CREDIT_AMOUNT = 1;
+const DAILY_CREDIT_CAP = 10;
 
 const getStartOfUtcDay = (date: Date) =>
   new Date(
@@ -40,9 +43,10 @@ export async function ensureDailyCreditForUser(
   const updatedRows = await db.$queryRaw<CreditSnapshot[]>(
     Prisma.sql`
       UPDATE "user"
-      SET "credits" = "credits" + ${amount},
+      SET "credits" = LEAST("credits" + ${amount}, ${DAILY_CREDIT_CAP}),
           "lastDailyCreditAt" = ${now}
       WHERE "id" = ${userId}
+        AND "credits" < ${DAILY_CREDIT_CAP}
         AND (
           "lastDailyCreditAt" IS NULL
           OR "lastDailyCreditAt" < ${startOfToday}

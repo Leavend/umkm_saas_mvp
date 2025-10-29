@@ -29,6 +29,8 @@ export default function BreadcrumbPageClient() {
         return items.create;
       case "/dashboard/projects":
         return items.projects;
+      case "/dashboard/top-up":
+        return items.topUp;
       case "/dashboard/settings":
         return items.settings;
       default:

@@ -2,7 +2,13 @@
 
 "use client"; // Ini Client Component
 
-import { LayoutDashboard, Wand2, FolderOpen, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Wand2,
+  FolderOpen,
+  CreditCard,
+  Settings,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
@@ -51,6 +57,12 @@ export default function SidebarMenuItems() {
           title: translations.sidebar.items.projects,
           basePath: "/dashboard/projects",
           icon: FolderOpen,
+        },
+        {
+          key: "topUp",
+          title: translations.sidebar.items.topUp,
+          basePath: "/dashboard/top-up",
+          icon: CreditCard,
         },
         {
           key: "settings",

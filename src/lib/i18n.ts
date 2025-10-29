@@ -362,6 +362,16 @@ export const TRANSLATIONS = {
         emptyAction: "Create Your First Project",
         emptySecondary: "Start creating amazing images with AI tools",
       },
+      topUp: {
+        title: "Top up credits",
+        description:
+          "Choose the credit pack that fits your workflow and complete payment securely via Xendit.",
+        benefit:
+          "Unlock more AI transformations instantly with prepaid credits. Credits never expire.",
+        purchaseCta: "Purchase",
+        processing: "Processing...",
+        creditsSuffix: "credits",
+      },
     },
     projects: {
       title: "Your Projects",
@@ -701,6 +711,7 @@ export const TRANSLATIONS = {
         dashboard: "Dashboard",
         create: "Create",
         projects: "Projects",
+        topUp: "Top Up",
         settings: "Settings",
       },
       footer: {
@@ -1018,6 +1029,16 @@ export const TRANSLATIONS = {
         emptyDescription: "Mulai buat gambar menakjubkan dengan alat AI",
         emptyAction: "Buat Proyek Pertama",
         emptySecondary: "Mulai buat gambar menakjubkan dengan alat AI",
+      },
+      topUp: {
+        title: "Isi ulang kredit",
+        description:
+          "Pilih paket kredit yang sesuai dengan kebutuhan Anda dan selesaikan pembayaran secara aman melalui Xendit.",
+        benefit:
+          "Dapatkan lebih banyak transformasi AI secara instan dengan kredit prabayar. Kredit tidak akan kedaluwarsa.",
+        purchaseCta: "Beli",
+        processing: "Memproses...",
+        creditsSuffix: "kredit",
       },
     },
     projects: {
@@ -1364,6 +1385,7 @@ export const TRANSLATIONS = {
         dashboard: "Dasbor",
         create: "Buat",
         projects: "Proyek",
+        topUp: "Isi Kredit",
         settings: "Pengaturan",
       },
       footer: {

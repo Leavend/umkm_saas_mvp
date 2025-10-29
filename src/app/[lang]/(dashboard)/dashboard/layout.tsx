@@ -4,6 +4,7 @@ import "~/styles/globals.css";
 
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { AuthProviderWithMigration } from "~/components/auth-provider-with-migration";
 import {
   SidebarInset,
   SidebarProvider,
@@ -42,34 +43,36 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      {/* ----- Perubahan 4: Panggil AppSidebar dengan await dan teruskan lang ----- */}
-      <AppSidebar />
-      <SidebarInset className="flex h-screen flex-col">
-        <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/40 sticky top-0 z-10 border-b px-6 py-3 shadow-sm backdrop-blur">
-          <div className="flex shrink-0 grow items-center gap-3">
-            <SidebarTrigger className="hover:bg-muted -ml-1 h-8 w-8 transition-colors" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 h-6 data-[orientation=vertical]:h-6"
-            />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbPageClient />
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-            <div className="ml-auto">
-              <Suspense fallback={null}>
-                <LanguageToggle size="sm" />
-              </Suspense>
+      <AuthProviderWithMigration>
+        {/* ----- Perubahan 4: Panggil AppSidebar dengan await dan teruskan lang ----- */}
+        <AppSidebar />
+        <SidebarInset className="flex h-screen flex-col">
+          <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border/40 sticky top-0 z-10 border-b px-6 py-3 shadow-sm backdrop-blur">
+            <div className="flex shrink-0 grow items-center gap-3">
+              <SidebarTrigger className="hover:bg-muted -ml-1 h-8 w-8 transition-colors" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 h-6 data-[orientation=vertical]:h-6"
+              />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbPageClient />
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+              <div className="ml-auto">
+                <Suspense fallback={null}>
+                  <LanguageToggle size="sm" />
+                </Suspense>
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="from-background to-muted/20 flex-1 overflow-y-auto bg-gradient-to-br p-6">
-          {children}
-        </main>
-      </SidebarInset>
+          </header>
+          <main className="from-background to-muted/20 flex-1 overflow-y-auto bg-gradient-to-br p-6">
+            {children}
+          </main>
+        </SidebarInset>
+      </AuthProviderWithMigration>
     </SidebarProvider>
   );
 }

@@ -85,18 +85,39 @@ model Verification {
 }
 
 
+model GuestSession {
+  id        String   @id @default(cuid())
+  accessToken   String   @unique
+  sessionSecret String
+  fingerprint   String   @unique
+  credits   Int      @default(10)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime @default(dbgenerated("(now() + interval '7 days')"))
+  lastDailyCreditAt DateTime?
+  projects  Project[]
+
+  @@index([expiresAt])
+  @@map("guest_session")
+}
+
 model Project {
   id          String   @id @default(cuid())
   name        String?
   imageUrl    String
   imageKitId  String
   filePath    String
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestSessionId String?
+  guestSession GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([name])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([guestSessionId, createdAt(sort: Desc)])
   @@map("project")
 }

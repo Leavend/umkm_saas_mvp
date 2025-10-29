@@ -2,7 +2,7 @@
 
 "use client";
 
-import { RedirectToSignIn, SignedIn } from "@daveyplate/better-auth-ui";
+import { RedirectToSignIn } from "@daveyplate/better-auth-ui";
 import {
   Loader2,
   Image as ImageIcon,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getUserProjects } from "~/actions/projects";
+import { getUserProjects, getUserCredits } from "~/actions/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -28,6 +28,8 @@ import {
   useLanguage,
   useLocalePath,
 } from "~/components/language-provider";
+import { GuestConversionBanner } from "~/components/guest-conversion-banner";
+import { logError } from "~/lib/errors";
 
 interface Project {
   id: string;
@@ -35,7 +37,7 @@ interface Project {
   imageUrl: string;
   imageKitId: string;
   filePath: string;
-  userId: string;
+  userId: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -43,6 +45,9 @@ interface Project {
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
+  const [credits, setCredits] = useState(0);
+  const [isGuest, setIsGuest] = useState(false);
+  const [shouldRequestSignIn, setShouldRequestSignIn] = useState(false);
   const [user, setUser] = useState<{
     name?: string;
     createdAt?: string | Date;
@@ -55,26 +60,77 @@ export default function DashboardPage() {
 
   useEffect(() => {
     let isMounted = true;
+
+    const ensureGuestSession = async () => {
+      try {
+        const response = await fetch("/api/guest/session", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.warn(
+            "Guest session initialization failed",
+            await response.text(),
+          );
+          return false;
+        }
+
+        return true;
+      } catch (error: unknown) {
+        logError("Failed to initialize guest session", error);
+        return false;
+      }
+    };
+
     const initializeDashboard = async () => {
       try {
-        const [session, projectsResult] = await Promise.all([
-          authClient.getSession(),
+        const session = await authClient.getSession();
+        const sessionUser = session?.data?.user ?? null;
+        const isAuthenticatedUser = Boolean(sessionUser);
+
+        if (!isAuthenticatedUser) {
+          await ensureGuestSession();
+        }
+
+        const [projectsResult, creditsResult] = await Promise.all([
           getUserProjects(),
+          getUserCredits(),
         ]);
 
         if (!isMounted) {
           return;
         }
 
-        if (session?.data?.user) {
-          setUser(session.data.user);
+        const creditsValue =
+          creditsResult.success && typeof creditsResult.credits === "number"
+            ? creditsResult.credits
+            : 0;
+        setCredits(creditsValue);
+
+        if (isAuthenticatedUser && sessionUser) {
+          setUser(sessionUser);
+          setIsGuest(false);
+          setShouldRequestSignIn(false);
+        } else if (projectsResult.success || creditsResult.success) {
+          setIsGuest(true);
+          setShouldRequestSignIn(false);
+          setUser(null);
+        } else {
+          setShouldRequestSignIn(true);
+          setUser(null);
         }
 
         if (projectsResult.success && projectsResult.projects) {
           setUserProjects(projectsResult.projects);
+        } else if (!isAuthenticatedUser) {
+          setUserProjects([]);
         }
-      } catch (error) {
-        console.error("Dashboard initialization failed:", error);
+      } catch (error: unknown) {
+        logError("Dashboard initialization failed:", error);
+        if (isMounted) {
+          setShouldRequestSignIn(true);
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -143,247 +199,257 @@ export default function DashboardPage() {
     );
   }
 
+  if (shouldRequestSignIn) {
+    return <RedirectToSignIn />;
+  }
+
   return (
-    <>
-      <RedirectToSignIn />
-      <SignedIn>
-        <div className="space-y-6">
-          {/* Header Section */}
-          <div className="space-y-2">
-            <h1 className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl">
-              {dashboard.welcome}
-              {user?.name ? `, ${user.name}` : ""}!
-            </h1>
-            <p className="text-muted-foreground text-base sm:text-lg">
-              {dashboard.subtitle}
-            </p>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {dashboard.stats.totalProjects.title}
-                </CardTitle>
-                <ImageIcon className="text-primary h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-primary text-2xl font-bold">
-                  {userStats.totalProjects}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {dashboard.stats.totalProjects.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {dashboard.stats.thisMonth.title}
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {userStats.thisMonth}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {dashboard.stats.thisMonth.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {dashboard.stats.thisWeek.title}
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {userStats.thisWeek}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {dashboard.stats.thisWeek.description}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {dashboard.stats.memberSince.title}
-                </CardTitle>
-                <Star className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {user?.createdAt
-                    ? formatDate(user.createdAt, {
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : common.states.notAvailable}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {dashboard.stats.memberSince.description}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="text-primary h-5 w-5" />
-                {dashboard.quickActions.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Button
-                  onClick={() => handleNavigate("/dashboard/create")}
-                  className="group bg-primary hover:bg-primary/90 h-auto flex-col gap-2 p-6"
-                >
-                  <Camera className="h-8 w-8 transition-transform group-hover:scale-110" />
-                  <div className="text-center">
-                    <div className="font-semibold">
-                      {dashboard.quickActions.create.title}
-                    </div>
-                    <div className="text-xs opacity-80">
-                      {dashboard.quickActions.create.description}
-                    </div>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={() => handleNavigate("/dashboard/projects")}
-                  variant="outline"
-                  className="group hover:bg-muted h-auto flex-col gap-2 p-6"
-                >
-                  <ImageIcon className="h-8 w-8 transition-transform group-hover:scale-110" />
-                  <div className="text-center">
-                    <div className="font-semibold">
-                      {dashboard.quickActions.projects.title}
-                    </div>
-                    <div className="text-xs opacity-70">
-                      {dashboard.quickActions.projects.description}
-                    </div>
-                  </div>
-                </Button>
-
-                <Button
-                  onClick={() => handleNavigate("/dashboard/settings")}
-                  variant="outline"
-                  className="group hover:bg-muted h-auto flex-col gap-2 p-6"
-                >
-                  <Users className="h-8 w-8 transition-transform group-hover:scale-110" />
-                  <div className="text-center">
-                    <div className="font-semibold">
-                      {dashboard.quickActions.settings.title}
-                    </div>
-                    <div className="text-xs opacity-70">
-                      {dashboard.quickActions.settings.description}
-                    </div>
-                  </div>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Projects */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="text-primary h-5 w-5" />
-                {dashboard.recent.title}
-              </CardTitle>
-              {displayedProjects.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavigate("/dashboard/projects")}
-                  className="text-primary hover:text-primary/80"
-                >
-                  {dashboard.recent.viewAll}
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {displayedProjects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="relative mb-4">
-                    <div className="border-muted bg-muted/20 flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed">
-                      <ImageIcon className="text-muted-foreground h-8 w-8" />
-                    </div>
-                  </div>
-                  <h3 className="mb-2 text-lg font-semibold">
-                    {dashboard.recent.emptyTitle}
-                  </h3>
-                  <p className="text-muted-foreground mb-4 text-sm">
-                    {dashboard.recent.emptyDescription}
-                  </p>
-                  <Button
-                    onClick={() => handleNavigate("/dashboard/create")}
-                    className="gap-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {dashboard.recent.emptyAction}
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {displayedProjects.map((project) => {
-                    const projectName =
-                      project.name ?? projectsCopy.card.untitled;
-
-                    return (
-                      <div
-                        key={project.id}
-                        className="group relative cursor-pointer overflow-hidden rounded-lg border transition-all hover:shadow-md"
-                        onClick={() => handleNavigate("/dashboard/create")}
-                      >
-                        <div className="aspect-square overflow-hidden">
-                          <ImageKitImage
-                            urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
-                            src={project.filePath}
-                            alt={projectName}
-                            width={200}
-                            height={200}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            transformation={[
-                              {
-                                width: 200,
-                                height: 200,
-                                crop: "maintain_ratio",
-                                quality: 85,
-                              },
-                            ]}
-                          />
-                        </div>
-                        <div className="p-3">
-                          <h4 className="truncate text-sm font-medium">
-                            {projectName}
-                          </h4>
-                          <p className="text-muted-foreground text-xs">
-                            {formatDate(project.createdAt)}
-                          </p>
-                        </div>
-                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      {isGuest && (
+        <div className="mb-6">
+          <GuestConversionBanner
+            credits={credits}
+            projectsCount={userProjects.length}
+          />
         </div>
-      </SignedIn>
-    </>
+      )}
+
+      {/* Header Section */}
+      <div className="space-y-2">
+        <h1 className="from-primary to-primary/70 bg-gradient-to-r bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl">
+          {isGuest
+            ? "Welcome, Guest!"
+            : `${dashboard.welcome}${user?.name ? `, ${user.name}` : ""}!`}
+        </h1>
+        <p className="text-muted-foreground text-base sm:text-lg">
+          {isGuest
+            ? "Try our AI image editing tools with 10 free credits!"
+            : dashboard.subtitle}
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {dashboard.stats.totalProjects.title}
+            </CardTitle>
+            <ImageIcon className="text-primary h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-primary text-2xl font-bold">
+              {userStats.totalProjects}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {dashboard.stats.totalProjects.description}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {dashboard.stats.thisMonth.title}
+            </CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {userStats.thisMonth}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {dashboard.stats.thisMonth.description}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {dashboard.stats.thisWeek.title}
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {userStats.thisWeek}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {dashboard.stats.thisWeek.description}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="relative overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {dashboard.stats.memberSince.title}
+            </CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {user?.createdAt
+                ? formatDate(user.createdAt, {
+                    month: "short",
+                    year: "numeric",
+                  })
+                : common.states.notAvailable}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {dashboard.stats.memberSince.description}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="text-primary h-5 w-5" />
+            {dashboard.quickActions.title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Button
+              onClick={() => handleNavigate("/dashboard/create")}
+              className="group bg-primary hover:bg-primary/90 h-auto flex-col gap-2 p-6"
+            >
+              <Camera className="h-8 w-8 transition-transform group-hover:scale-110" />
+              <div className="text-center">
+                <div className="font-semibold">
+                  {dashboard.quickActions.create.title}
+                </div>
+                <div className="text-xs opacity-80">
+                  {dashboard.quickActions.create.description}
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => handleNavigate("/dashboard/projects")}
+              variant="outline"
+              className="group hover:bg-muted h-auto flex-col gap-2 p-6"
+            >
+              <ImageIcon className="h-8 w-8 transition-transform group-hover:scale-110" />
+              <div className="text-center">
+                <div className="font-semibold">
+                  {dashboard.quickActions.projects.title}
+                </div>
+                <div className="text-xs opacity-70">
+                  {dashboard.quickActions.projects.description}
+                </div>
+              </div>
+            </Button>
+
+            <Button
+              onClick={() => handleNavigate("/dashboard/settings")}
+              variant="outline"
+              className="group hover:bg-muted h-auto flex-col gap-2 p-6"
+            >
+              <Users className="h-8 w-8 transition-transform group-hover:scale-110" />
+              <div className="text-center">
+                <div className="font-semibold">
+                  {dashboard.quickActions.settings.title}
+                </div>
+                <div className="text-xs opacity-70">
+                  {dashboard.quickActions.settings.description}
+                </div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Projects */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="text-primary h-5 w-5" />
+            {dashboard.recent.title}
+          </CardTitle>
+          {displayedProjects.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleNavigate("/dashboard/projects")}
+              className="text-primary hover:text-primary/80"
+            >
+              {dashboard.recent.viewAll}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          {displayedProjects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="relative mb-4">
+                <div className="border-muted bg-muted/20 flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed">
+                  <ImageIcon className="text-muted-foreground h-8 w-8" />
+                </div>
+              </div>
+              <h3 className="mb-2 text-lg font-semibold">
+                {dashboard.recent.emptyTitle}
+              </h3>
+              <p className="text-muted-foreground mb-4 text-sm">
+                {dashboard.recent.emptyDescription}
+              </p>
+              <Button
+                onClick={() => handleNavigate("/dashboard/create")}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                {dashboard.recent.emptyAction}
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {displayedProjects.map((project) => {
+                const projectName = project.name ?? projectsCopy.card.untitled;
+
+                return (
+                  <div
+                    key={project.id}
+                    className="group relative cursor-pointer overflow-hidden rounded-lg border transition-all hover:shadow-md"
+                    onClick={() => handleNavigate("/dashboard/create")}
+                  >
+                    <div className="aspect-square overflow-hidden">
+                      <ImageKitImage
+                        urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
+                        src={project.filePath}
+                        alt={projectName}
+                        width={200}
+                        height={200}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        transformation={[
+                          {
+                            width: 200,
+                            height: 200,
+                            crop: "maintain_ratio",
+                            quality: 85,
+                          },
+                        ]}
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h4 className="truncate text-sm font-medium">
+                        {projectName}
+                      </h4>
+                      <p className="text-muted-foreground text-xs">
+                        {formatDate(project.createdAt)}
+                      </p>
+                    </div>
+                    <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

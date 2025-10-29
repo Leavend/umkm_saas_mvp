@@ -1,6 +1,5 @@
 // src/lib/auth-client.ts
 import { createAuthClient } from "better-auth/react";
-import { polarClient } from "@polar-sh/better-auth";
 
 const resolveBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_BETTER_AUTH_URL) {
@@ -16,7 +15,6 @@ const resolveBaseUrl = () => {
 
 export const authClient = createAuthClient({
   baseURL: resolveBaseUrl(),
-  plugins: [polarClient()],
 });
 
 // Export hooks untuk digunakan di components

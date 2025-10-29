@@ -11,3 +11,21 @@ export const CREDITS_MAP = {
   [PRODUCT_IDS.MEDIUM]: 30,
   [PRODUCT_IDS.LARGE]: 100,
 };
+
+export const PRODUCT_AMOUNTS = {
+  [PRODUCT_IDS.SMALL]: 10000,
+  [PRODUCT_IDS.MEDIUM]: 30000,
+  [PRODUCT_IDS.LARGE]: 100000,
+};
+
+export const PRODUCT_AMOUNTS_USD = {
+  [PRODUCT_IDS.SMALL]: 1,
+  [PRODUCT_IDS.MEDIUM]: 3,
+  [PRODUCT_IDS.LARGE]: 10,
+};
+
+export const PRODUCT_NAMES = {
+  [PRODUCT_IDS.SMALL]: "Starter Pack (10 credits)",
+  [PRODUCT_IDS.MEDIUM]: "Growth Pack (30 credits)",
+  [PRODUCT_IDS.LARGE]: "Pro Pack (100 credits)",
+};

@@ -98,54 +98,52 @@ export async function fetchHomePageMetricValues(
     const thirtyDaysAgo = new Date(now.getTime() - 30 * SECONDS_IN_DAY * 1_000);
     const lastDay = new Date(now.getTime() - SECONDS_IN_DAY * 1_000);
 
-    const [
-      totalProjects,
-      activeUsersRow,
-      aiProcessingCount,
-      uptimeRows,
-      processingRows,
-    ] = await Promise.all([
-      db.project.count(),
-      db.$queryRaw<{ count: unknown }[]>(
-        Prisma.sql`
-          WITH active_sessions AS (
-            SELECT DISTINCT "userId"
-            FROM "session"
-            WHERE "expiresAt" >= ${now}
-          ),
-          recent_projects AS (
-            SELECT DISTINCT "userId"
-            FROM "project"
-            WHERE "createdAt" >= ${thirtyDaysAgo}
-          ),
-          combined AS (
-            SELECT "userId" FROM active_sessions
-            UNION
-            SELECT "userId" FROM recent_projects
-          )
-          SELECT COUNT(*)::bigint AS count FROM combined
-        `,
-      ),
-      db.project.count({
-        where: {
-          createdAt: {
-            gte: lastDay,
-          },
-        },
-      }),
-      db.$queryRaw<{ uptime_seconds: unknown }[]>(
-        Prisma.sql`
-          SELECT EXTRACT(EPOCH FROM NOW() - pg_postmaster_start_time())::double precision AS uptime_seconds
-        `,
-      ),
-      db.$queryRaw<{ average_processing_seconds: unknown }[]>(
-        Prisma.sql`
-          SELECT AVG(EXTRACT(EPOCH FROM "updatedAt" - "createdAt"))::double precision AS average_processing_seconds
+    const totalProjects = await db.project.count();
+
+    const activeUsersRow = await db.$queryRaw<{ count: unknown }[]>(
+      Prisma.sql`
+        WITH active_sessions AS (
+          SELECT DISTINCT "userId"
+          FROM "session"
+          WHERE "expiresAt" >= ${now}
+        ),
+        recent_projects AS (
+          SELECT DISTINCT "userId"
           FROM "project"
           WHERE "createdAt" >= ${thirtyDaysAgo}
-        `,
-      ),
-    ]);
+        ),
+        combined AS (
+          SELECT "userId" FROM active_sessions
+          UNION
+          SELECT "userId" FROM recent_projects
+        )
+        SELECT COUNT(*)::bigint AS count FROM combined
+      `,
+    );
+
+    const aiProcessingCount = await db.project.count({
+      where: {
+        createdAt: {
+          gte: lastDay,
+        },
+      },
+    });
+
+    const uptimeRows = await db.$queryRaw<{ uptime_seconds: unknown }[]>(
+      Prisma.sql`
+        SELECT EXTRACT(EPOCH FROM NOW() - pg_postmaster_start_time())::double precision AS uptime_seconds
+      `,
+    );
+
+    const processingRows = await db.$queryRaw<
+      { average_processing_seconds: unknown }[]
+    >(
+      Prisma.sql`
+        SELECT AVG(EXTRACT(EPOCH FROM "updatedAt" - "createdAt"))::double precision AS average_processing_seconds
+        FROM "project"
+        WHERE "createdAt" >= ${thirtyDaysAgo}
+      `,
+    );
 
     const activeUsersCount = toNumber(activeUsersRow?.[0]?.count ?? 0);
     const uptimeSeconds = toNumber(uptimeRows?.[0]?.uptime_seconds ?? 0);

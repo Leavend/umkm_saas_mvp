@@ -111,8 +111,8 @@ const LandingNavigation = ({
             {actions.signIn}
           </Button>
         </Link>
-        {/* ----- Perubahan 7: Gunakan `lang` pada href Try Free (Dashboard) ----- */}
-        <Link href={`/${lang}/dashboard`}>
+        {/* ----- Perubahan 7: Gunakan route untuk guest try experience ----- */}
+        <Link href={`/${lang}/u/generate_image_with_AI`}>
           <Button size="sm" className="cursor-pointer gap-2">
             {actions.tryFree}
             <ArrowRight className="h-4 w-4" />
@@ -128,65 +128,69 @@ interface HeroSectionProps {
   lang: string;
 }
 
-const HeroSection = ({ hero, lang }: HeroSectionProps) => (
-  <section className="relative overflow-hidden py-20 sm:py-32">
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl text-center">
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-100/30 px-4 py-2 text-sm">
-          <Sparkles className="h-4 w-4 text-blue-600" />
-          <span className="font-medium text-blue-700">{hero.badge}</span>
-        </div>
+const HeroSection = ({ hero, lang }: HeroSectionProps) => {
+  const guestPath = `/${lang}/u/generate_image_with_AI`;
 
-        <h1 className="mb-6 text-4xl font-bold tracking-tight text-slate-800 sm:text-6xl">
-          {hero.titleLeading}{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {hero.titleHighlight}
-          </span>
-        </h1>
+  return (
+    <section className="relative overflow-hidden py-20 sm:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-100/30 px-4 py-2 text-sm">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <span className="font-medium text-blue-700">{hero.badge}</span>
+          </div>
 
-        <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-600 sm:text-xl">
-          {hero.description}
-        </p>
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-slate-800 sm:text-6xl">
+            {hero.titleLeading}{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {hero.titleHighlight}
+            </span>
+          </h1>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href={`/${lang}/dashboard`}>
-            <Button
-              size="lg"
-              className="cursor-pointer gap-2 px-8 py-6 text-base"
-            >
-              <Play className="h-5 w-5" />
-              {hero.primaryCta}
-            </Button>
-          </Link>
-          <Link href={`/${lang}/dashboard`}>
-            <Button
-              variant="outline"
-              size="lg"
-              className="cursor-pointer gap-2 px-8 py-6 text-base"
-            >
-              <ImageIcon className="h-5 w-5" />
-              {hero.secondaryCta}
-            </Button>
-          </Link>
-        </div>
+          <p className="mx-auto mb-10 max-w-2xl text-lg text-slate-600 sm:text-xl">
+            {hero.description}
+          </p>
 
-        <div className="mt-16 text-center">
-          <p className="mb-8 text-sm text-slate-500">{hero.trustedBy}</p>
-          <div className="grid grid-cols-2 items-center justify-center gap-6 opacity-80 sm:grid-cols-5">
-            {hero.metrics.map((metric) => (
-              <div key={metric.label} className="text-center">
-                <div className="text-2xl font-bold text-slate-700">
-                  {metric.value}
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <Link href={guestPath}>
+              <Button
+                size="lg"
+                className="cursor-pointer gap-2 px-8 py-6 text-base"
+              >
+                <Play className="h-5 w-5" />
+                {hero.primaryCta}
+              </Button>
+            </Link>
+            <Link href={`/${lang}/dashboard`}>
+              <Button
+                variant="outline"
+                size="lg"
+                className="cursor-pointer gap-2 px-8 py-6 text-base"
+              >
+                <ImageIcon className="h-5 w-5" />
+                {hero.secondaryCta}
+              </Button>
+            </Link>
+          </div>
+
+          <div className="mt-16 text-center">
+            <p className="mb-8 text-sm text-slate-500">{hero.trustedBy}</p>
+            <div className="grid grid-cols-2 items-center justify-center gap-6 opacity-80 sm:grid-cols-5">
+              {hero.metrics.map((metric) => (
+                <div key={metric.label} className="text-center">
+                  <div className="text-2xl font-bold text-slate-700">
+                    {metric.value}
+                  </div>
+                  <div className="text-xs text-slate-500">{metric.label}</div>
                 </div>
-                <div className="text-xs text-slate-500">{metric.label}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 interface FeaturesSectionProps {
   features: Content["features"];
@@ -319,70 +323,74 @@ interface PricingSectionProps {
   lang: string;
 }
 
-const PricingSection = ({ pricing, lang }: PricingSectionProps) => (
-  <section
-    id="pricing"
-    className="bg-gradient-to-br from-slate-50 to-blue-50/50 py-20 sm:py-32"
-  >
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto mb-16 max-w-2xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">
-          {pricing.headingLeading}{" "}
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {pricing.headingHighlight}
-          </span>
-        </h2>
-        <p className="mt-4 text-lg text-slate-600">{pricing.description}</p>
-      </div>
+const PricingSection = ({ pricing, lang }: PricingSectionProps) => {
+  const guestPath = `/${lang}/u/generate_image_with_AI`;
 
-      <div className="mx-auto max-w-lg">
-        <Card className="relative overflow-hidden border-2 border-blue-300 bg-white/70 backdrop-blur-sm">
-          <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-1 text-sm font-medium text-white">
-            {pricing.badge}
-          </div>
-          <CardContent className="p-8">
-            <div className="mb-8 text-center">
-              <h3 className="text-2xl font-bold text-slate-800">
-                {pricing.planName}
-              </h3>
-              <div className="mt-4 flex items-baseline justify-center">
-                <span className="text-5xl font-bold text-slate-800">
-                  {pricing.price}
-                </span>
-                <span className="ml-2 text-slate-600">
-                  {pricing.priceSuffix}
-                </span>
-              </div>
-              <p className="mt-2 text-slate-600">{pricing.subheading}</p>
+  return (
+    <section
+      id="pricing"
+      className="bg-gradient-to-br from-slate-50 to-blue-50/50 py-20 sm:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">
+            {pricing.headingLeading}{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {pricing.headingHighlight}
+            </span>
+          </h2>
+          <p className="mt-4 text-lg text-slate-600">{pricing.description}</p>
+        </div>
+
+        <div className="mx-auto max-w-lg">
+          <Card className="relative overflow-hidden border-2 border-blue-300 bg-white/70 backdrop-blur-sm">
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-1 text-sm font-medium text-white">
+              {pricing.badge}
             </div>
+            <CardContent className="p-8">
+              <div className="mb-8 text-center">
+                <h3 className="text-2xl font-bold text-slate-800">
+                  {pricing.planName}
+                </h3>
+                <div className="mt-4 flex items-baseline justify-center">
+                  <span className="text-5xl font-bold text-slate-800">
+                    {pricing.price}
+                  </span>
+                  <span className="ml-2 text-slate-600">
+                    {pricing.priceSuffix}
+                  </span>
+                </div>
+                <p className="mt-2 text-slate-600">{pricing.subheading}</p>
+              </div>
 
-            <ul className="mb-8 space-y-4">
-              {pricing.features.map((feature) => (
-                <li key={feature} className="flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
-                  <span className="text-sm text-slate-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href={`/${lang}/dashboard`}>
-              <Button
-                className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                size="lg"
-              >
-                <Sparkles className="h-4 w-4" />
-                {pricing.ctaLabel}
-              </Button>
-            </Link>
+              <ul className="mb-8 space-y-4">
+                {pricing.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3">
+                    <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-500" />
+                    <span className="text-sm text-slate-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href={guestPath}>
+                <Button
+                  className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  size="lg"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {pricing.ctaLabel}
+                </Button>
+              </Link>
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              {pricing.footnote}
-            </p>
-          </CardContent>
-        </Card>
+              <p className="mt-4 text-center text-xs text-slate-500">
+                {pricing.footnote}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 interface CtaSectionProps {
   cta: Content["cta"];
@@ -398,7 +406,7 @@ const CtaSection = ({ cta, lang }: CtaSectionProps) => (
         </h2>
         <p className="mt-4 text-lg text-slate-600">{cta.description}</p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href={`/${lang}/dashboard`}>
+          <Link href={`/${lang}/u/generate_image_with_AI`}>
             <Button
               size="lg"
               className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
@@ -469,7 +477,7 @@ const Footer = ({ brandName, footer, lang }: FooterProps) => (
               </li>
               <li>
                 <Link
-                  href={`/${lang}/dashboard`}
+                  href={`/${lang}/u/generate_image_with_AI`}
                   className="transition-colors hover:text-blue-600"
                 >
                   {footer.product.links.dashboard}

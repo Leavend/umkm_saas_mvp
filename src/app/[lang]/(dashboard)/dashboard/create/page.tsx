@@ -2,7 +2,7 @@
 
 "use client";
 
-import { RedirectToSignIn, SignedIn } from "@daveyplate/better-auth-ui";
+import { RedirectToSignIn } from "@daveyplate/better-auth-ui";
 import {
   Loader2,
   Upload,
@@ -38,7 +38,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -69,6 +69,7 @@ import {
 } from "~/actions/projects";
 import { useTranslations, useLanguage } from "~/components/language-provider";
 import { formatTranslation } from "~/lib/i18n";
+import { logError } from "~/lib/errors";
 
 function ToggleSwitch({
   checked,
@@ -121,10 +122,45 @@ interface Project {
   imageUrl: string;
   imageKitId: string;
   filePath: string;
-  userId: string;
+  userId: string | null;
+  guestSessionId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
+
+type SessionUser = {
+  name?: string;
+  createdAt?: string | Date;
+};
+
+const extractSessionUser = (value: unknown): SessionUser | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const data = "data" in value ? (value as { data?: unknown }).data : null;
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return null;
+  }
+
+  const user = "user" in data ? (data as { user?: unknown }).user : null;
+  if (!user || typeof user !== "object" || Array.isArray(user)) {
+    return null;
+  }
+
+  const { name, createdAt } = user as {
+    name?: unknown;
+    createdAt?: unknown;
+  };
+
+  return {
+    name: typeof name === "string" ? name : undefined,
+    createdAt:
+      createdAt instanceof Date || typeof createdAt === "string"
+        ? createdAt
+        : undefined,
+  };
+};
 
 interface UploadAuthResponse {
   signature: string;
@@ -135,6 +171,8 @@ interface UploadAuthResponse {
 
 export default function CreatePage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isGuestEntry = Boolean(pathname?.includes("/u/generate_image_with_AI"));
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(
@@ -146,6 +184,9 @@ export default function CreatePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [shouldRequestSignIn, setShouldRequestSignIn] = useState(false);
   const [objectInput, setObjectInput] = useState("");
   const [objectAspectRatio, setObjectAspectRatio] = useState("1:1");
   const [changeBackgroundPrompt, setChangeBackgroundPrompt] = useState("");
@@ -195,23 +236,78 @@ export default function CreatePage() {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
+    const maybeCreateGuestSession = async () => {
+      try {
+        const response = await fetch("/api/guest/session", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.warn("Guest session creation failed", await response.text());
+          return false;
+        }
+
+        return true;
+      } catch (error: unknown) {
+        logError("Failed to initialize guest session", error);
+        return false;
+      }
+    };
+
     const initializeData = async () => {
       try {
-        await authClient.getSession();
+        const sessionResult = await authClient.getSession();
+        const sessionUser = extractSessionUser(sessionResult);
+        const isAuthenticatedUser = Boolean(sessionUser);
+
+        if (!isAuthenticatedUser) {
+          await maybeCreateGuestSession();
+        }
+
         const projectsResult = await getUserProjects();
+
+        if (!isMounted) return;
+
+        if (isAuthenticatedUser) {
+          setIsGuest(false);
+          setShouldRequestSignIn(false);
+          setIsAuthenticated(true);
+        } else if (projectsResult.success) {
+          setIsGuest(true);
+          setShouldRequestSignIn(false);
+          setIsAuthenticated(false);
+        } else {
+          setShouldRequestSignIn(true);
+          setIsAuthenticated(false);
+        }
+
         if (projectsResult.success && projectsResult.projects) {
           setUserProjects(projectsResult.projects);
+        } else {
+          setUserProjects([]);
         }
-      } catch (error) {
-        console.error("Initialization error:", error);
+      } catch (error: unknown) {
+        logError("Initialization error:", error);
+        if (isMounted) {
+          setShouldRequestSignIn(true);
+        }
       } finally {
-        setIsLoading(false);
-        setIsLoadingProjects(false);
+        if (isMounted) {
+          setIsLoading(false);
+          setIsLoadingProjects(false);
+        }
       }
     };
 
     void initializeData();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isGuestEntry]);
 
   useEffect(() => {
     if (!focusedEffectKind) return;
@@ -270,20 +366,20 @@ export default function CreatePage() {
           if (updatedProjects.success && updatedProjects.projects) {
             setUserProjects(updatedProjects.projects);
           }
+          if (!isAuthenticated && isGuestEntry) {
+            router.replace(`/${lang}/dashboard/create`);
+          }
         } else {
-          console.error(
-            "Failed to save project to database:",
-            projectResult.error,
-          );
+          logError("Failed to save project to database:", projectResult.error);
         }
-      } catch (dbError) {
-        console.error("Database save error:", dbError);
+      } catch (dbError: unknown) {
+        logError("Database save error:", dbError);
       }
 
       toast.success(createCopy.toasts.uploadSuccess);
-    } catch (error) {
+    } catch (error: unknown) {
       toast.error(createCopy.toasts.uploadFailed);
-      console.error(error);
+      logError("Image upload failed", error);
     } finally {
       setIsUploading(false);
     }
@@ -578,8 +674,8 @@ export default function CreatePage() {
         toast.success(formatTranslation(successMessage, { remaining }));
         router.refresh();
       }, 3000);
-    } catch (error) {
-      console.error("AI transformation error:", error);
+    } catch (error: unknown) {
+      logError("AI transformation error:", error);
       toast.error(errorMessage);
       setIsProcessing(false);
     }
@@ -639,8 +735,8 @@ export default function CreatePage() {
         setIsProcessing(false);
         toast.success(successMessage);
       }, delay);
-    } catch (error) {
-      console.error("AI transformation error:", error);
+    } catch (error: unknown) {
+      logError("AI transformation error:", error);
       toast.error(errorMessage);
       setIsProcessing(false);
     }
@@ -1120,7 +1216,7 @@ export default function CreatePage() {
 
   const renderCreditBadge = (label?: string) =>
     label ? (
-      <span className="inline-flex items-center justify-center rounded-full bg-blue-100 px-2 py-0x5 text-[10px] font-semibold text-blue-700 uppercase shadow-sm whitespace-nowrap">
+      <span className="py-0x5 inline-flex items-center justify-center rounded-full bg-blue-100 px-2 text-[10px] font-semibold whitespace-nowrap text-blue-700 uppercase shadow-sm">
         {label}
       </span>
     ) : null;
@@ -2090,1367 +2186,1353 @@ export default function CreatePage() {
     );
   }
 
+  if (shouldRequestSignIn) {
+    return <RedirectToSignIn />;
+  }
+
   return (
-    <>
-      <RedirectToSignIn />
-      <SignedIn>
-        <div className="min-h-screen">
-          {/* Top Navbar - Ultra Compact */}
-          <div className="border-b border-gray-200 bg-white py-2">
-            <div className="mx-auto max-w-7xl text-center">
-              <h1 className="from-primary to-primary/70 mb-1 bg-gradient-to-r bg-clip-text text-lg font-bold text-transparent">
-                {createCopy.title}
-              </h1>
-              <p className="text-muted-foreground mx-auto max-w-xl text-xs">
-                {createCopy.subtitle}
-              </p>
+    <div className="min-h-screen">
+      {isGuest && (
+        <div className="border-b border-orange-200 bg-orange-50">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-3 py-2 text-sm text-orange-800">
+            <span>
+              Don&apos;t lose your progress. Sign up to save your work.
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-orange-400 text-orange-600 hover:bg-orange-100"
+              onClick={() => router.push(`/${lang}/auth/sign-up`)}
+            >
+              Sign Up Free
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Top Navbar - Ultra Compact */}
+      <div className="border-b border-gray-200 bg-white py-2">
+        <div className="mx-auto max-w-7xl text-center">
+          <h1 className="from-primary to-primary/70 mb-1 bg-gradient-to-r bg-clip-text text-lg font-bold text-transparent">
+            {createCopy.title}
+          </h1>
+          <p className="text-muted-foreground mx-auto max-w-xl text-xs">
+            {createCopy.subtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content Area - Effects and Preview */}
+      <div className="mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6">
+        {!uploadedImage ? (
+          <div className="flex min-h-[500px] items-center justify-center">
+            <div className="w-full max-w-2xl">
+              {isUploading ? (
+                <div className="border-border from-muted/50 via-background to-muted/30 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-6 text-center shadow-xl sm:p-12">
+                  <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br"></div>
+                  <div className="relative z-10">
+                    <div className="relative mb-6">
+                      <div className="border-muted border-t-primary mx-auto h-16 w-16 animate-spin rounded-full border-4"></div>
+                      <div
+                        className="border-r-primary/70 absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-transparent"
+                        style={{
+                          animationDelay: "0.5s",
+                          animationDirection: "reverse",
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-foreground mb-2 text-lg font-bold">
+                      {common.states.uploadingImage}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {common.states.uploadingDescription}
+                    </p>
+                    <div className="bg-muted mx-auto mt-4 h-2 w-48 overflow-hidden rounded-full">
+                      <div className="bg-primary h-full animate-pulse rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="group border-border from-muted/30 via-background to-muted/50 hover:border-primary/50 hover:bg-muted/40 relative overflow-hidden rounded-2xl border-2 border-dashed bg-gradient-to-br p-6 text-center transition-all duration-300 hover:shadow-xl sm:p-12">
+                  <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="absolute top-4 right-4 opacity-20 transition-opacity duration-300 group-hover:opacity-40">
+                    <ImageIcon className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <div className="absolute bottom-4 left-4 opacity-20 transition-opacity duration-300 group-hover:opacity-40">
+                    <Upload className="h-6 w-6 text-purple-400" />
+                  </div>
+
+                  <div className="relative z-10">
+                    <div className="bg-primary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl">
+                      <ImageIcon className="text-primary-foreground h-12 w-12" />
+                    </div>
+                    <h3 className="text-foreground mb-3 text-xl font-bold">
+                      {uploadCopy.title}
+                    </h3>
+                    <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-gray-600">
+                      {uploadCopy.description}
+                    </p>
+                    <div className="mb-6">
+                      <p className="mb-2 text-xs text-gray-500">
+                        {uploadCopy.supportedFormats}
+                      </p>
+                      <div className="flex items-center justify-center gap-3">
+                        {uploadCopy.formats.map((format) => (
+                          <span
+                            key={format}
+                            className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
+                          >
+                            {format}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={selectFile}
+                      size="default"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground transform gap-2 px-6 py-2 text-sm font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploadCopy.chooseImage}
+                    </Button>
+                    <p className="mt-3 text-xs text-gray-500">
+                      {uploadCopy.helperText}
+                    </p>
+                  </div>
+                  <div className="bg-primary/10 absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={uploadFile}
+                className="hidden"
+              />
             </div>
           </div>
-
-          {/* Main Content Area - Effects and Preview */}
-          <div className="mx-auto max-w-7xl px-2 py-4 sm:px-4 sm:py-6">
-            {!uploadedImage ? (
-              <div className="flex min-h-[500px] items-center justify-center">
-                <div className="w-full max-w-2xl">
-                  {isUploading ? (
-                    <div className="border-border from-muted/50 via-background to-muted/30 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-6 text-center shadow-xl sm:p-12">
-                      <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br"></div>
-                      <div className="relative z-10">
-                        <div className="relative mb-6">
-                          <div className="border-muted border-t-primary mx-auto h-16 w-16 animate-spin rounded-full border-4"></div>
-                          <div
-                            className="border-r-primary/70 absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-transparent"
-                            style={{
-                              animationDelay: "0.5s",
-                              animationDirection: "reverse",
-                            }}
-                          />
-                        </div>
-                        <h3 className="text-foreground mb-2 text-lg font-bold">
-                          {common.states.uploadingImage}
-                        </h3>
-                        <p className="text-muted-foreground text-sm">
-                          {common.states.uploadingDescription}
-                        </p>
-                        <div className="bg-muted mx-auto mt-4 h-2 w-48 overflow-hidden rounded-full">
-                          <div className="bg-primary h-full animate-pulse rounded-full" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="group border-border from-muted/30 via-background to-muted/50 hover:border-primary/50 hover:bg-muted/40 relative overflow-hidden rounded-2xl border-2 border-dashed bg-gradient-to-br p-6 text-center transition-all duration-300 hover:shadow-xl sm:p-12">
-                      <div className="from-primary/5 to-primary/10 absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                      <div className="absolute top-4 right-4 opacity-20 transition-opacity duration-300 group-hover:opacity-40">
-                        <ImageIcon className="h-8 w-8 text-blue-400" />
-                      </div>
-                      <div className="absolute bottom-4 left-4 opacity-20 transition-opacity duration-300 group-hover:opacity-40">
-                        <Upload className="h-6 w-6 text-purple-400" />
-                      </div>
-
-                      <div className="relative z-10">
-                        <div className="bg-primary mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:shadow-xl">
-                          <ImageIcon className="text-primary-foreground h-12 w-12" />
-                        </div>
-                        <h3 className="text-foreground mb-3 text-xl font-bold">
-                          {uploadCopy.title}
-                        </h3>
-                        <p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-gray-600">
-                          {uploadCopy.description}
-                        </p>
-                        <div className="mb-6">
-                          <p className="mb-2 text-xs text-gray-500">
-                            {uploadCopy.supportedFormats}
-                          </p>
-                          <div className="flex items-center justify-center gap-3">
-                            {uploadCopy.formats.map((format) => (
-                              <span
-                                key={format}
-                                className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700"
-                              >
-                                {format}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <Button
-                          onClick={selectFile}
-                          size="default"
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground transform gap-2 px-6 py-2 text-sm font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
-                        >
-                          <Upload className="h-4 w-4" />
-                          {uploadCopy.chooseImage}
-                        </Button>
-                        <p className="mt-3 text-xs text-gray-500">
-                          {uploadCopy.helperText}
-                        </p>
-                      </div>
-                      <div className="bg-primary/10 absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    </div>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={uploadFile}
-                    className="hidden"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-3">
-                {/* Left */}
-                <div className="order-2 space-y-2 sm:space-y-3 lg:order-1 lg:col-span-1">
-                  <div className="lg:hidden">
-                    <Sheet
-                      open={isControlSheetOpen}
-                      onOpenChange={setIsControlSheetOpen}
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-3">
+            {/* Left */}
+            <div className="order-2 space-y-2 sm:space-y-3 lg:order-1 lg:col-span-1">
+              <div className="lg:hidden">
+                <Sheet
+                  open={isControlSheetOpen}
+                  onOpenChange={setIsControlSheetOpen}
+                >
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex w-full items-center justify-between gap-2"
                     >
-                      <SheetTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex w-full items-center justify-between gap-2"
-                        >
-                          <span className="text-sm font-medium">
-                            {effectsCopy.title}
-                          </span>
-                          <span className="text-muted-foreground text-xs uppercase">
+                      <span className="text-sm font-medium">
+                        {effectsCopy.title}
+                      </span>
+                      <span className="text-muted-foreground text-xs uppercase">
+                        {formatTranslation(effectsCopy.activeLabel, {
+                          count: activeTransformationCount,
+                        })}
+                      </span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="bottom"
+                    className="h-[85vh] overflow-y-auto p-0"
+                  >
+                    <SheetHeader className="border-b px-4 py-3">
+                      <SheetTitle className="text-base font-semibold">
+                        {effectsCopy.title}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="max-h-full overflow-y-auto p-4">
+                      {panelLayout("mobile")}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+              <div className="hidden lg:block">
+                {renderControlPanel("desktop")}
+              </div>
+              <div className="hidden">
+                <Card className="shadow-lg">
+                  <CardContent className="p-2 sm:p-3">
+                    <div className="mb-3 flex items-start justify-between">
+                      <div>
+                        <h3 className="mb-0.5 text-sm font-bold">
+                          {effectsCopy.title}
+                        </h3>
+                        <p className="text-muted-foreground text-xs">
+                          {effectsCopy.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="bg-muted/20 rounded-md border border-dashed border-gray-200 p-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-muted-foreground text-xs font-semibold">
+                            {effectsCopy.activeList.title}
+                          </p>
+                          <span className="text-muted-foreground text-[10px] font-medium uppercase">
                             {formatTranslation(effectsCopy.activeLabel, {
-                              count: activeTransformationCount,
+                              count: transformations.length,
                             })}
                           </span>
-                        </Button>
-                      </SheetTrigger>
-                      <SheetContent
-                        side="bottom"
-                        className="h-[85vh] overflow-y-auto p-0"
-                      >
-                        <SheetHeader className="border-b px-4 py-3">
-                          <SheetTitle className="text-base font-semibold">
-                            {effectsCopy.title}
-                          </SheetTitle>
-                        </SheetHeader>
-                        <div className="max-h-full overflow-y-auto p-4">
-                          {panelLayout("mobile")}
                         </div>
-                      </SheetContent>
-                    </Sheet>
-                  </div>
-                  <div className="hidden lg:block">
-                    {renderControlPanel("desktop")}
-                  </div>
-                  <div className="hidden">
-                    <Card className="shadow-lg">
-                      <CardContent className="p-2 sm:p-3">
-                        <div className="mb-3 flex items-start justify-between">
-                          <div>
-                            <h3 className="mb-0.5 text-sm font-bold">
-                              {effectsCopy.title}
-                            </h3>
-                            <p className="text-muted-foreground text-xs">
-                              {effectsCopy.subtitle}
-                            </p>
+                        {activeTransformations.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {activeTransformations.map(({ meta, index }) => {
+                              const { label, detail } = meta;
+                              return (
+                                <button
+                                  key={`${label}-${index}`}
+                                  onClick={() => removeTransformationAt(index)}
+                                  disabled={isProcessing}
+                                  className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-700 transition hover:border-blue-400 hover:bg-blue-50 disabled:opacity-60"
+                                >
+                                  <span>{label}</span>
+                                  {detail ? (
+                                    <span className="text-blue-500/70">
+                                      • {detail}
+                                    </span>
+                                  ) : null}
+                                  <X className="h-3 w-3" />
+                                </button>
+                              );
+                            })}
                           </div>
+                        ) : (
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            {effectsCopy.activeList.empty}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
+                        <div className="mb-2">
+                          <h4 className="text-sm font-semibold">
+                            {effectsCopy.sections.background.title}
+                          </h4>
+                          <p className="text-muted-foreground text-xs">
+                            {effectsCopy.sections.background.subtitle}
+                          </p>
                         </div>
-
-                        <div className="space-y-3">
-                          <div className="bg-muted/20 rounded-md border border-dashed border-gray-200 p-2">
-                            <div className="flex items-center justify-between">
-                              <p className="text-muted-foreground text-xs font-semibold">
-                                {effectsCopy.activeList.title}
-                              </p>
-                              <span className="text-muted-foreground text-[10px] font-medium uppercase">
-                                {formatTranslation(effectsCopy.activeLabel, {
-                                  count: transformations.length,
-                                })}
-                              </span>
-                            </div>
-                            {activeTransformations.length > 0 ? (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {activeTransformations.map(
-                                  ({ meta, index }) => {
-                                    const { label, detail } = meta;
-                                    return (
-                                      <button
-                                        key={`${label}-${index}`}
-                                        onClick={() =>
-                                          removeTransformationAt(index)
-                                        }
-                                        disabled={isProcessing}
-                                        className="flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-700 transition hover:border-blue-400 hover:bg-blue-50 disabled:opacity-60"
-                                      >
-                                        <span>{label}</span>
-                                        {detail ? (
-                                          <span className="text-blue-500/70">
-                                            • {detail}
-                                          </span>
-                                        ) : null}
-                                        <X className="h-3 w-3" />
-                                      </button>
-                                    );
-                                  },
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-muted-foreground mt-1 text-xs">
-                                {effectsCopy.activeList.empty}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
-                            <div className="mb-2">
-                              <h4 className="text-sm font-semibold">
-                                {effectsCopy.sections.background.title}
-                              </h4>
-                              <p className="text-muted-foreground text-xs">
-                                {effectsCopy.sections.background.subtitle}
-                              </p>
-                            </div>
-                            <div className="grid gap-2">
-                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                <div className="group relative">
-                                  <Button
-                                    onClick={() =>
-                                      applyRemoveBackground("bgremove")
-                                    }
-                                    disabled={
-                                      isProcessing ||
-                                      isRemoveBackgroundBasicActive ||
-                                      isRemoveBackgroundHdActive
-                                    }
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-full gap-1 px-2 text-xs hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
-                                  >
-                                    <Scissors className="h-3 w-3" />
-                                    <span className="text-xs">
-                                      {computeEffectLabel(
-                                        effectsCopy.removeBackground,
-                                        isRemoveBackgroundBasicActive,
-                                      )}
-                                    </span>
-                                    {!isRemoveBackgroundBasicActive &&
-                                      !isRemoveBackgroundHdActive &&
-                                      effectsCopy.removeBackground.cost && (
-                                        <span className="text-muted-foreground ml-1 text-[10px]">
-                                          {effectsCopy.removeBackground.cost}
-                                        </span>
-                                      )}
-                                  </Button>
-                                  {isRemoveBackgroundBasicActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind(
-                                          "removeBackground",
-                                          (transform) =>
-                                            transform.kind ===
-                                              "removeBackground" &&
-                                            (transform.strategy ??
-                                              "bgremove") === "bgremove",
-                                        )
-                                      }
-                                      disabled={isProcessing}
-                                      variant="destructive"
-                                      size="sm"
-                                      className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                    >
-                                      <Minus className="h-2 w-2" />
-                                    </Button>
+                        <div className="grid gap-2">
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div className="group relative">
+                              <Button
+                                onClick={() =>
+                                  applyRemoveBackground("bgremove")
+                                }
+                                disabled={
+                                  isProcessing ||
+                                  isRemoveBackgroundBasicActive ||
+                                  isRemoveBackgroundHdActive
+                                }
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-full gap-1 px-2 text-xs hover:border-red-200 hover:bg-red-50 disabled:opacity-50"
+                              >
+                                <Scissors className="h-3 w-3" />
+                                <span className="text-xs">
+                                  {computeEffectLabel(
+                                    effectsCopy.removeBackground,
+                                    isRemoveBackgroundBasicActive,
                                   )}
-                                </div>
-                                <div className="group relative">
-                                  <Button
-                                    onClick={() =>
-                                      applyRemoveBackground("removedotbg")
-                                    }
-                                    disabled={
-                                      isProcessing ||
-                                      isRemoveBackgroundHdActive ||
-                                      isRemoveBackgroundBasicActive
-                                    }
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-full gap-1 px-2 text-xs hover:border-orange-200 hover:bg-orange-50 disabled:opacity-50"
-                                  >
-                                    <Eraser className="h-3 w-3" />
-                                    <span className="text-xs">
-                                      {computeEffectLabel(
-                                        effectsCopy.removeBackgroundHd,
-                                        isRemoveBackgroundHdActive,
-                                      )}
-                                    </span>
-                                    {!isRemoveBackgroundHdActive &&
-                                      !isRemoveBackgroundBasicActive &&
-                                      effectsCopy.removeBackgroundHd.cost && (
-                                        <span className="text-muted-foreground ml-1 text-[10px]">
-                                          {effectsCopy.removeBackgroundHd.cost}
-                                        </span>
-                                      )}
-                                  </Button>
-                                  {isRemoveBackgroundHdActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind(
-                                          "removeBackground",
-                                          (transform) =>
-                                            transform.kind ===
-                                              "removeBackground" &&
-                                            transform.strategy ===
-                                              "removedotbg",
-                                        )
-                                      }
-                                      disabled={isProcessing}
-                                      variant="destructive"
-                                      size="sm"
-                                      className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                    >
-                                      <Minus className="h-2 w-2" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                    <Palette className="h-3 w-3" />
-                                    <span>
-                                      {effectsCopy.labels.changeBackground}
-                                    </span>
-                                  </div>
-                                  {effectsCopy.changeBackground.cost && (
-                                    <span className="text-muted-foreground text-[10px] uppercase">
-                                      {effectsCopy.changeBackground.cost}
+                                </span>
+                                {!isRemoveBackgroundBasicActive &&
+                                  !isRemoveBackgroundHdActive &&
+                                  effectsCopy.removeBackground.cost && (
+                                    <span className="text-muted-foreground ml-1 text-[10px]">
+                                      {effectsCopy.removeBackground.cost}
                                     </span>
                                   )}
-                                </div>
-                                <Input
-                                  value={changeBackgroundPrompt}
-                                  onChange={(event) =>
-                                    setChangeBackgroundPrompt(
-                                      event.target.value,
+                              </Button>
+                              {isRemoveBackgroundBasicActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind(
+                                      "removeBackground",
+                                      (transform) =>
+                                        transform.kind === "removeBackground" &&
+                                        (transform.strategy ?? "bgremove") ===
+                                          "bgremove",
                                     )
                                   }
-                                  placeholder={
-                                    effectsCopy.changeBackground.placeholder
+                                  disabled={isProcessing}
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                >
+                                  <Minus className="h-2 w-2" />
+                                </Button>
+                              )}
+                            </div>
+                            <div className="group relative">
+                              <Button
+                                onClick={() =>
+                                  applyRemoveBackground("removedotbg")
+                                }
+                                disabled={
+                                  isProcessing ||
+                                  isRemoveBackgroundHdActive ||
+                                  isRemoveBackgroundBasicActive
+                                }
+                                variant="outline"
+                                size="sm"
+                                className="h-8 w-full gap-1 px-2 text-xs hover:border-orange-200 hover:bg-orange-50 disabled:opacity-50"
+                              >
+                                <Eraser className="h-3 w-3" />
+                                <span className="text-xs">
+                                  {computeEffectLabel(
+                                    effectsCopy.removeBackgroundHd,
+                                    isRemoveBackgroundHdActive,
+                                  )}
+                                </span>
+                                {!isRemoveBackgroundHdActive &&
+                                  !isRemoveBackgroundBasicActive &&
+                                  effectsCopy.removeBackgroundHd.cost && (
+                                    <span className="text-muted-foreground ml-1 text-[10px]">
+                                      {effectsCopy.removeBackgroundHd.cost}
+                                    </span>
+                                  )}
+                              </Button>
+                              {isRemoveBackgroundHdActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind(
+                                      "removeBackground",
+                                      (transform) =>
+                                        transform.kind === "removeBackground" &&
+                                        transform.strategy === "removedotbg",
+                                    )
                                   }
                                   disabled={isProcessing}
-                                  className="h-8 text-xs"
-                                />
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Button
-                                    onClick={applyChangeBackground}
-                                    size="sm"
-                                    disabled={
-                                      isProcessing || isChangeBackgroundActive
-                                    }
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <Palette className="h-3 w-3" />
-                                    <span>
-                                      {effectsCopy.changeBackground.apply}
-                                    </span>
-                                  </Button>
-                                  {isChangeBackgroundActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind(
-                                          "changeBackground",
-                                        )
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground mt-1 text-xs">
-                                  {effectsCopy.changeBackground.helper}
-                                </p>
-                              </div>
-
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                    <SunMedium className="h-3 w-3" />
-                                    <span>{effectsCopy.labels.dropShadow}</span>
-                                  </div>
-                                  {effectsCopy.dropShadow.cost && (
-                                    <span className="text-muted-foreground text-[10px] uppercase">
-                                      {effectsCopy.dropShadow.cost}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                  {effectsCopy.dropShadow.helper}
-                                </p>
-                                <div className="mt-2 grid grid-cols-3 gap-2">
-                                  <Input
-                                    type="number"
-                                    value={dropShadowAzimuth}
-                                    onChange={(event) =>
-                                      setDropShadowAzimuth(event.target.value)
-                                    }
-                                    min={0}
-                                    max={360}
-                                    placeholder={
-                                      effectsCopy.dropShadow.azimuthLabel
-                                    }
-                                    aria-label={
-                                      effectsCopy.dropShadow.azimuthLabel
-                                    }
-                                    disabled={isProcessing}
-                                    className="h-8 text-xs"
-                                  />
-                                  <Input
-                                    type="number"
-                                    value={dropShadowElevation}
-                                    onChange={(event) =>
-                                      setDropShadowElevation(event.target.value)
-                                    }
-                                    min={0}
-                                    max={90}
-                                    placeholder={
-                                      effectsCopy.dropShadow.elevationLabel
-                                    }
-                                    aria-label={
-                                      effectsCopy.dropShadow.elevationLabel
-                                    }
-                                    disabled={isProcessing}
-                                    className="h-8 text-xs"
-                                  />
-                                  <Input
-                                    type="number"
-                                    value={dropShadowSaturation}
-                                    onChange={(event) =>
-                                      setDropShadowSaturation(
-                                        event.target.value,
-                                      )
-                                    }
-                                    min={0}
-                                    max={100}
-                                    placeholder={
-                                      effectsCopy.dropShadow.saturationLabel
-                                    }
-                                    aria-label={
-                                      effectsCopy.dropShadow.saturationLabel
-                                    }
-                                    disabled={isProcessing}
-                                    className="h-8 text-xs"
-                                  />
-                                </div>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Button
-                                    onClick={applyDropShadow}
-                                    size="sm"
-                                    disabled={
-                                      isProcessing || isDropShadowActive
-                                    }
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <SunMedium className="h-3 w-3" />
-                                    <span>
-                                      {computeEffectLabel(
-                                        effectsCopy.dropShadow,
-                                        isDropShadowActive,
-                                      )}
-                                    </span>
-                                  </Button>
-                                  {isDropShadowActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind("dropShadow")
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                                >
+                                  <Minus className="h-2 w-2" />
+                                </Button>
+                              )}
                             </div>
                           </div>
 
-                          <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
-                            <div className="mb-2">
-                              <h4 className="text-sm font-semibold">
-                                {effectsCopy.sections.enhancements.title}
-                              </h4>
-                              <p className="text-muted-foreground text-xs">
-                                {effectsCopy.sections.enhancements.subtitle}
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                              <div className="group relative">
-                                <Button
-                                  onClick={applyRetouch}
-                                  disabled={isProcessing || isRetouchActive}
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-full gap-1 px-2 text-xs hover:border-purple-200 hover:bg-purple-50 disabled:opacity-50"
-                                >
-                                  <Sparkles className="h-3 w-3" />
-                                  <span className="text-xs">
-                                    {computeEffectLabel(
-                                      effectsCopy.retouch,
-                                      isRetouchActive,
-                                    )}
-                                  </span>
-                                  {!isRetouchActive &&
-                                    effectsCopy.retouch.cost && (
-                                      <span className="text-muted-foreground ml-1 text-[10px]">
-                                        {effectsCopy.retouch.cost}
-                                      </span>
-                                    )}
-                                </Button>
-                                {isRetouchActive && (
-                                  <Button
-                                    onClick={() =>
-                                      removeTransformationByKind("retouch")
-                                    }
-                                    disabled={isProcessing}
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                  >
-                                    <Minus className="h-2 w-2" />
-                                  </Button>
-                                )}
-                              </div>
-                              <div className="group relative">
-                                <Button
-                                  onClick={applyUpscale}
-                                  disabled={isProcessing || isUpscaleActive}
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-full gap-1 px-2 text-xs hover:border-blue-200 hover:bg-blue-50 disabled:opacity-50"
-                                >
-                                  <Expand className="h-3 w-3" />
-                                  <span className="text-xs">
-                                    {computeEffectLabel(
-                                      effectsCopy.upscale,
-                                      isUpscaleActive,
-                                    )}
-                                  </span>
-                                  {!isUpscaleActive &&
-                                    effectsCopy.upscale.cost && (
-                                      <span className="text-muted-foreground ml-1 text-[10px]">
-                                        {effectsCopy.upscale.cost}
-                                      </span>
-                                    )}
-                                </Button>
-                                {isUpscaleActive && (
-                                  <Button
-                                    onClick={() =>
-                                      removeTransformationByKind("upscale")
-                                    }
-                                    disabled={isProcessing}
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                  >
-                                    <Minus className="h-2 w-2" />
-                                  </Button>
-                                )}
-                              </div>
-                              <div className="group relative">
-                                <Button
-                                  onClick={applyVariation}
-                                  disabled={isProcessing || isVariationActive}
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-full gap-1 px-2 text-xs hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-50"
-                                >
-                                  <Shuffle className="h-3 w-3" />
-                                  <span className="text-xs">
-                                    {computeEffectLabel(
-                                      effectsCopy.variation,
-                                      isVariationActive,
-                                    )}
-                                  </span>
-                                  {!isVariationActive &&
-                                    effectsCopy.variation.cost && (
-                                      <span className="text-muted-foreground ml-1 text-[10px]">
-                                        {effectsCopy.variation.cost}
-                                      </span>
-                                    )}
-                                </Button>
-                                {isVariationActive && (
-                                  <Button
-                                    onClick={() =>
-                                      removeTransformationByKind(
-                                        "generateVariation",
-                                      )
-                                    }
-                                    disabled={isProcessing}
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
-                                  >
-                                    <Minus className="h-2 w-2" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
-                            <div className="mb-2">
-                              <h4 className="text-sm font-semibold">
-                                {effectsCopy.sections.crop.title}
-                              </h4>
-                              <p className="text-muted-foreground text-xs">
-                                {effectsCopy.sections.crop.subtitle}
-                              </p>
-                            </div>
-                            <div className="grid gap-2">
-                              <div className="group relative">
-                                <Button
-                                  onClick={applySmartCrop}
-                                  disabled={isProcessing || isSmartCropActive}
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-full gap-1 px-2 text-xs hover:border-green-200 hover:bg-green-50 disabled:opacity-50"
-                                >
-                                  <Crop className="h-3 w-3" />
-                                  <span className="text-xs">
-                                    {computeEffectLabel(
-                                      effectsCopy.smartCrop,
-                                      isSmartCropActive,
-                                    )}
-                                  </span>
-                                  {!isSmartCropActive && (
-                                    <span className="ml-1 text-[10px] font-semibold text-emerald-600">
-                                      {effectsCopy.smartCrop.badge}
-                                    </span>
-                                  )}
-                                </Button>
-                                {isSmartCropActive && (
-                                  <Button
-                                    onClick={() =>
-                                      removeTransformationByKind("smartCrop")
-                                    }
-                                    disabled={isProcessing}
-                                    variant="outline"
-                                    size="sm"
-                                    className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full border-red-200 p-0 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
-                                  >
-                                    <Minus className="h-2 w-2" />
-                                  </Button>
-                                )}
-                                <p className="text-muted-foreground mt-1 text-xs">
-                                  {effectsCopy.smartCrop.helper}
-                                </p>
-                              </div>
-
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                  <Smile className="h-3 w-3" />
-                                  <span>{effectsCopy.labels.faceCrop}</span>
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                  {effectsCopy.faceCrop.helper}
-                                </p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Input
-                                    value={faceCropZoom}
-                                    onChange={(event) =>
-                                      setFaceCropZoom(event.target.value)
-                                    }
-                                    placeholder={effectsCopy.faceCrop.zoomLabel}
-                                    aria-label={effectsCopy.faceCrop.zoomLabel}
-                                    disabled={isProcessing || isFaceCropActive}
-                                    className="h-8 text-xs"
-                                  />
-                                  <Button
-                                    onClick={applyFaceCrop}
-                                    size="sm"
-                                    disabled={isProcessing || isFaceCropActive}
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <Smile className="h-3 w-3" />
-                                    <span>
-                                      {computeEffectLabel(
-                                        effectsCopy.faceCrop,
-                                        isFaceCropActive,
-                                      )}
-                                    </span>
-                                  </Button>
-                                  {isFaceCropActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind("faceCrop")
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground mt-1 text-xs">
-                                  {effectsCopy.faceCrop.zoomHelper}
-                                </p>
-                              </div>
-
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                    <Target className="h-3 w-3" />
-                                    <span>{effectsCopy.objectCrop.title}</span>
-                                  </div>
-                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                    {effectsCopy.objectCrop.badge}
-                                  </span>
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                  {effectsCopy.objectCrop.helper}
-                                </p>
-                                <Input
-                                  value={objectInput}
-                                  onChange={(event) =>
-                                    setObjectInput(event.target.value)
-                                  }
-                                  placeholder={
-                                    effectsCopy.objectCrop.placeholder
-                                  }
-                                  disabled={isProcessing || isObjectCropActive}
-                                  className="mt-2 h-8 text-xs"
-                                />
-                                <Input
-                                  value={objectAspectRatio}
-                                  onChange={(event) =>
-                                    setObjectAspectRatio(event.target.value)
-                                  }
-                                  placeholder={
-                                    effectsCopy.objectCrop.aspectPlaceholder
-                                  }
-                                  disabled={isProcessing || isObjectCropActive}
-                                  className="mt-2 h-8 text-xs"
-                                />
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Button
-                                    onClick={applyObjectCrop}
-                                    size="sm"
-                                    disabled={
-                                      isProcessing ||
-                                      isObjectCropActive ||
-                                      !objectInput.trim()
-                                    }
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <Target className="h-3 w-3" />
-                                    <span>
-                                      {computeEffectLabel(
-                                        effectsCopy.objectCrop,
-                                        isObjectCropActive,
-                                      )}
-                                    </span>
-                                  </Button>
-                                  {isObjectCropActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind("objectCrop")
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
-                            <div className="mb-2">
-                              <h4 className="text-sm font-semibold">
-                                {effectsCopy.sections.editing.title}
-                              </h4>
-                              <p className="text-muted-foreground text-xs">
-                                {effectsCopy.sections.editing.subtitle}
-                              </p>
-                            </div>
-                            <div className="space-y-3">
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                    <Wand2 className="h-3 w-3" />
-                                    <span>{effectsCopy.labels.edit}</span>
-                                  </div>
-                                  {effectsCopy.edit.cost && (
-                                    <span className="text-muted-foreground text-[10px] uppercase">
-                                      {effectsCopy.edit.cost}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                  {effectsCopy.edit.helper}
-                                </p>
-                                <Input
-                                  value={editPrompt}
-                                  onChange={(event) =>
-                                    setEditPrompt(event.target.value)
-                                  }
-                                  placeholder={effectsCopy.edit.placeholder}
-                                  disabled={isProcessing || isEditActive}
-                                  className="mt-2 h-8 text-xs"
-                                />
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Button
-                                    onClick={applyEdit}
-                                    size="sm"
-                                    disabled={isProcessing || isEditActive}
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <Wand2 className="h-3 w-3" />
-                                    <span>{effectsCopy.edit.apply}</span>
-                                  </Button>
-                                  {isEditActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind("edit")
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
-                                    <Frame className="h-3 w-3" />
-                                    <span>
-                                      {effectsCopy.labels.generativeFill}
-                                    </span>
-                                  </div>
-                                  {effectsCopy.generativeFill.cost && (
-                                    <span className="text-muted-foreground text-[10px] uppercase">
-                                      {effectsCopy.generativeFill.cost}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-muted-foreground text-xs">
-                                  {effectsCopy.generativeFill.helper}
-                                </p>
-                                <div className="mt-2 grid grid-cols-3 gap-2">
-                                  <Input
-                                    type="number"
-                                    value={generativeWidth}
-                                    onChange={(event) =>
-                                      setGenerativeWidth(event.target.value)
-                                    }
-                                    placeholder={
-                                      effectsCopy.generativeFill.widthLabel
-                                    }
-                                    aria-label={
-                                      effectsCopy.generativeFill.widthLabel
-                                    }
-                                    min={1}
-                                    disabled={
-                                      isProcessing || isGenerativeFillActive
-                                    }
-                                    className="h-8 text-xs"
-                                  />
-                                  <Input
-                                    type="number"
-                                    value={generativeHeight}
-                                    onChange={(event) =>
-                                      setGenerativeHeight(event.target.value)
-                                    }
-                                    placeholder={
-                                      effectsCopy.generativeFill.heightLabel
-                                    }
-                                    aria-label={
-                                      effectsCopy.generativeFill.heightLabel
-                                    }
-                                    min={1}
-                                    disabled={
-                                      isProcessing || isGenerativeFillActive
-                                    }
-                                    className="h-8 text-xs"
-                                  />
-                                  <select
-                                    value={generativeCropMode}
-                                    onChange={(event) =>
-                                      setGenerativeCropMode(
-                                        event.target.value as
-                                          | "pad_resize"
-                                          | "pad_extract",
-                                      )
-                                    }
-                                    disabled={
-                                      isProcessing || isGenerativeFillActive
-                                    }
-                                    className="border-input focus:ring-primary h-8 rounded-md border bg-white px-2 text-xs focus:ring-2 focus:outline-none"
-                                  >
-                                    <option value="pad_resize">
-                                      {
-                                        effectsCopy.generativeFill
-                                          .cropModeOptions.padResize
-                                      }
-                                    </option>
-                                    <option value="pad_extract">
-                                      {
-                                        effectsCopy.generativeFill
-                                          .cropModeOptions.padExtract
-                                      }
-                                    </option>
-                                  </select>
-                                </div>
-                                <Input
-                                  value={generativePrompt}
-                                  onChange={(event) =>
-                                    setGenerativePrompt(event.target.value)
-                                  }
-                                  placeholder={
-                                    effectsCopy.generativeFill.promptPlaceholder
-                                  }
-                                  disabled={
-                                    isProcessing || isGenerativeFillActive
-                                  }
-                                  className="mt-2 h-8 text-xs"
-                                />
-                                <div className="mt-2 flex items-center gap-2">
-                                  <Button
-                                    onClick={applyGenerativeFill}
-                                    size="sm"
-                                    disabled={
-                                      isProcessing || isGenerativeFillActive
-                                    }
-                                    className="h-7 gap-1 px-2 text-xs"
-                                  >
-                                    <Frame className="h-3 w-3" />
-                                    <span>
-                                      {effectsCopy.generativeFill.apply}
-                                    </span>
-                                  </Button>
-                                  {isGenerativeFillActive && (
-                                    <Button
-                                      onClick={() =>
-                                        removeTransformationByKind(
-                                          "generativeFill",
-                                        )
-                                      }
-                                      disabled={isProcessing}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {transformations.length > 0 && (
-                            <Button
-                              onClick={clearTransformations}
-                              disabled={isProcessing}
-                              variant="destructive"
-                              size="sm"
-                              className="h-7 w-full gap-1 px-2"
-                            >
-                              <RotateCcw className="h-3 w-3" />
-                              <span className="text-xs">
-                                {effectsCopy.clearAll}
-                              </span>
-                            </Button>
-                          )}
-
-                          <div className="grid gap-2 border-t pt-2 sm:grid-cols-2">
-                            <Button
-                              variant="outline"
-                              onClick={selectFile}
-                              size="sm"
-                              className="h-7 gap-1 px-2"
-                            >
-                              <Upload className="h-3 w-3" />
-                              <span className="text-xs">
-                                {common.actions.upload}
-                              </span>
-                            </Button>
-                            {transformations.length > 0 && (
-                              <Button
-                                onClick={downloadImage}
-                                size="sm"
-                                className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
-                              >
-                                <Download className="h-3 w-3" />
-                                <span className="text-xs">
-                                  {common.actions.download}
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="mb-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                                <Palette className="h-3 w-3" />
+                                <span>
+                                  {effectsCopy.labels.changeBackground}
                                 </span>
+                              </div>
+                              {effectsCopy.changeBackground.cost && (
+                                <span className="text-muted-foreground text-[10px] uppercase">
+                                  {effectsCopy.changeBackground.cost}
+                                </span>
+                              )}
+                            </div>
+                            <Input
+                              value={changeBackgroundPrompt}
+                              onChange={(event) =>
+                                setChangeBackgroundPrompt(event.target.value)
+                              }
+                              placeholder={
+                                effectsCopy.changeBackground.placeholder
+                              }
+                              disabled={isProcessing}
+                              className="h-8 text-xs"
+                            />
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button
+                                onClick={applyChangeBackground}
+                                size="sm"
+                                disabled={
+                                  isProcessing || isChangeBackgroundActive
+                                }
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <Palette className="h-3 w-3" />
+                                <span>
+                                  {effectsCopy.changeBackground.apply}
+                                </span>
+                              </Button>
+                              {isChangeBackgroundActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind(
+                                      "changeBackground",
+                                    )
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              {effectsCopy.changeBackground.helper}
+                            </p>
+                          </div>
+
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="mb-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                                <SunMedium className="h-3 w-3" />
+                                <span>{effectsCopy.labels.dropShadow}</span>
+                              </div>
+                              {effectsCopy.dropShadow.cost && (
+                                <span className="text-muted-foreground text-[10px] uppercase">
+                                  {effectsCopy.dropShadow.cost}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {effectsCopy.dropShadow.helper}
+                            </p>
+                            <div className="mt-2 grid grid-cols-3 gap-2">
+                              <Input
+                                type="number"
+                                value={dropShadowAzimuth}
+                                onChange={(event) =>
+                                  setDropShadowAzimuth(event.target.value)
+                                }
+                                min={0}
+                                max={360}
+                                placeholder={
+                                  effectsCopy.dropShadow.azimuthLabel
+                                }
+                                aria-label={effectsCopy.dropShadow.azimuthLabel}
+                                disabled={isProcessing}
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                value={dropShadowElevation}
+                                onChange={(event) =>
+                                  setDropShadowElevation(event.target.value)
+                                }
+                                min={0}
+                                max={90}
+                                placeholder={
+                                  effectsCopy.dropShadow.elevationLabel
+                                }
+                                aria-label={
+                                  effectsCopy.dropShadow.elevationLabel
+                                }
+                                disabled={isProcessing}
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                value={dropShadowSaturation}
+                                onChange={(event) =>
+                                  setDropShadowSaturation(event.target.value)
+                                }
+                                min={0}
+                                max={100}
+                                placeholder={
+                                  effectsCopy.dropShadow.saturationLabel
+                                }
+                                aria-label={
+                                  effectsCopy.dropShadow.saturationLabel
+                                }
+                                disabled={isProcessing}
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button
+                                onClick={applyDropShadow}
+                                size="sm"
+                                disabled={isProcessing || isDropShadowActive}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <SunMedium className="h-3 w-3" />
+                                <span>
+                                  {computeEffectLabel(
+                                    effectsCopy.dropShadow,
+                                    isDropShadowActive,
+                                  )}
+                                </span>
+                              </Button>
+                              {isDropShadowActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind("dropShadow")
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
+                        <div className="mb-2">
+                          <h4 className="text-sm font-semibold">
+                            {effectsCopy.sections.enhancements.title}
+                          </h4>
+                          <p className="text-muted-foreground text-xs">
+                            {effectsCopy.sections.enhancements.subtitle}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          <div className="group relative">
+                            <Button
+                              onClick={applyRetouch}
+                              disabled={isProcessing || isRetouchActive}
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-full gap-1 px-2 text-xs hover:border-purple-200 hover:bg-purple-50 disabled:opacity-50"
+                            >
+                              <Sparkles className="h-3 w-3" />
+                              <span className="text-xs">
+                                {computeEffectLabel(
+                                  effectsCopy.retouch,
+                                  isRetouchActive,
+                                )}
+                              </span>
+                              {!isRetouchActive && effectsCopy.retouch.cost && (
+                                <span className="text-muted-foreground ml-1 text-[10px]">
+                                  {effectsCopy.retouch.cost}
+                                </span>
+                              )}
+                            </Button>
+                            {isRetouchActive && (
+                              <Button
+                                onClick={() =>
+                                  removeTransformationByKind("retouch")
+                                }
+                                disabled={isProcessing}
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                              >
+                                <Minus className="h-2 w-2" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="group relative">
+                            <Button
+                              onClick={applyUpscale}
+                              disabled={isProcessing || isUpscaleActive}
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-full gap-1 px-2 text-xs hover:border-blue-200 hover:bg-blue-50 disabled:opacity-50"
+                            >
+                              <Expand className="h-3 w-3" />
+                              <span className="text-xs">
+                                {computeEffectLabel(
+                                  effectsCopy.upscale,
+                                  isUpscaleActive,
+                                )}
+                              </span>
+                              {!isUpscaleActive && effectsCopy.upscale.cost && (
+                                <span className="text-muted-foreground ml-1 text-[10px]">
+                                  {effectsCopy.upscale.cost}
+                                </span>
+                              )}
+                            </Button>
+                            {isUpscaleActive && (
+                              <Button
+                                onClick={() =>
+                                  removeTransformationByKind("upscale")
+                                }
+                                disabled={isProcessing}
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                              >
+                                <Minus className="h-2 w-2" />
+                              </Button>
+                            )}
+                          </div>
+                          <div className="group relative">
+                            <Button
+                              onClick={applyVariation}
+                              disabled={isProcessing || isVariationActive}
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-full gap-1 px-2 text-xs hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-50"
+                            >
+                              <Shuffle className="h-3 w-3" />
+                              <span className="text-xs">
+                                {computeEffectLabel(
+                                  effectsCopy.variation,
+                                  isVariationActive,
+                                )}
+                              </span>
+                              {!isVariationActive &&
+                                effectsCopy.variation.cost && (
+                                  <span className="text-muted-foreground ml-1 text-[10px]">
+                                    {effectsCopy.variation.cost}
+                                  </span>
+                                )}
+                            </Button>
+                            {isVariationActive && (
+                              <Button
+                                onClick={() =>
+                                  removeTransformationByKind(
+                                    "generateVariation",
+                                  )
+                                }
+                                disabled={isProcessing}
+                                variant="destructive"
+                                size="sm"
+                                className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                              >
+                                <Minus className="h-2 w-2" />
                               </Button>
                             )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
+                      </div>
 
-                {/* Right - Preview */}
-                <div className="order-1 space-y-2 sm:space-y-3 lg:order-2 lg:col-span-2">
-                  <Card className="shadow-lg">
-                    <CardContent className="space-y-4 p-2 sm:p-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-foreground mb-0.5 text-sm font-bold">
-                            {createCopy.preview.title}
-                          </h3>
-                          <p className="text-muted-foreground truncate text-xs">
-                            {uploadedImage.name}
+                      <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
+                        <div className="mb-2">
+                          <h4 className="text-sm font-semibold">
+                            {effectsCopy.sections.crop.title}
+                          </h4>
+                          <p className="text-muted-foreground text-xs">
+                            {effectsCopy.sections.crop.subtitle}
                           </p>
                         </div>
+                        <div className="grid gap-2">
+                          <div className="group relative">
+                            <Button
+                              onClick={applySmartCrop}
+                              disabled={isProcessing || isSmartCropActive}
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-full gap-1 px-2 text-xs hover:border-green-200 hover:bg-green-50 disabled:opacity-50"
+                            >
+                              <Crop className="h-3 w-3" />
+                              <span className="text-xs">
+                                {computeEffectLabel(
+                                  effectsCopy.smartCrop,
+                                  isSmartCropActive,
+                                )}
+                              </span>
+                              {!isSmartCropActive && (
+                                <span className="ml-1 text-[10px] font-semibold text-emerald-600">
+                                  {effectsCopy.smartCrop.badge}
+                                </span>
+                              )}
+                            </Button>
+                            {isSmartCropActive && (
+                              <Button
+                                onClick={() =>
+                                  removeTransformationByKind("smartCrop")
+                                }
+                                disabled={isProcessing}
+                                variant="outline"
+                                size="sm"
+                                className="absolute top-0.5 right-0.5 h-4 w-4 rounded-full border-red-200 p-0 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
+                              >
+                                <Minus className="h-2 w-2" />
+                              </Button>
+                            )}
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              {effectsCopy.smartCrop.helper}
+                            </p>
+                          </div>
+
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                              <Smile className="h-3 w-3" />
+                              <span>{effectsCopy.labels.faceCrop}</span>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {effectsCopy.faceCrop.helper}
+                            </p>
+                            <div className="mt-2 flex items-center gap-2">
+                              <Input
+                                value={faceCropZoom}
+                                onChange={(event) =>
+                                  setFaceCropZoom(event.target.value)
+                                }
+                                placeholder={effectsCopy.faceCrop.zoomLabel}
+                                aria-label={effectsCopy.faceCrop.zoomLabel}
+                                disabled={isProcessing || isFaceCropActive}
+                                className="h-8 text-xs"
+                              />
+                              <Button
+                                onClick={applyFaceCrop}
+                                size="sm"
+                                disabled={isProcessing || isFaceCropActive}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <Smile className="h-3 w-3" />
+                                <span>
+                                  {computeEffectLabel(
+                                    effectsCopy.faceCrop,
+                                    isFaceCropActive,
+                                  )}
+                                </span>
+                              </Button>
+                              {isFaceCropActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind("faceCrop")
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              {effectsCopy.faceCrop.zoomHelper}
+                            </p>
+                          </div>
+
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="mb-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                                <Target className="h-3 w-3" />
+                                <span>{effectsCopy.objectCrop.title}</span>
+                              </div>
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                {effectsCopy.objectCrop.badge}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {effectsCopy.objectCrop.helper}
+                            </p>
+                            <Input
+                              value={objectInput}
+                              onChange={(event) =>
+                                setObjectInput(event.target.value)
+                              }
+                              placeholder={effectsCopy.objectCrop.placeholder}
+                              disabled={isProcessing || isObjectCropActive}
+                              className="mt-2 h-8 text-xs"
+                            />
+                            <Input
+                              value={objectAspectRatio}
+                              onChange={(event) =>
+                                setObjectAspectRatio(event.target.value)
+                              }
+                              placeholder={
+                                effectsCopy.objectCrop.aspectPlaceholder
+                              }
+                              disabled={isProcessing || isObjectCropActive}
+                              className="mt-2 h-8 text-xs"
+                            />
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button
+                                onClick={applyObjectCrop}
+                                size="sm"
+                                disabled={
+                                  isProcessing ||
+                                  isObjectCropActive ||
+                                  !objectInput.trim()
+                                }
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <Target className="h-3 w-3" />
+                                <span>
+                                  {computeEffectLabel(
+                                    effectsCopy.objectCrop,
+                                    isObjectCropActive,
+                                  )}
+                                </span>
+                              </Button>
+                              {isObjectCropActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind("objectCrop")
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border border-gray-200 bg-white p-2 sm:p-3">
+                        <div className="mb-2">
+                          <h4 className="text-sm font-semibold">
+                            {effectsCopy.sections.editing.title}
+                          </h4>
+                          <p className="text-muted-foreground text-xs">
+                            {effectsCopy.sections.editing.subtitle}
+                          </p>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="mb-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                                <Wand2 className="h-3 w-3" />
+                                <span>{effectsCopy.labels.edit}</span>
+                              </div>
+                              {effectsCopy.edit.cost && (
+                                <span className="text-muted-foreground text-[10px] uppercase">
+                                  {effectsCopy.edit.cost}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {effectsCopy.edit.helper}
+                            </p>
+                            <Input
+                              value={editPrompt}
+                              onChange={(event) =>
+                                setEditPrompt(event.target.value)
+                              }
+                              placeholder={effectsCopy.edit.placeholder}
+                              disabled={isProcessing || isEditActive}
+                              className="mt-2 h-8 text-xs"
+                            />
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button
+                                onClick={applyEdit}
+                                size="sm"
+                                disabled={isProcessing || isEditActive}
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <Wand2 className="h-3 w-3" />
+                                <span>{effectsCopy.edit.apply}</span>
+                              </Button>
+                              {isEditActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind("edit")
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="rounded-md border border-dashed border-gray-200 px-2 py-2">
+                            <div className="mb-1 flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                                <Frame className="h-3 w-3" />
+                                <span>{effectsCopy.labels.generativeFill}</span>
+                              </div>
+                              {effectsCopy.generativeFill.cost && (
+                                <span className="text-muted-foreground text-[10px] uppercase">
+                                  {effectsCopy.generativeFill.cost}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              {effectsCopy.generativeFill.helper}
+                            </p>
+                            <div className="mt-2 grid grid-cols-3 gap-2">
+                              <Input
+                                type="number"
+                                value={generativeWidth}
+                                onChange={(event) =>
+                                  setGenerativeWidth(event.target.value)
+                                }
+                                placeholder={
+                                  effectsCopy.generativeFill.widthLabel
+                                }
+                                aria-label={
+                                  effectsCopy.generativeFill.widthLabel
+                                }
+                                min={1}
+                                disabled={
+                                  isProcessing || isGenerativeFillActive
+                                }
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                value={generativeHeight}
+                                onChange={(event) =>
+                                  setGenerativeHeight(event.target.value)
+                                }
+                                placeholder={
+                                  effectsCopy.generativeFill.heightLabel
+                                }
+                                aria-label={
+                                  effectsCopy.generativeFill.heightLabel
+                                }
+                                min={1}
+                                disabled={
+                                  isProcessing || isGenerativeFillActive
+                                }
+                                className="h-8 text-xs"
+                              />
+                              <select
+                                value={generativeCropMode}
+                                onChange={(event) =>
+                                  setGenerativeCropMode(
+                                    event.target.value as
+                                      | "pad_resize"
+                                      | "pad_extract",
+                                  )
+                                }
+                                disabled={
+                                  isProcessing || isGenerativeFillActive
+                                }
+                                className="border-input focus:ring-primary h-8 rounded-md border bg-white px-2 text-xs focus:ring-2 focus:outline-none"
+                              >
+                                <option value="pad_resize">
+                                  {
+                                    effectsCopy.generativeFill.cropModeOptions
+                                      .padResize
+                                  }
+                                </option>
+                                <option value="pad_extract">
+                                  {
+                                    effectsCopy.generativeFill.cropModeOptions
+                                      .padExtract
+                                  }
+                                </option>
+                              </select>
+                            </div>
+                            <Input
+                              value={generativePrompt}
+                              onChange={(event) =>
+                                setGenerativePrompt(event.target.value)
+                              }
+                              placeholder={
+                                effectsCopy.generativeFill.promptPlaceholder
+                              }
+                              disabled={isProcessing || isGenerativeFillActive}
+                              className="mt-2 h-8 text-xs"
+                            />
+                            <div className="mt-2 flex items-center gap-2">
+                              <Button
+                                onClick={applyGenerativeFill}
+                                size="sm"
+                                disabled={
+                                  isProcessing || isGenerativeFillActive
+                                }
+                                className="h-7 gap-1 px-2 text-xs"
+                              >
+                                <Frame className="h-3 w-3" />
+                                <span>{effectsCopy.generativeFill.apply}</span>
+                              </Button>
+                              {isGenerativeFillActive && (
+                                <Button
+                                  onClick={() =>
+                                    removeTransformationByKind("generativeFill")
+                                  }
+                                  disabled={isProcessing}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 w-7 border-red-200 p-0 text-red-600 hover:bg-red-50"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {transformations.length > 0 && (
                         <Button
-                          variant="ghost"
+                          onClick={clearTransformations}
+                          disabled={isProcessing}
+                          variant="destructive"
                           size="sm"
-                          onClick={() => setUploadedImage(null)}
-                          className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 rounded-full p-0"
-                          aria-label={createCopy.preview.removeImage}
+                          className="h-7 w-full gap-1 px-2"
                         >
-                          <X className="h-3 w-3" />
+                          <RotateCcw className="h-3 w-3" />
+                          <span className="text-xs">
+                            {effectsCopy.clearAll}
+                          </span>
                         </Button>
-                      </div>
+                      )}
 
-                      <div className="bg-muted relative overflow-hidden rounded-lg border">
-                        <div className="relative aspect-[4/3] w-full">
-                          <div className="absolute inset-0">
-                            <ImageKitImage
-                              urlEndpoint={
-                                env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
-                              }
-                              src={uploadedImage.filePath}
-                              alt={uploadedImage.name}
-                              width={800}
-                              height={600}
-                              className="h-full w-full object-contain"
-                              style={imageTransformStyle}
-                              transformation={liveTransformations}
-                            />
-                          </div>
-
-                          <div
-                            className="absolute inset-0 overflow-hidden"
-                            style={{ width: `${compareValue}%` }}
-                          >
-                            <ImageKitImage
-                              urlEndpoint={
-                                env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
-                              }
-                              src={uploadedImage.filePath}
-                              alt={`${uploadedImage.name} original`}
-                              width={800}
-                              height={600}
-                              className="h-full w-full object-contain"
-                              style={imageTransformStyle}
-                              transformation={[]}
-                            />
-                          </div>
-
-                          <div
-                            className="absolute inset-y-0"
-                            style={{ left: `${compareValue}%` }}
-                          >
-                            <div className="flex h-full w-0.5 -translate-x-1/2 items-center justify-center bg-white/60">
-                              <div className="rounded-full bg-white p-1 shadow">
-                                <GripVertical className="h-4 w-4 text-gray-600" />
-                              </div>
-                            </div>
-                          </div>
-
-                          {isProcessing && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                              <div className="text-center text-white">
-                                <div className="relative mb-2">
-                                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                </div>
-                                <p className="text-sm font-semibold">
-                                  {createCopy.preview.processing}
-                                </p>
-                                <p className="mt-1 text-xs text-white/80">
-                                  {createCopy.preview.pleaseWait}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-1 items-center gap-2">
-                          <span className="text-muted-foreground text-xs font-medium">
-                            Before
+                      <div className="grid gap-2 border-t pt-2 sm:grid-cols-2">
+                        <Button
+                          variant="outline"
+                          onClick={selectFile}
+                          size="sm"
+                          className="h-7 gap-1 px-2"
+                        >
+                          <Upload className="h-3 w-3" />
+                          <span className="text-xs">
+                            {common.actions.upload}
                           </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={compareValue}
-                            onChange={(event) =>
-                              setCompareValue(Number(event.target.value))
-                            }
-                            className="flex-1"
-                            aria-label="Before and after slider"
-                          />
-                          <span className="text-muted-foreground text-xs font-medium">
-                            After
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
+                        </Button>
+                        {transformations.length > 0 && (
                           <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustZoom(-0.2)}
-                            disabled={zoomLevel <= 1.01}
-                            aria-label="Zoom out"
-                          >
-                            <ZoomOut className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustZoom(0.2)}
-                            disabled={zoomLevel >= 2.99}
-                            aria-label="Zoom in"
-                          >
-                            <ZoomIn className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
+                            onClick={downloadImage}
                             size="sm"
-                            onClick={resetView}
-                            className="text-xs"
+                            className="h-7 gap-1 bg-gradient-to-r from-blue-600 to-purple-600 px-2 hover:from-blue-700 hover:to-purple-700"
                           >
-                            Reset
+                            <Download className="h-3 w-3" />
+                            <span className="text-xs">
+                              {common.actions.download}
+                            </span>
                           </Button>
-                          <span className="text-muted-foreground text-xs">
-                            {zoomLevel.toFixed(1)}×
-                          </span>
-                        </div>
+                        )}
                       </div>
-
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustPan("up")}
-                            aria-label="Pan up"
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustPan("left")}
-                            aria-label="Pan left"
-                          >
-                            <ArrowLeft className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={resetView}
-                            aria-label="Reset view"
-                          >
-                            <Target className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustPan("right")}
-                            aria-label="Pan right"
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => adjustPan("down")}
-                            aria-label="Pan down"
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Recents */}
-          <div className="border-t border-gray-200 bg-white px-2 py-3 sm:px-4 sm:py-4">
-            <div className="mx-auto max-w-7xl">
-              <div className="mb-6 text-center">
-                <div className="mb-2 inline-flex items-center gap-2">
-                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600" />
-                  <h2 className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent">
-                    {recentsCopy.title}
-                  </h2>
-                  <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500" />
-                </div>
-                <p className="text-muted-foreground mx-auto max-w-md text-sm">
-                  {recentsCopy.subtitle}
-                </p>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-          </div>
 
-          {isLoadingProjects ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="relative mb-6">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-                <div className="animate-reverse absolute inset-0 h-12 w-12 animate-spin rounded-full border-4 border-transparent border-r-purple-600" />
-              </div>
-              <div className="text-center">
-                <p className="mb-2 text-lg font-semibold text-gray-900">
-                  {recentsCopy.loadingTitle}
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  {recentsCopy.loadingSubtitle}
-                </p>
-              </div>
-            </div>
-          ) : userProjects.length > 0 ? (
-            <div className="mb-12">
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                {userProjects.slice(0, 12).map((project) => (
-                  <div
-                    key={project.id}
-                    className="group relative cursor-pointer"
-                    onClick={() => {
-                      setUploadedImage({
-                        fileId: project.imageKitId,
-                        url: project.imageUrl,
-                        name: project.name ?? projectsCopy.card.untitled,
-                        filePath: project.filePath,
-                      });
-                      setTransformations([]);
-                    }}
-                  >
-                    <div className="relative aspect-square overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:border-blue-300 hover:shadow-2xl">
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-600/0 transition-all duration-500 group-hover:from-blue-500/20 group-hover:to-purple-600/20" />
-                      <div className="relative h-full w-full overflow-hidden">
+            {/* Right - Preview */}
+            <div className="order-1 space-y-2 sm:space-y-3 lg:order-2 lg:col-span-2">
+              <Card className="shadow-lg">
+                <CardContent className="space-y-4 p-2 sm:p-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-foreground mb-0.5 text-sm font-bold">
+                        {createCopy.preview.title}
+                      </h3>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {uploadedImage.name}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUploadedImage(null)}
+                      className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 rounded-full p-0"
+                      aria-label={createCopy.preview.removeImage}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  <div className="bg-muted relative overflow-hidden rounded-lg border">
+                    <div className="relative aspect-[4/3] w-full">
+                      <div className="absolute inset-0">
                         <ImageKitImage
                           urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
-                          src={project.filePath}
-                          alt={project.name ?? projectsCopy.card.untitled}
-                          width={300}
-                          height={300}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          transformation={[
-                            {
-                              width: 300,
-                              height: 300,
-                              crop: "maintain_ratio",
-                              quality: 90,
-                            },
-                          ]}
+                          src={uploadedImage.filePath}
+                          alt={uploadedImage.name}
+                          width={800}
+                          height={600}
+                          className="h-full w-full object-contain"
+                          style={imageTransformStyle}
+                          transformation={liveTransformations}
                         />
-                        <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
                       </div>
 
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 transform bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-transform duration-300 group-hover:translate-y-0">
-                        <div className="space-y-1">
-                          <h3 className="truncate text-sm font-bold text-white drop-shadow-lg">
-                            {project.name ?? projectsCopy.card.untitled}
-                          </h3>
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-white/90 drop-shadow-md">
-                              {new Intl.DateTimeFormat(lang, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }).format(new Date(project.createdAt))}
-                            </p>
-                            <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                              <div className="rounded-full bg-white/20 px-2 py-1 backdrop-blur-sm">
-                                <span className="text-xs font-medium text-white">
-                                  {recentsCopy.editLabel}
-                                </span>
-                              </div>
-                            </div>
+                      <div
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ width: `${compareValue}%` }}
+                      >
+                        <ImageKitImage
+                          urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
+                          src={uploadedImage.filePath}
+                          alt={`${uploadedImage.name} original`}
+                          width={800}
+                          height={600}
+                          className="h-full w-full object-contain"
+                          style={imageTransformStyle}
+                          transformation={[]}
+                        />
+                      </div>
+
+                      <div
+                        className="absolute inset-y-0"
+                        style={{ left: `${compareValue}%` }}
+                      >
+                        <div className="flex h-full w-0.5 -translate-x-1/2 items-center justify-center bg-white/60">
+                          <div className="rounded-full bg-white p-1 shadow">
+                            <GripVertical className="h-4 w-4 text-gray-600" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="absolute top-0 right-0 h-0 w-0 border-t-[20px] border-l-[20px] border-t-blue-500 border-l-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                      {isProcessing && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                          <div className="text-center text-white">
+                            <div className="relative mb-2">
+                              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                            </div>
+                            <p className="text-sm font-semibold">
+                              {createCopy.preview.processing}
+                            </p>
+                            <p className="mt-1 text-xs text-white/80">
+                              {createCopy.preview.pleaseWait}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {userProjects.length > 12 && (
-                <div className="mt-8 text-center">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-3">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
-                    <span className="text-sm font-medium text-blue-700">
-                      {formatTranslation(recentsCopy.showingCount, {
-                        count: Math.min(12, userProjects.length),
-                        total: userProjects.length,
-                      })}
-                    </span>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-1 items-center gap-2">
+                      <span className="text-muted-foreground text-xs font-medium">
+                        Before
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={compareValue}
+                        onChange={(event) =>
+                          setCompareValue(Number(event.target.value))
+                        }
+                        className="flex-1"
+                        aria-label="Before and after slider"
+                      />
+                      <span className="text-muted-foreground text-xs font-medium">
+                        After
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustZoom(-0.2)}
+                        disabled={zoomLevel <= 1.01}
+                        aria-label="Zoom out"
+                      >
+                        <ZoomOut className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustZoom(0.2)}
+                        disabled={zoomLevel >= 2.99}
+                        aria-label="Zoom in"
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetView}
+                        className="text-xs"
+                      >
+                        Reset
+                      </Button>
+                      <span className="text-muted-foreground text-xs">
+                        {zoomLevel.toFixed(1)}×
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustPan("up")}
+                        aria-label="Pan up"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustPan("left")}
+                        aria-label="Pan left"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={resetView}
+                        aria-label="Reset view"
+                      >
+                        <Target className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustPan("right")}
+                        aria-label="Pan right"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => adjustPan("down")}
+                        aria-label="Pan down"
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          ) : (
-            <div className="py-16 text-center">
-              <div className="relative mx-auto mb-8">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-100 to-purple-100" />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div
-                    className="h-24 w-24 animate-pulse rounded-full bg-gradient-to-br from-blue-200 to-purple-200"
-                    style={{ animationDelay: "1s" }}
-                  />
-                </div>
-                <div className="relative z-10 mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-white shadow-lg">
-                  <ImageIcon className="h-10 w-10 text-gray-400" />
+          </div>
+        )}
+      </div>
+
+      {/* Recents */}
+      <div className="border-t border-gray-200 bg-white px-2 py-3 sm:px-4 sm:py-4">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-6 text-center">
+            <div className="mb-2 inline-flex items-center gap-2">
+              <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600" />
+              <h2 className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-xl font-bold text-transparent">
+                {recentsCopy.title}
+              </h2>
+              <div className="h-6 w-0.5 rounded-full bg-gradient-to-b from-purple-600 to-blue-500" />
+            </div>
+            <p className="text-muted-foreground mx-auto max-w-md text-sm">
+              {recentsCopy.subtitle}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {isLoadingProjects ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="relative mb-6">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+            <div className="animate-reverse absolute inset-0 h-12 w-12 animate-spin rounded-full border-4 border-transparent border-r-purple-600" />
+          </div>
+          <div className="text-center">
+            <p className="mb-2 text-lg font-semibold text-gray-900">
+              {recentsCopy.loadingTitle}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              {recentsCopy.loadingSubtitle}
+            </p>
+          </div>
+        </div>
+      ) : userProjects.length > 0 ? (
+        <div className="mb-12">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {userProjects.slice(0, 12).map((project) => (
+              <div
+                key={project.id}
+                className="group relative cursor-pointer"
+                onClick={() => {
+                  setUploadedImage({
+                    fileId: project.imageKitId,
+                    url: project.imageUrl,
+                    name: project.name ?? projectsCopy.card.untitled,
+                    filePath: project.filePath,
+                  });
+                  setTransformations([]);
+                }}
+              >
+                <div className="relative aspect-square overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:border-blue-300 hover:shadow-2xl">
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-500/0 to-purple-600/0 transition-all duration-500 group-hover:from-blue-500/20 group-hover:to-purple-600/20" />
+                  <div className="relative h-full w-full overflow-hidden">
+                    <ImageKitImage
+                      urlEndpoint={env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT}
+                      src={project.filePath}
+                      alt={project.name ?? projectsCopy.card.untitled}
+                      width={300}
+                      height={300}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      transformation={[
+                        {
+                          width: 300,
+                          height: 300,
+                          crop: "maintain_ratio",
+                          quality: 90,
+                        },
+                      ]}
+                    />
+                    <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-transform duration-1000 group-hover:translate-x-full group-hover:opacity-100" />
+                  </div>
+
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 transform bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 transition-transform duration-300 group-hover:translate-y-0">
+                    <div className="space-y-1">
+                      <h3 className="truncate text-sm font-bold text-white drop-shadow-lg">
+                        {project.name ?? projectsCopy.card.untitled}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-white/90 drop-shadow-md">
+                          {new Intl.DateTimeFormat(lang, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }).format(new Date(project.createdAt))}
+                        </p>
+                        <div className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <div className="rounded-full bg-white/20 px-2 py-1 backdrop-blur-sm">
+                            <span className="text-xs font-medium text-white">
+                              {recentsCopy.editLabel}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="absolute top-0 right-0 h-0 w-0 border-t-[20px] border-l-[20px] border-t-blue-500 border-l-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 </div>
               </div>
+            ))}
+          </div>
 
-              <div className="space-y-3">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {recentsCopy.emptyTitle}
-                </h3>
-                <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed">
-                  {recentsCopy.emptyDescription}
-                </p>
+          {userProjects.length > 12 && (
+            <div className="mt-8 text-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-3">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+                <span className="text-sm font-medium text-blue-700">
+                  {formatTranslation(recentsCopy.showingCount, {
+                    count: Math.min(12, userProjects.length),
+                    total: userProjects.length,
+                  })}
+                </span>
               </div>
             </div>
           )}
         </div>
-      </SignedIn>
-    </>
+      ) : (
+        <div className="py-16 text-center">
+          <div className="relative mx-auto mb-8">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-32 w-32 animate-pulse rounded-full bg-gradient-to-br from-blue-100 to-purple-100" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="h-24 w-24 animate-pulse rounded-full bg-gradient-to-br from-blue-200 to-purple-200"
+                style={{ animationDelay: "1s" }}
+              />
+            </div>
+            <div className="relative z-10 mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-white shadow-lg">
+              <ImageIcon className="h-10 w-10 text-gray-400" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-xl font-bold text-gray-900">
+              {recentsCopy.emptyTitle}
+            </h3>
+            <p className="text-muted-foreground mx-auto max-w-md text-lg leading-relaxed">
+              {recentsCopy.emptyDescription}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

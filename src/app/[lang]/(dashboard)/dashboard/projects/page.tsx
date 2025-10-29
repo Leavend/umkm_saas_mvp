@@ -37,6 +37,7 @@ import {
   useLanguage,
   useLocalePath,
 } from "~/components/language-provider";
+import { logError } from "~/lib/errors";
 
 interface Project {
   id: string;
@@ -44,7 +45,8 @@ interface Project {
   imageUrl: string;
   imageKitId: string;
   filePath: string;
-  userId: string;
+  userId: string | null;
+  guestSessionId: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -78,8 +80,8 @@ export default function ProjectsPage() {
             setUserProjects(projectsResult.projects);
           }
         }
-      } catch (error) {
-        console.error("Projects initialization failed:", error);
+      } catch (error: unknown) {
+        logError("Projects initialization failed:", error);
       } finally {
         if (isMounted) {
           setIsLoading(false);

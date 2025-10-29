@@ -23,7 +23,8 @@ const DEFAULT_PROJECT_NAME =
   FALLBACK_PROJECT_NAME;
 
 export interface CreateProjectParams {
-  userId: string;
+  userId?: string;
+  guestSessionId?: string;
   imageUrl: string;
   imageKitId: string;
   filePath: string;
@@ -37,7 +38,7 @@ export const createProjectForUser = async (
   params: CreateProjectParams,
 ): Promise<Result<Project>> => {
   const payload: CreateProjectInput = {
-    userId: params.userId,
+    userId: params.userId ?? undefined,
     imageUrl: params.imageUrl,
     imageKitId: params.imageKitId,
     filePath: params.filePath,
@@ -49,6 +50,33 @@ export const createProjectForUser = async (
     return ok(project);
   } catch (error) {
     console.error("Failed to create project", error);
+    return err(new AppError("Failed to create project"));
+  }
+};
+
+export const createProjectForGuest = async (
+  params: CreateProjectParams,
+): Promise<Result<Project>> => {
+  if (!params.guestSessionId) {
+    return err(new AppError("Guest session ID required"));
+  }
+
+  const payload: Omit<CreateProjectInput, "userId"> = {
+    guestSessionId: params.guestSessionId,
+    imageUrl: params.imageUrl,
+    imageKitId: params.imageKitId,
+    filePath: params.filePath,
+    name: sanitizeProjectName(params.name),
+  };
+
+  try {
+    const { createProjectForGuest: createGuestProject } = await import(
+      "~/server/repositories/guest-repository"
+    );
+    const project = await createGuestProject(params.guestSessionId, payload);
+    return ok(project);
+  } catch (error) {
+    console.error("Failed to create guest project", error);
     return err(new AppError("Failed to create project"));
   }
 };

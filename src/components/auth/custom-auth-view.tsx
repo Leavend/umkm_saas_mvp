@@ -4,9 +4,11 @@
 
 import { AuthView } from "@daveyplate/better-auth-ui";
 import { Button } from "~/components/ui/button";
-import { useParams } from "next/navigation";
-import { authClient } from "~/lib/auth-client";
+import { useEffect, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { authClient, useSession } from "~/lib/auth-client";
 import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
+import { logError } from "~/lib/errors";
 
 interface CustomAuthViewProps {
   path: string;
@@ -20,9 +22,37 @@ export function CustomAuthView({
   localization,
 }: CustomAuthViewProps) {
   const params = useParams<{ lang?: string }>();
+  const router = useRouter();
   const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
+  const { data: sessionData, isPending: sessionPending } = useSession();
+  const signOutTriggeredRef = useRef(false);
 
   const redirectToPath = `/${lang}/dashboard`;
+  const signOutRedirectPath = `/${lang}/auth/sign-in`;
+  const normalizedPath = path?.split("?")[0] ?? "";
+  const isSignOutView = normalizedPath === "sign-out";
+
+  useEffect(() => {
+    if (!isSignOutView || sessionPending || signOutTriggeredRef.current) {
+      return;
+    }
+
+    signOutTriggeredRef.current = true;
+
+    const performSignOut = async () => {
+      try {
+        if (sessionData?.user) {
+          await authClient.signOut();
+        }
+      } catch (error) {
+        logError("Sign out failed", error);
+      } finally {
+        router.replace(signOutRedirectPath);
+      }
+    };
+
+    void performSignOut();
+  }, [isSignOutView, sessionPending, sessionData, router, signOutRedirectPath]);
 
   const handleGoogleAuth = async () => {
     try {
@@ -33,11 +63,11 @@ export function CustomAuthView({
         callbackURL,
       });
     } catch (error) {
-      console.error("Google authentication failed:", error);
+      logError("Google authentication failed", error);
     }
   };
 
-  if (!path) {
+  if (!path || isSignOutView) {
     return (
       <div className="flex grow items-center justify-center">
         <p>{loadingText}</p>

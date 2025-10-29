@@ -25,8 +25,13 @@ type Content = HomePageContent;
 interface LandingPageProps {
   content: Content;
   lang: string;
+  hasSession?: boolean;
 }
-export const LandingPage = ({ content, lang }: LandingPageProps) => {
+export const LandingPage = ({
+  content,
+  lang,
+  hasSession = false,
+}: LandingPageProps) => {
   const {
     brandName,
     navLinks,
@@ -47,6 +52,7 @@ export const LandingPage = ({ content, lang }: LandingPageProps) => {
         navLinks={navLinks}
         actions={actions}
         lang={lang}
+        hasSession={hasSession}
       />
       <div className="border-b border-slate-200 bg-slate-50/95 px-4 py-3 md:hidden">
         <Suspense fallback={null}>
@@ -54,12 +60,27 @@ export const LandingPage = ({ content, lang }: LandingPageProps) => {
         </Suspense>
       </div>
 
-      <HeroSection hero={hero} lang={lang} />
+      <HeroSection
+        hero={hero}
+        lang={lang}
+        hasSession={hasSession}
+        goToGenerate={actions.goToGenerate}
+      />
       <FeaturesSection features={features} />
       <HowItWorksSection howItWorks={howItWorks} />
       <TestimonialsSection testimonials={testimonials} />
-      <PricingSection pricing={pricing} lang={lang} />
-      <CtaSection cta={cta} lang={lang} />
+      <PricingSection
+        pricing={pricing}
+        lang={lang}
+        hasSession={hasSession}
+        goToGenerate={actions.goToGenerate}
+      />
+      <CtaSection
+        cta={cta}
+        lang={lang}
+        hasSession={hasSession}
+        goToGenerate={actions.goToGenerate}
+      />
       <Footer brandName={brandName} footer={footer} lang={lang} />
     </div>
   );
@@ -70,6 +91,7 @@ interface LandingNavigationProps {
   navLinks: Content["navLinks"];
   actions: Content["actions"];
   lang: string;
+  hasSession?: boolean;
 }
 
 const LandingNavigation = ({
@@ -77,6 +99,7 @@ const LandingNavigation = ({
   navLinks,
   actions,
   lang,
+  hasSession = false,
 }: LandingNavigationProps) => (
   <nav className="sticky top-0 z-50 border-b border-slate-200/60 bg-slate-50/95 backdrop-blur supports-[backdrop-filter]:bg-slate-50/80">
     <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -105,19 +128,28 @@ const LandingNavigation = ({
         <Suspense fallback={null}>
           <LanguageToggle className="hidden md:inline-flex" />
         </Suspense>
-        {/* ----- Perubahan 6: Gunakan `lang` pada href Sign In ----- */}
-        <Link href={`/${lang}/auth/sign-in`}>
-          <Button variant="ghost" size="sm" className="cursor-pointer">
-            {actions.signIn}
-          </Button>
-        </Link>
-        {/* ----- Perubahan 7: Gunakan route untuk guest try experience ----- */}
-        <Link href={`/${lang}/u/generate_image_with_AI`}>
-          <Button size="sm" className="cursor-pointer gap-2">
-            {actions.tryFree}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Link>
+        {hasSession ? (
+          <Link href={`/${lang}/dashboard/create`}>
+            <Button size="sm" className="cursor-pointer gap-2">
+              {actions.goToGenerate}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        ) : (
+          <>
+            <Link href={`/${lang}/auth/sign-in`}>
+              <Button variant="ghost" size="sm" className="cursor-pointer">
+                {actions.signIn}
+              </Button>
+            </Link>
+            <Link href={`/${lang}/u/generate_image_with_AI`}>
+              <Button size="sm" className="cursor-pointer gap-2">
+                {actions.tryFree}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   </nav>
@@ -126,9 +158,16 @@ const LandingNavigation = ({
 interface HeroSectionProps {
   hero: Content["hero"];
   lang: string;
+  hasSession?: boolean;
+  goToGenerate?: string;
 }
 
-const HeroSection = ({ hero, lang }: HeroSectionProps) => {
+const HeroSection = ({
+  hero,
+  lang,
+  hasSession = false,
+  goToGenerate = "Go To Generate",
+}: HeroSectionProps) => {
   const guestPath = `/${lang}/u/generate_image_with_AI`;
 
   return (
@@ -151,27 +190,39 @@ const HeroSection = ({ hero, lang }: HeroSectionProps) => {
             {hero.description}
           </p>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Link href={guestPath}>
+          {hasSession ? (
+            <Link href={`/${lang}/dashboard/create`}>
               <Button
-                size="lg"
-                className="cursor-pointer gap-2 px-8 py-6 text-base"
-              >
-                <Play className="h-5 w-5" />
-                {hero.primaryCta}
-              </Button>
-            </Link>
-            <Link href={`/${lang}/dashboard`}>
-              <Button
-                variant="outline"
                 size="lg"
                 className="cursor-pointer gap-2 px-8 py-6 text-base"
               >
                 <ImageIcon className="h-5 w-5" />
-                {hero.secondaryCta}
+                {goToGenerate}
               </Button>
             </Link>
-          </div>
+          ) : (
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+              <Link href={guestPath}>
+                <Button
+                  size="lg"
+                  className="cursor-pointer gap-2 px-8 py-6 text-base"
+                >
+                  <Play className="h-5 w-5" />
+                  {hero.primaryCta}
+                </Button>
+              </Link>
+              <Link href={`/${lang}/dashboard`}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="cursor-pointer gap-2 px-8 py-6 text-base"
+                >
+                  <ImageIcon className="h-5 w-5" />
+                  {hero.secondaryCta}
+                </Button>
+              </Link>
+            </div>
+          )}
 
           <div className="mt-16 text-center">
             <p className="mb-8 text-sm text-slate-500">{hero.trustedBy}</p>
@@ -321,9 +372,16 @@ const TestimonialsSection = ({ testimonials }: TestimonialsSectionProps) => (
 interface PricingSectionProps {
   pricing: Content["pricing"];
   lang: string;
+  hasSession?: boolean;
+  goToGenerate?: string;
 }
 
-const PricingSection = ({ pricing, lang }: PricingSectionProps) => {
+const PricingSection = ({
+  pricing,
+  lang,
+  hasSession = false,
+  goToGenerate = "Go To Generate",
+}: PricingSectionProps) => {
   const guestPath = `/${lang}/u/generate_image_with_AI`;
 
   return (
@@ -371,15 +429,27 @@ const PricingSection = ({ pricing, lang }: PricingSectionProps) => {
                   </li>
                 ))}
               </ul>
-              <Link href={guestPath}>
-                <Button
-                  className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                  size="lg"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  {pricing.ctaLabel}
-                </Button>
-              </Link>
+              {hasSession ? (
+                <Link href={`/${lang}/dashboard/create`}>
+                  <Button
+                    className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    size="lg"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {goToGenerate}
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={guestPath}>
+                  <Button
+                    className="w-full cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    size="lg"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {pricing.ctaLabel}
+                  </Button>
+                </Link>
+              )}
 
               <p className="mt-4 text-center text-xs text-slate-500">
                 {pricing.footnote}
@@ -395,9 +465,16 @@ const PricingSection = ({ pricing, lang }: PricingSectionProps) => {
 interface CtaSectionProps {
   cta: Content["cta"];
   lang: string;
+  hasSession?: boolean;
+  goToGenerate?: string;
 }
 
-const CtaSection = ({ cta, lang }: CtaSectionProps) => (
+const CtaSection = ({
+  cta,
+  lang,
+  hasSession = false,
+  goToGenerate = "Go To Generate",
+}: CtaSectionProps) => (
   <section className="bg-gradient-to-r from-blue-100/70 to-purple-100/70 py-20 sm:py-32">
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
@@ -405,27 +482,39 @@ const CtaSection = ({ cta, lang }: CtaSectionProps) => (
           {cta.heading}
         </h2>
         <p className="mt-4 text-lg text-slate-600">{cta.description}</p>
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link href={`/${lang}/u/generate_image_with_AI`}>
+        {hasSession ? (
+          <Link href={`/${lang}/dashboard/create`}>
             <Button
               size="lg"
-              className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
-            >
-              <Sparkles className="h-5 w-5" />
-              {cta.primaryCta}
-            </Button>
-          </Link>
-          <Link href={`/${lang}/dashboard`}>
-            <Button
-              variant="outline"
-              size="lg"
-              className="cursor-pointer gap-2 border-slate-300 px-8 py-6 text-base text-slate-700 hover:bg-slate-100"
+              className="mt-8 cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
             >
               <Download className="h-5 w-5" />
-              {cta.secondaryCta}
+              {goToGenerate}
             </Button>
           </Link>
-        </div>
+        ) : (
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <Link href={`/${lang}/u/generate_image_with_AI`}>
+              <Button
+                size="lg"
+                className="cursor-pointer gap-2 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-6 text-base hover:from-blue-600 hover:to-purple-700"
+              >
+                <Sparkles className="h-5 w-5" />
+                {cta.primaryCta}
+              </Button>
+            </Link>
+            <Link href={`/${lang}/dashboard`}>
+              <Button
+                variant="outline"
+                size="lg"
+                className="cursor-pointer gap-2 border-slate-300 px-8 py-6 text-base text-slate-700 hover:bg-slate-100"
+              >
+                <Download className="h-5 w-5" />
+                {cta.secondaryCta}
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   </section>

@@ -30,6 +30,7 @@ export interface HomePageContent {
   actions: {
     signIn: string;
     tryFree: string;
+    goToGenerate: string;
   };
   hero: {
     badge: string;
@@ -125,6 +126,7 @@ export const buildHomePageContent = (
     actions: {
       signIn: common.actions.signIn,
       tryFree: common.actions.tryFree,
+      goToGenerate: common.actions.goToGenerate,
     },
     hero: {
       badge: home.hero.badge,

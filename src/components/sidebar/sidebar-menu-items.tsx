@@ -19,10 +19,26 @@ import {
   useLanguage,
   useLocalePath,
 } from "~/components/language-provider";
+import { useSession } from "~/lib/auth-client";
 
 import { useMemo } from "react";
 // Import helper untuk strip locale (jika belum)
 import { stripLocaleFromPathname } from "~/lib/routing";
+
+// Helper to get guest session ID from cookies
+const getGuestSessionIdFromCookies = (): string | null => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const [name, ...value] = cookie.trim().split("=");
+    if (name === "guest_session_id") {
+      return decodeURIComponent(value.join("=")) || null;
+    }
+  }
+  return null;
+};
 
 export default function SidebarMenuItems() {
   const fullPath = usePathname(); // e.g., /en/dashboard/settings
@@ -30,6 +46,16 @@ export default function SidebarMenuItems() {
   const translations = useTranslations();
   const { lang } = useLanguage(); // Dapatkan locale saat ini ('en' atau 'id')
   const toLocalePath = useLocalePath();
+  const { data: session } = useSession(); // Check authenticated user session
+
+  // ===== EXPLICIT STRUCTURAL LOGIC =====
+  // Derive strict boolean constants for user state
+  const user_auth_session = session?.user;
+  const guest_session_id = getGuestSessionIdFromCookies();
+
+  // Define state constants as per specification
+  const isAuthenticated = !!user_auth_session; // True if authenticated user
+  const isGuest = !!guest_session_id && !isAuthenticated; // True if ONLY guest, not authenticated
 
   // Dapatkan path saat ini tanpa locale untuk menentukan state 'active'
   const currentPathWithoutLocale = useMemo(
@@ -37,61 +63,75 @@ export default function SidebarMenuItems() {
     [fullPath, lang],
   );
 
-  const items = useMemo(
-    () =>
-      [
-        {
-          key: "dashboard",
-          title: translations.sidebar.items.dashboard,
-          basePath: "/dashboard", // Path dasar tanpa locale
-          icon: LayoutDashboard,
-        },
-        {
-          key: "create",
-          title: translations.sidebar.items.create,
-          basePath: "/dashboard/create",
-          icon: Wand2,
-        },
-        {
-          key: "projects",
-          title: translations.sidebar.items.projects,
-          basePath: "/dashboard/projects",
-          icon: FolderOpen,
-        },
-        {
-          key: "topUp",
-          title: translations.sidebar.items.topUp,
-          basePath: "/dashboard/top-up",
-          icon: CreditCard,
-        },
-        {
-          key: "settings",
-          title: translations.sidebar.items.settings,
-          basePath: "/dashboard/settings",
-          icon: Settings,
-        },
-      ].map((item) => {
-        // Logika 'active': anggap '/' sama dengan '/dashboard'
-        const isActive =
-          item.basePath === "/dashboard"
-            ? currentPathWithoutLocale === item.basePath ||
-              currentPathWithoutLocale === "/"
-            : currentPathWithoutLocale === item.basePath;
+  const items = useMemo(() => {
+    // All available items
+    const allItems = [
+      {
+        key: "dashboard",
+        title: translations.sidebar.items.dashboard,
+        basePath: "/dashboard", // Path dasar tanpa locale
+        icon: LayoutDashboard,
+        requiresAuth: true, // Hide from guests
+      },
+      {
+        key: "create",
+        title: translations.sidebar.items.create,
+        basePath: "/dashboard/create",
+        icon: Wand2,
+        requiresAuth: false, // Show to both
+      },
+      {
+        key: "projects",
+        title: translations.sidebar.items.projects,
+        basePath: "/dashboard/projects",
+        icon: FolderOpen,
+        requiresAuth: false, // Show to both
+      },
+      {
+        key: "topUp",
+        title: translations.sidebar.items.topUp,
+        basePath: "/dashboard/top-up",
+        icon: CreditCard,
+        requiresAuth: false, // Show to both
+      },
+      {
+        key: "settings",
+        title: translations.sidebar.items.settings,
+        basePath: "/dashboard/settings",
+        icon: Settings,
+        requiresAuth: true, // Hide from guests
+      },
+    ];
 
-        return {
-          ...item,
-          // ----- Perubahan Kunci: Buat URL lengkap dengan locale -----
-          url: toLocalePath(item.basePath),
-          active: isActive,
-        };
-      }),
-    [
-      currentPathWithoutLocale,
-      // lang, // Tambahkan lang dependency
-      toLocalePath,
-      translations.sidebar.items,
-    ],
-  );
+    // Filter items based on user type
+    const filteredItems = allItems.filter((item) => {
+      // If guest user, hide items that require auth
+      if (isGuest && item.requiresAuth) {
+        return false;
+      }
+      return true;
+    });
+
+    return filteredItems.map((item) => {
+      // Logika 'active': anggap '/' sama dengan '/dashboard'
+      const isActive =
+        item.basePath === "/dashboard"
+          ? currentPathWithoutLocale === item.basePath ||
+            currentPathWithoutLocale === "/"
+          : currentPathWithoutLocale === item.basePath;
+
+      return {
+        ...item,
+        url: toLocalePath(item.basePath),
+        active: isActive,
+      };
+    });
+  }, [
+    currentPathWithoutLocale,
+    isGuest,
+    toLocalePath,
+    translations.sidebar.items,
+  ]);
 
   const handleMenuClick = () => {
     if (isMobile) {

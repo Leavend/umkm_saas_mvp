@@ -10,8 +10,10 @@ import {
   createProjectForGuest,
   type CreateProjectParams,
 } from "~/server/services/project-service";
-import { getCurrentUserId } from "~/server/auth/session";
-import { getGuestSessionCredentials } from "~/server/auth/guest-session";
+import {
+  getSessionContext,
+  requireSessionContext,
+} from "~/server/auth/unified-session";
 import { findProjectsByGuestSessionId } from "~/server/repositories/guest-repository";
 import {
   AppError,
@@ -24,7 +26,6 @@ import {
 import {
   adjustGuestCredits,
   ensureDailyCreditForGuest,
-  validateGuestSessionCredentials,
 } from "~/server/services/guest-session-service";
 import { ensureDailyCreditForUser } from "~/server/services/user-service";
 
@@ -77,21 +78,13 @@ export async function createProject(
   data: Omit<CreateProjectParams, "userId">,
 ): Promise<CreateProjectSuccess | ActionError> {
   try {
-    const userId = await getCurrentUserId();
-    const guestCredentials = await getGuestSessionCredentials();
+    const context = await requireSessionContext();
 
-    if (!userId && !guestCredentials.sessionId) {
-      return {
-        success: false,
-        error: "Unauthorized access. Please sign in or try as guest.",
-      };
-    }
-
-    if (userId) {
+    if (context.type === "user") {
       // Create project for authenticated user
       const userResult = await createProjectForUser({
         ...data,
-        userId,
+        userId: context.userId,
       });
 
       if (!userResult.ok) {
@@ -102,38 +95,13 @@ export async function createProject(
       }
 
       return { success: true, project: userResult.value };
-    } else if (guestCredentials.sessionId) {
-      let guestSession: Awaited<
-        ReturnType<typeof validateGuestSessionCredentials>
-      > | null = null;
-      try {
-        guestSession = await validateGuestSessionCredentials(guestCredentials);
-        await ensureDailyCreditForGuest(guestSession.id);
-      } catch (error: unknown) {
-        if (error instanceof AppError) {
-          return {
-            success: false,
-            error: mapServiceErrorToMessage(error),
-          };
-        }
-
-        logError("Guest session validation failed", error);
-        return {
-          success: false,
-          error: "Guest session expired. Please refresh to continue.",
-        };
-      }
-
-      if (!guestSession) {
-        return {
-          success: false,
-          error: "Guest session expired. Please refresh to continue.",
-        };
-      }
+    } else {
+      // context.type === "guest"
+      await ensureDailyCreditForGuest(context.guestSession.id);
 
       const guestResult = await createProjectForGuest({
         ...data,
-        guestSessionId: guestSession.id,
+        guestSessionId: context.guestSession.id,
       });
 
       if (!guestResult.ok) {
@@ -145,12 +113,24 @@ export async function createProject(
 
       return { success: true, project: guestResult.value };
     }
-
-    return {
-      success: false,
-      error: "Unable to determine session context. Please try again.",
-    };
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Authentication required")
+    ) {
+      return {
+        success: false,
+        error: "Unauthorized access. Please sign in or try as guest.",
+      };
+    }
+
+    if (error instanceof AppError) {
+      return {
+        success: false,
+        error: mapServiceErrorToMessage(error),
+      };
+    }
+
     logError("Project creation error:", error);
     return {
       success: false,
@@ -163,17 +143,16 @@ export async function getUserProjects(): Promise<
   ProjectListSuccess | ActionError
 > {
   try {
-    const userId = await getCurrentUserId();
-    const guestCredentials = await getGuestSessionCredentials();
+    const context = await getSessionContext();
 
-    if (!userId && !guestCredentials.sessionId) {
+    if (context.type === "none") {
       console.warn("getUserProjects called without active session.");
       return { success: true, projects: [] };
     }
 
-    if (userId) {
+    if (context.type === "user") {
       // Get projects for authenticated user
-      const result = await listProjectsForUser(userId);
+      const result = await listProjectsForUser(context.userId);
 
       if (!result.ok) {
         return {
@@ -183,32 +162,14 @@ export async function getUserProjects(): Promise<
       }
 
       return { success: true, projects: result.value };
-    } else if (guestCredentials.sessionId) {
-      let guestSession: Awaited<
-        ReturnType<typeof validateGuestSessionCredentials>
-      > | null = null;
-      try {
-        guestSession = await validateGuestSessionCredentials(guestCredentials);
-        await ensureDailyCreditForGuest(guestSession.id);
-        const projects = await findProjectsByGuestSessionId(guestSession.id);
-        return { success: true, projects };
-      } catch (error: unknown) {
-        if (error instanceof AppError) {
-          return { success: false, error: mapServiceErrorToMessage(error) };
-        }
-
-        logError("Guest projects fetch error", error);
-        return {
-          success: false,
-          error: "Guest session expired. Please refresh to continue.",
-        };
-      }
+    } else {
+      // context.type === "guest"
+      await ensureDailyCreditForGuest(context.guestSession.id);
+      const projects = await findProjectsByGuestSessionId(
+        context.guestSession.id,
+      );
+      return { success: true, projects };
     }
-
-    return {
-      success: false,
-      error: "Unable to determine session context. Please try again.",
-    };
   } catch (error: unknown) {
     logError("Projects fetch error:", error);
     return {
@@ -220,34 +181,23 @@ export async function getUserProjects(): Promise<
 
 export async function getUserCredits(): Promise<CreditSuccess | ActionError> {
   try {
-    const userId = await getCurrentUserId();
-    const guestCredentials = await getGuestSessionCredentials();
+    const context = await getSessionContext();
 
-    if (!userId && !guestCredentials.sessionId) {
+    if (context.type === "none") {
       return { success: false, error: "No active session found." };
     }
 
-    if (userId) {
+    if (context.type === "user") {
       // Get credits for authenticated user, ensuring daily grant
-      const { credits } = await ensureDailyCreditForUser(userId);
+      const { credits } = await ensureDailyCreditForUser(context.userId);
       return { success: true, credits };
-    } else if (guestCredentials.sessionId) {
-      try {
-        const guestSession =
-          await validateGuestSessionCredentials(guestCredentials);
-        const { credits } = await ensureDailyCreditForGuest(guestSession.id);
-        return { success: true, credits };
-      } catch (error: unknown) {
-        if (error instanceof AppError) {
-          return { success: false, error: mapServiceErrorToMessage(error) };
-        }
-
-        logError("Guest credits fetch error", error);
-        return { success: false, error: "Guest session expired." };
-      }
+    } else {
+      // context.type === "guest"
+      const { credits } = await ensureDailyCreditForGuest(
+        context.guestSession.id,
+      );
+      return { success: true, credits };
     }
-
-    return { success: false, error: "Unable to determine session context." };
   } catch (error: unknown) {
     logError("Credits fetch error:", error);
     return {
@@ -262,20 +212,14 @@ export async function deductCredits(
   operation?: string,
 ): Promise<CreditDeductionSuccess | ActionError> {
   try {
-    const userId = await getCurrentUserId();
-    const guestCredentials = await getGuestSessionCredentials();
+    const context = await requireSessionContext();
 
-    if (!userId && !guestCredentials.sessionId) {
-      console.warn("deductCredits called without active session.");
-      return {
-        success: false,
-        error: "Unauthorized access. Please sign in or try as guest.",
-      };
-    }
-
-    if (userId) {
+    if (context.type === "user") {
       // Deduct credits for authenticated user
-      const result = await deductCreditsForUser(userId, creditsToDeduct);
+      const result = await deductCreditsForUser(
+        context.userId,
+        creditsToDeduct,
+      );
 
       if (!result.ok) {
         const errorMessage = mapServiceErrorToMessage(result.error);
@@ -289,45 +233,42 @@ export async function deductCredits(
       }
 
       return { success: true, remainingCredits: result.value.remainingCredits };
-    } else if (guestCredentials.sessionId) {
-      try {
-        const guestSession =
-          await validateGuestSessionCredentials(guestCredentials);
-        await ensureDailyCreditForGuest(guestSession.id);
-        const updatedGuestSession = await adjustGuestCredits(
-          guestSession.id,
-          -creditsToDeduct,
-        );
+    } else {
+      // context.type === "guest"
+      await ensureDailyCreditForGuest(context.guestSession.id);
+      const updatedGuestSession = await adjustGuestCredits(
+        context.guestSession.id,
+        -creditsToDeduct,
+      );
 
-        return {
-          success: true,
-          remainingCredits: updatedGuestSession.credits,
-        };
-      } catch (error: unknown) {
-        if (error instanceof AppError) {
-          const message = mapServiceErrorToMessage(error);
-          return { success: false, error: message };
-        }
-
-        logError(
-          `Guest credit deduction error${
-            operation ? ` for operation: ${operation}` : ""
-          }`,
-          error,
-        );
-
-        return {
-          success: false,
-          error: "Failed to update guest credits. Please try again.",
-        };
-      }
+      return {
+        success: true,
+        remainingCredits: updatedGuestSession.credits,
+      };
+    }
+  } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Authentication required")
+    ) {
+      console.warn("deductCredits called without active session.");
+      return {
+        success: false,
+        error: "Unauthorized access. Please sign in or try as guest.",
+      };
     }
 
-    return {
-      success: false,
-      error: "Unable to determine session context. Please try again.",
-    };
-  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      const message = mapServiceErrorToMessage(error);
+      logError(
+        `Credit deduction error${
+          operation ? ` for operation: ${operation}` : ""
+        }: ${message}`,
+        error,
+      );
+      return { success: false, error: message };
+    }
+
     logError(
       `Credit deduction error${
         operation ? ` for operation: ${operation}` : ""

@@ -633,6 +633,10 @@ export const TRANSLATIONS = {
         showingCount: "Showing {{count}} of {{total}} projects",
         editLabel: "Edit",
       },
+      guestBanner: {
+        message: "Don't lose your progress. Sign up to save your work.",
+        signUpButton: "Sign Up Free",
+      },
       toasts: {
         uploadSuccess: "Upload successful!",
         uploadFailed: "Upload failed",
@@ -1302,6 +1306,10 @@ export const TRANSLATIONS = {
           "Mulai perjalanan kreatifmu dengan mengunggah gambar pertama dan mengubahnya dengan AI",
         showingCount: "Menampilkan {{count}} dari {{total}} proyek",
         editLabel: "Edit",
+      },
+      guestBanner: {
+        message: "Jangan kehilangan progres Anda. Daftar untuk menyimpan pekerjaan Anda.",
+        signUpButton: "Daftar Gratis",
       },
       toasts: {
         uploadSuccess: "Unggahan berhasil!",

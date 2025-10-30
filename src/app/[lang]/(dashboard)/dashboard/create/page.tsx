@@ -2196,7 +2196,7 @@ export default function CreatePage() {
         <div className="border-b border-orange-200 bg-orange-50">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 px-3 py-2 text-sm text-orange-800">
             <span>
-              Don&apos;t lose your progress. Sign up to save your work.
+              {createCopy.guestBanner.message}
             </span>
             <Button
               size="sm"
@@ -2204,7 +2204,7 @@ export default function CreatePage() {
               className="border-orange-400 text-orange-600 hover:bg-orange-100"
               onClick={() => router.push(`/${lang}/auth/sign-up`)}
             >
-              Sign Up Free
+              {createCopy.guestBanner.signUpButton}
             </Button>
           </div>
         </div>

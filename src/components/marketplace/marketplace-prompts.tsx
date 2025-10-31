@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import { PromptCard } from "~/components/prompt-card";
+import { PromptListItem } from "~/components/prompt-list-item";
 import { useTranslations } from "~/components/language-provider";
 import type { Prompt } from "@prisma/client";
 
@@ -10,6 +11,7 @@ interface MarketplacePromptsProps {
   onCreditsUpdate: (credits: number) => void;
   onShowAuthModal: () => void;
   onPromptClick: (prompt: Prompt) => void;
+  view?: "grid" | "list";
 }
 
 export function MarketplacePrompts({
@@ -17,6 +19,7 @@ export function MarketplacePrompts({
   onCreditsUpdate,
   onShowAuthModal,
   onPromptClick,
+  view = "grid",
 }: MarketplacePromptsProps) {
   const translations = useTranslations();
 
@@ -35,8 +38,24 @@ export function MarketplacePrompts({
     );
   }
 
+  if (view === "list") {
+    return (
+      <div className="flex flex-col gap-3">
+        {prompts.map((prompt) => (
+          <PromptListItem
+            key={prompt.id}
+            prompt={prompt}
+            onCreditsUpdate={onCreditsUpdate}
+            onShowAuthModal={onShowAuthModal}
+            onClick={onPromptClick}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-5 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {prompts.map((prompt) => (
         <PromptCard
           key={prompt.id}

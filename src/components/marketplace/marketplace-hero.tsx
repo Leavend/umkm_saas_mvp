@@ -1,25 +1,38 @@
 // src/components/marketplace/marketplace-hero.tsx
 
-import { useTranslations } from "~/components/language-provider";
+import { useTranslations, useLanguage } from "~/components/language-provider";
+import { Container } from "~/components/container";
+import { cn } from "~/lib/utils";
 
 export function MarketplaceHero() {
   const translations = useTranslations();
+  const { lang } = useLanguage();
 
   return (
-    <section className="pt-10 pb-6 md:pt-8 md:pb-4">
-      <div className="container-tight">
-        <div className="text-center">
-          <h1 className="mx-auto max-w-[18ch] text-4xl leading-tight font-extrabold tracking-tight text-slate-800 md:text-5xl">
-            {translations.marketplace.hero.titleLeading}{" "}
-            <span className="text-brand-700 font-semibold">
+    <section className="pt-8 pb-4 md:pt-10 md:pb-5">
+      <Container>
+        <div className="flex flex-col items-center text-center">
+          <h1
+            className={cn(
+              "font-extrabold tracking-tight leading-[1.1] [text-wrap:balance] md:whitespace-nowrap max-w-none",
+              lang === "id"
+                ? "text-[clamp(34px,5.2vw,48px)]"
+                : "text-[clamp(34px,5.8vw,52px)]"
+            )}
+          >
+            {translations.marketplace.hero.titleStart}{" "}
+            <span className="text-brand-700">
               {translations.marketplace.hero.titleHighlight}
             </span>
+            {translations.marketplace.hero.titleEnd && (
+              <> {translations.marketplace.hero.titleEnd}</>
+            )}
           </h1>
-          <p className="mx-auto mt-3 max-w-[60ch] text-sm text-neutral-600 md:text-base">
+          <p className="mt-2 text-[clamp(14px,1.6vw,18px)] text-slate-600 md:whitespace-nowrap [text-wrap:balance] max-w-none">
             {translations.marketplace.hero.description}
           </p>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

@@ -8,7 +8,7 @@ export default function CustomerPortalRedirect() {
   const translations = useTranslations();
 
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
       <h1 className="text-2xl font-semibold">
         {translations.common.actions.customerPortal}
       </h1>

@@ -1,5 +1,6 @@
 // src/app/[lang]/page.tsx
 
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
 import { MarketplacePage } from "~/features/marketplace/components/marketplace-page";
@@ -101,5 +102,15 @@ export default async function HomePage({
   const promptsResult = await getAllPrompts();
   const prompts = promptsResult.success ? promptsResult.prompts : [];
 
-  return <MarketplacePage prompts={prompts} lang={lang} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-slate-600">Loading...</div>
+        </div>
+      }
+    >
+      <MarketplacePage prompts={prompts} lang={lang} />
+    </Suspense>
+  );
 }

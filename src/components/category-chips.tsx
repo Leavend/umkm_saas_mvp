@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Badge } from "~/components/ui/badge";
 import { CATEGORIES } from "~/lib/placeholder-data";
 
 interface CategoryChipsProps {
@@ -19,13 +18,10 @@ export function CategoryChips({
 }: CategoryChipsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const toggleCategory = (category: string) => {
-    if (category === "all") {
-      // "all" category clears all selections
-      onCategoriesChange([]);
-      return;
-    }
+  // Filter out "all" category
+  const realCategories = CATEGORIES.filter((c) => c !== "all");
 
+  const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
       // Remove category
       onCategoriesChange(selectedCategories.filter((c) => c !== category));
@@ -39,55 +35,38 @@ export function CategoryChips({
     onCategoriesChange([]);
   };
 
-  const displayedCategories = isExpanded ? CATEGORIES : CATEGORIES.slice(0, 6);
+  const displayedCategories = isExpanded ? realCategories : realCategories.slice(0, 6);
 
   return (
-    <div className={`space-y-3 ${className}`}>
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-700">Categories</h3>
-        {selectedCategories.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearAll}
-            className="focus-visible:ring-brand-500/50 h-7 px-2 text-xs text-slate-500 hover:text-slate-700"
-          >
-            Clear all
-          </Button>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
+    <div className={`${className}`}>
+      <div className="flex flex-wrap items-center gap-2">
         {displayedCategories.map((category) => {
           const isSelected = selectedCategories.includes(category);
-          const isAllCategory = category === "all";
 
           return (
             <button
               key={category}
               onClick={() => toggleCategory(category)}
-              className={`focus-visible:ring-brand-500/50 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm capitalize transition-colors focus:outline-none focus-visible:ring-2 ${
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
                 isSelected
-                  ? "border-brand-300 bg-brand-500 text-slate-900"
-                  : isAllCategory
-                    ? "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  ? "bg-brand-500 text-slate-900 border-brand-300"
+                  : "bg-slate-100 text-slate-800 border-slate-200 hover:bg-slate-200"
               }`}
             >
               {category}
-              {isSelected && !isAllCategory && <X className="h-3 w-3" />}
+              {isSelected && <X className="h-3 w-3 ml-1" />}
             </button>
           );
         })}
 
-        {!isExpanded && CATEGORIES.length > 6 && (
+        {!isExpanded && realCategories.length > 6 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(true)}
             className="focus-visible:ring-brand-500/50 h-7 px-2 text-xs text-slate-500 hover:text-slate-700"
           >
-            +{CATEGORIES.length - 6} more
+            +{realCategories.length - 6} more
           </Button>
         )}
 
@@ -101,22 +80,16 @@ export function CategoryChips({
             Show less
           </Button>
         )}
-      </div>
 
-      {selectedCategories.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          <span className="text-xs text-slate-500">Active:</span>
-          {selectedCategories.map((category) => (
-            <Badge
-              key={category}
-              variant="secondary"
-              className="bg-brand-100 text-brand-800 text-xs"
-            >
-              {category}
-            </Badge>
-          ))}
-        </div>
-      )}
+        {selectedCategories.length > 0 && (
+          <button
+            onClick={clearAll}
+            className="ml-auto inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-500/50 focus:outline-none transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 }

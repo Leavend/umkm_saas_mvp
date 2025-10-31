@@ -9,12 +9,14 @@ interface MarketplacePromptsProps {
   prompts: Prompt[];
   onCreditsUpdate: (credits: number) => void;
   onShowAuthModal: () => void;
+  onPromptClick: (prompt: Prompt) => void;
 }
 
 export function MarketplacePrompts({
   prompts,
   onCreditsUpdate,
   onShowAuthModal,
+  onPromptClick,
 }: MarketplacePromptsProps) {
   const translations = useTranslations();
 
@@ -41,6 +43,7 @@ export function MarketplacePrompts({
           prompt={prompt}
           onCreditsUpdate={onCreditsUpdate}
           onShowAuthModal={onShowAuthModal}
+          onClick={onPromptClick}
         />
       ))}
     </div>

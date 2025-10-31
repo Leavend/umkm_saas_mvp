@@ -9,6 +9,7 @@ interface MarketplacePromptContainerProps {
   viewMode: ViewMode;
   onCreditsUpdate: (credits: number) => void;
   onShowAuthModal: () => void;
+  onPromptClick: (prompt: Prompt) => void;
 }
 
 export function MarketplacePromptContainer({
@@ -16,6 +17,7 @@ export function MarketplacePromptContainer({
   viewMode,
   onCreditsUpdate,
   onShowAuthModal,
+  onPromptClick,
 }: MarketplacePromptContainerProps) {
   return (
     <section className="flex-1 py-10">
@@ -36,6 +38,7 @@ export function MarketplacePromptContainer({
             prompts={prompts}
             onCreditsUpdate={onCreditsUpdate}
             onShowAuthModal={onShowAuthModal}
+            onPromptClick={onPromptClick}
           />
         </div>
       </div>

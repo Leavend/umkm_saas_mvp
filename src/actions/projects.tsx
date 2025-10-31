@@ -2,19 +2,11 @@
 
 "use server";
 
-import type { Project } from "@prisma/client";
-import {
-  deductCreditsForUser,
-  listProjectsForUser,
-  createProjectForUser,
-  createProjectForGuest,
-  type CreateProjectParams,
-} from "~/server/services/project-service";
+import { deductCreditsForUser } from "~/server/services/project-service";
 import {
   getSessionContext,
   requireSessionContext,
 } from "~/server/auth/unified-session";
-import { findProjectsByGuestSessionId } from "~/server/repositories/guest-repository";
 import {
   AppError,
   InsufficientCreditsError,
@@ -32,16 +24,6 @@ import { ensureDailyCreditForUser } from "~/server/services/user-service";
 type ActionError = {
   success: false;
   error: string;
-};
-
-type CreateProjectSuccess = {
-  success: true;
-  project: Project;
-};
-
-type ProjectListSuccess = {
-  success: true;
-  projects: Project[];
 };
 
 type CreditSuccess = {
@@ -73,111 +55,6 @@ const mapServiceErrorToMessage = (error: AppError) => {
 
   return error.message;
 };
-
-export async function createProject(
-  data: Omit<CreateProjectParams, "userId">,
-): Promise<CreateProjectSuccess | ActionError> {
-  try {
-    const context = await requireSessionContext();
-
-    if (context.type === "user") {
-      // Create project for authenticated user
-      const userResult = await createProjectForUser({
-        ...data,
-        userId: context.userId,
-      });
-
-      if (!userResult.ok) {
-        return {
-          success: false,
-          error: mapServiceErrorToMessage(userResult.error),
-        };
-      }
-
-      return { success: true, project: userResult.value };
-    } else {
-      // context.type === "guest"
-      await ensureDailyCreditForGuest(context.guestSession.id);
-
-      const guestResult = await createProjectForGuest({
-        ...data,
-        guestSessionId: context.guestSession.id,
-      });
-
-      if (!guestResult.ok) {
-        return {
-          success: false,
-          error: mapServiceErrorToMessage(guestResult.error),
-        };
-      }
-
-      return { success: true, project: guestResult.value };
-    }
-  } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      error.message.includes("Authentication required")
-    ) {
-      return {
-        success: false,
-        error: "Unauthorized access. Please sign in or try as guest.",
-      };
-    }
-
-    if (error instanceof AppError) {
-      return {
-        success: false,
-        error: mapServiceErrorToMessage(error),
-      };
-    }
-
-    logError("Project creation error:", error);
-    return {
-      success: false,
-      error: "Failed to create project. Please try again.",
-    };
-  }
-}
-
-export async function getUserProjects(): Promise<
-  ProjectListSuccess | ActionError
-> {
-  try {
-    const context = await getSessionContext();
-
-    if (context.type === "none") {
-      console.warn("getUserProjects called without active session.");
-      return { success: true, projects: [] };
-    }
-
-    if (context.type === "user") {
-      // Get projects for authenticated user
-      const result = await listProjectsForUser(context.userId);
-
-      if (!result.ok) {
-        return {
-          success: false,
-          error: mapServiceErrorToMessage(result.error),
-        };
-      }
-
-      return { success: true, projects: result.value };
-    } else {
-      // context.type === "guest"
-      await ensureDailyCreditForGuest(context.guestSession.id);
-      const projects = await findProjectsByGuestSessionId(
-        context.guestSession.id,
-      );
-      return { success: true, projects };
-    }
-  } catch (error: unknown) {
-    logError("Projects fetch error:", error);
-    return {
-      success: false,
-      error: "Failed to fetch projects. Please try again.",
-    };
-  }
-}
 
 export async function getUserCredits(): Promise<CreditSuccess | ActionError> {
   try {

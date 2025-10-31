@@ -1,8 +1,5 @@
 // src/server/services/project-service.ts
 
-import type { Project } from "@prisma/client";
-
-import { DEFAULT_LOCALE, TRANSLATIONS } from "~/lib/i18n";
 import {
   AppError,
   InsufficientCreditsError,
@@ -11,87 +8,6 @@ import {
 } from "~/lib/errors";
 import { err, ok, type Result } from "~/lib/result";
 import { db } from "~/server/db";
-import {
-  createProject,
-  type CreateProjectInput,
-  findProjectsByUserId,
-} from "~/server/repositories/project-repository";
-
-const FALLBACK_PROJECT_NAME = "Untitled Project";
-const DEFAULT_PROJECT_NAME =
-  TRANSLATIONS[DEFAULT_LOCALE]?.projects?.card?.untitled ??
-  FALLBACK_PROJECT_NAME;
-
-export interface CreateProjectParams {
-  userId?: string;
-  guestSessionId?: string;
-  imageUrl: string;
-  imageKitId: string;
-  filePath: string;
-  name?: string;
-}
-
-const sanitizeProjectName = (name?: string) =>
-  name?.trim() ? name.trim() : DEFAULT_PROJECT_NAME;
-
-export const createProjectForUser = async (
-  params: CreateProjectParams,
-): Promise<Result<Project>> => {
-  const payload: CreateProjectInput = {
-    userId: params.userId ?? undefined,
-    imageUrl: params.imageUrl,
-    imageKitId: params.imageKitId,
-    filePath: params.filePath,
-    name: sanitizeProjectName(params.name),
-  };
-
-  try {
-    const project = await createProject(payload);
-    return ok(project);
-  } catch (error) {
-    console.error("Failed to create project", error);
-    return err(new AppError("Failed to create project"));
-  }
-};
-
-export const createProjectForGuest = async (
-  params: CreateProjectParams,
-): Promise<Result<Project>> => {
-  if (!params.guestSessionId) {
-    return err(new AppError("Guest session ID required"));
-  }
-
-  const payload: Omit<CreateProjectInput, "userId"> = {
-    guestSessionId: params.guestSessionId,
-    imageUrl: params.imageUrl,
-    imageKitId: params.imageKitId,
-    filePath: params.filePath,
-    name: sanitizeProjectName(params.name),
-  };
-
-  try {
-    const { createProjectForGuest: createGuestProject } = await import(
-      "~/server/repositories/guest-repository"
-    );
-    const project = await createGuestProject(params.guestSessionId, payload);
-    return ok(project);
-  } catch (error) {
-    console.error("Failed to create guest project", error);
-    return err(new AppError("Failed to create project"));
-  }
-};
-
-export const listProjectsForUser = async (
-  userId: string,
-): Promise<Result<Project[]>> => {
-  try {
-    const projects = await findProjectsByUserId(userId);
-    return ok(projects);
-  } catch (error) {
-    console.error("Failed to fetch projects", error);
-    return err(new AppError("Failed to fetch projects"));
-  }
-};
 
 export const deductCreditsForUser = async (
   userId: string,

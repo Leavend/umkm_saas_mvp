@@ -21,12 +21,14 @@ interface PromptCardProps {
   prompt: Prompt;
   onCreditsUpdate?: (credits: number) => void;
   onShowAuthModal?: () => void;
+  onClick?: (prompt: Prompt) => void;
 }
 
 export function PromptCard({
   prompt,
   onCreditsUpdate,
   onShowAuthModal,
+  onClick,
 }: PromptCardProps) {
   const translations = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +76,13 @@ export function PromptCard({
   };
 
   return (
-    <Card className="group relative flex h-full flex-col overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg">
+    <Card
+      className="group focus-visible:ring-brand-500/50 relative flex h-full cursor-pointer flex-col overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+      onClick={() => onClick?.(prompt)}
+      tabIndex={0}
+      role="button"
+      aria-label={`View details for ${prompt.title}`}
+    >
       {/* Image */}
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         <Image
@@ -82,6 +90,10 @@ export function PromptCard({
           alt={prompt.title}
           fill
           className="object-cover transition-transform group-hover:scale-105"
+          loading="lazy"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         <Badge className="bg-brand-500 absolute top-2 right-2 text-slate-900">
           {prompt.category}

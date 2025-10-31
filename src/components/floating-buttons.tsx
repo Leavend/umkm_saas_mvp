@@ -62,7 +62,7 @@ export function FloatingButtons({
     "focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:ring-offset-2 " +
     "max-[360px]:size-12 max-[360px]:px-0 sm:h-10 sm:px-4 sm:text-xs " +
     "max-[360px]:[&>span]:sr-only " +
-    "aria-[pressed=true]:bg-neutral-900 aria-[pressed=true]:text-white aria-[pressed=true]:border-transparent";
+    "aria-[pressed=true]:bg-brand-500 aria-[pressed=true]:text-slate-900 aria-[pressed=true]:border-transparent";
 
   return (
     <div

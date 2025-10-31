@@ -19,8 +19,8 @@ export function MarketplaceCategories({
           onClick={() => onCategoryChange(category)}
           className={`h-9 rounded-full border px-3 text-sm whitespace-nowrap capitalize transition-colors ${
             selectedCategory === category
-              ? "border-transparent bg-neutral-900 text-white shadow-[0_1px_2px_rgba(0,0,0,.04)]"
-              : "border-neutral-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+              ? "border-brand-300 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900 shadow-[0_1px_2px_rgba(0,0,0,.04)]"
+              : "border-slate-200 bg-slate-100 text-slate-800 shadow-[0_1px_2px_rgba(0,0,0,.04)] hover:bg-slate-200 active:bg-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
           }`}
         >
           {category}

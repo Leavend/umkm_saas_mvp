@@ -48,6 +48,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
 }
 
 :root {
@@ -84,16 +94,16 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   /* Brand color palette anchored at #FFC72C */
-  --brand-50: oklch(0.98 0.02 85);
-  --brand-100: oklch(0.95 0.05 85);
-  --brand-200: oklch(0.9 0.08 85);
-  --brand-300: oklch(0.85 0.12 85);
-  --brand-400: oklch(0.8 0.14 85);
-  --brand-500: 255 199 44; /* #FFC72C */
-  --brand-600: oklch(0.7 0.16 85);
-  --brand-700: oklch(0.6 0.18 85);
-  --brand-800: oklch(0.5 0.2 85);
-  --brand-900: oklch(0.4 0.22 85);
+  --brand-50: oklch(0.98 0.015 85);
+  --brand-100: oklch(0.95 0.025 85);
+  --brand-200: oklch(0.92 0.04 85);
+  --brand-300: oklch(0.88 0.08 85);
+  --brand-400: oklch(0.82 0.12 85);
+  --brand-500: oklch(0.78 0.15 85); /* #FFC72C */
+  --brand-600: oklch(0.72 0.16 85);
+  --brand-700: oklch(0.65 0.17 85);
+  --brand-800: oklch(0.55 0.18 85);
+  --brand-900: oklch(0.45 0.19 85);
   --container-max: 1120px;
   --container-pad: 1.5rem;
   --fb-bottom: 3.5rem;
@@ -132,6 +142,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* Brand colors for dark mode - slightly brighter for better visibility */
+  --brand-50: oklch(0.15 0.02 85);
+  --brand-100: oklch(0.2 0.03 85);
+  --brand-200: oklch(0.25 0.05 85);
+  --brand-300: oklch(0.35 0.08 85);
+  --brand-400: oklch(0.45 0.12 85);
+  --brand-500: oklch(0.55 0.15 85); /* Brighter brand for dark mode */
+  --brand-600: oklch(0.65 0.16 85);
+  --brand-700: oklch(0.75 0.17 85);
+  --brand-800: oklch(0.85 0.18 85);
+  --brand-900: oklch(0.95 0.19 85);
 }
 
 @layer base {

@@ -38,12 +38,12 @@ export function GuestConversionBanner({
   const shouldShowUrgency = credits <= 1 || projectsCount > 0;
 
   return (
-    <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-blue-50 shadow-lg">
+    <Card className="border-brand-200 from-brand-50 bg-gradient-to-r to-slate-50 shadow-lg">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100">
-              <Sparkles className="h-5 w-5 text-orange-600" />
+            <div className="bg-brand-100 flex h-10 w-10 items-center justify-center rounded-full">
+              <Sparkles className="text-brand-600 h-5 w-5" />
             </div>
           </div>
 
@@ -64,7 +64,7 @@ export function GuestConversionBanner({
                   <Button
                     size="sm"
                     onClick={handleSignUp}
-                    className="bg-orange-500 text-white hover:bg-orange-600"
+                    className="bg-brand-500 hover:bg-brand-600 text-slate-900"
                   >
                     <UserPlus className="mr-1 h-4 w-4" />
                     Sign Up Free

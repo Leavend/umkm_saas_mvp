@@ -1,13 +1,10 @@
 // src/server/repositories/guest-repository.ts
 
-import type { Prisma } from "@prisma/client";
-
 import { db } from "~/server/db";
 
 export const findGuestSessionById = async (id: string) =>
   db.guestSession.findUnique({
     where: { id },
-    include: { projects: true },
   });
 
 export const findValidGuestSession = async (id: string) =>
@@ -23,10 +20,9 @@ export const migrateGuestSessionToUser = async (
   userId: string,
 ) => {
   return db.$transaction(async (tx) => {
-    // Get guest session with projects
+    // Get guest session
     const guestSession = await tx.guestSession.findUnique({
       where: { id: guestSessionId },
-      include: { projects: true },
     });
 
     if (!guestSession) {
@@ -41,17 +37,6 @@ export const migrateGuestSessionToUser = async (
       },
     });
 
-    // Transfer projects to user
-    if (guestSession.projects.length > 0) {
-      await tx.project.updateMany({
-        where: { guestSessionId },
-        data: {
-          userId,
-          guestSessionId: null,
-        },
-      });
-    }
-
     // Delete the guest session
     await tx.guestSession.delete({
       where: { id: guestSessionId },
@@ -59,29 +44,7 @@ export const migrateGuestSessionToUser = async (
 
     return {
       transferredCredits: guestSession.credits,
-      transferredProjects: guestSession.projects.length,
+      transferredProjects: 0,
     };
   });
 };
-
-export const createProjectForGuest = async (
-  guestSessionId: string,
-  data: Omit<Prisma.ProjectCreateArgs["data"], "guestSessionId">,
-) => {
-  return db.project.create({
-    data: {
-      name: data.name,
-      imageUrl: data.imageUrl,
-      imageKitId: data.imageKitId,
-      filePath: data.filePath,
-      guestSessionId,
-      userId: null, // Set userId to null for guest projects
-    },
-  });
-};
-
-export const findProjectsByGuestSessionId = async (guestSessionId: string) =>
-  db.project.findMany({
-    where: { guestSessionId },
-    orderBy: { createdAt: "desc" },
-  });

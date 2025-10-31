@@ -723,6 +723,26 @@ export const TRANSLATIONS = {
         credits: "Credits",
       },
     },
+    marketplace: {
+      brandName: "Prompt Store",
+      hero: {
+        titleLeading: "Discover Amazing",
+        titleHighlight: "AI Prompts",
+        description:
+          "Browse our curated collection of high-quality prompts. Copy any prompt for just 1 credit and unlock your creativity.",
+      },
+      category: "Category:",
+      noPromptsFound: "No prompts found in this category.",
+      footer: "© 2025 Prompt Store. All rights reserved.",
+    },
+    promptCard: {
+      copying: "Copying...",
+      copied: "Copied!",
+      copyPrompt: "Copy (1 Credit)",
+      copiedToClipboard: "Prompt copied to clipboard!",
+      creditsRemaining: "credits remaining",
+      copyFailed: "Failed to copy prompt. Please try again.",
+    },
   },
   id: {
     common: {
@@ -1308,7 +1328,8 @@ export const TRANSLATIONS = {
         editLabel: "Edit",
       },
       guestBanner: {
-        message: "Jangan kehilangan progres Anda. Daftar untuk menyimpan pekerjaan Anda.",
+        message:
+          "Jangan kehilangan progres Anda. Daftar untuk menyimpan pekerjaan Anda.",
         signUpButton: "Daftar Gratis",
       },
       toasts: {
@@ -1401,6 +1422,26 @@ export const TRANSLATIONS = {
       footer: {
         credits: "Kredit",
       },
+    },
+    marketplace: {
+      brandName: "Toko Prompt",
+      hero: {
+        titleLeading: "Temukan",
+        titleHighlight: "Prompt AI Menakjubkan",
+        description:
+          "Jelajahi koleksi prompt berkualitas tinggi kami. Salin prompt apa saja hanya dengan 1 kredit dan buka kreativitas Anda.",
+      },
+      category: "Kategori:",
+      noPromptsFound: "Tidak ada prompt ditemukan di kategori ini.",
+      footer: "© 2025 Toko Prompt. Hak cipta dilindungi.",
+    },
+    promptCard: {
+      copying: "Menyalin...",
+      copied: "Disalin!",
+      copyPrompt: "Salin (1 Kredit)",
+      copiedToClipboard: "Prompt disalin ke clipboard!",
+      creditsRemaining: "kredit tersisa",
+      copyFailed: "Gagal menyalin prompt. Silakan coba lagi.",
     },
   },
 } as const;

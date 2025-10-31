@@ -726,8 +726,9 @@ export const TRANSLATIONS = {
     marketplace: {
       brandName: "Prompt Store",
       hero: {
-        titleLeading: "Discover Amazing",
-        titleHighlight: "AI Prompts",
+        titleStart: "Discover",
+        titleHighlight: "Amazing AI Prompts",
+        titleEnd: "",
         description:
           "Browse our curated collection of high-quality prompts. Copy any prompt for just 1 credit and unlock your creativity.",
       },
@@ -1426,8 +1427,9 @@ export const TRANSLATIONS = {
     marketplace: {
       brandName: "Toko Prompt",
       hero: {
-        titleLeading: "Temukan",
+        titleStart: "Temukan",
         titleHighlight: "Prompt AI Menakjubkan",
+        titleEnd: "",
         description:
           "Jelajahi koleksi prompt berkualitas tinggi kami. Salin prompt apa saja hanya dengan 1 kredit dan buka kreativitas Anda.",
       },

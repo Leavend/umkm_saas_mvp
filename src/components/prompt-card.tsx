@@ -22,6 +22,7 @@ interface PromptCardProps {
   onCreditsUpdate?: (credits: number) => void;
   onShowAuthModal?: () => void;
   onClick?: (prompt: Prompt) => void;
+  reviewSafeImage?: boolean;
 }
 
 export function PromptCard({
@@ -29,6 +30,7 @@ export function PromptCard({
   onCreditsUpdate,
   onShowAuthModal,
   onClick,
+  reviewSafeImage,
 }: PromptCardProps) {
   const translations = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -84,12 +86,12 @@ export function PromptCard({
       aria-label={`View details for ${prompt.title}`}
     >
       {/* Image */}
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-t-2xl bg-slate-100">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
           fill
-          className="object-cover transition-transform group-hover:scale-105"
+          className={`${reviewSafeImage ? "object-contain" : "object-cover"} object-center transition-transform group-hover:scale-105`}
           loading="lazy"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
@@ -102,17 +104,22 @@ export function PromptCard({
 
       {/* Content */}
       <CardHeader className="flex-1">
-        <CardTitle className="text-lg text-slate-800">{prompt.title}</CardTitle>
-        <CardDescription className="line-clamp-3 text-sm text-slate-600">
+        <CardTitle className="line-clamp-1 text-base leading-tight font-semibold [text-wrap:balance] text-slate-800 md:text-lg">
+          {prompt.title}
+        </CardTitle>
+        <CardDescription className="mt-1 line-clamp-2 text-sm text-slate-600">
           {prompt.text}
         </CardDescription>
       </CardHeader>
 
       {/* Footer with Copy Button */}
-      <CardFooter className="pt-0">
+      <CardFooter className="rounded-xl border border-slate-200 p-3">
         <Button
-          className="w-full gap-2"
-          variant={isCopied ? "default" : "outline"}
+          className={`focus-visible:ring-brand-500/50 w-full gap-2 rounded-md px-3 py-2 text-sm focus-visible:ring-2 ${
+            isCopied
+              ? "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900"
+              : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
+          }`}
           disabled={isLoading || isCopied}
           onClick={handleCopy}
         >

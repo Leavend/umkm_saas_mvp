@@ -3,26 +3,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useTranslations } from "~/components/language-provider";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
 import { SettingsModal } from "~/components/settings-modal";
 import { FloatingButtons } from "~/components/floating-buttons";
+import { MobileFabDock } from "~/components/mobile-fab-dock";
+import { useMarketUI } from "~/stores/use-market-ui";
+import { Container } from "~/components/container";
 import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
 import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
-import { MarketplaceSearch } from "~/components/marketplace/marketplace-search";
 
 import { MarketplacePromptContainer } from "~/components/marketplace/marketplace-prompt-container";
 import { PromptDetailModal } from "~/components/prompt-detail-modal";
-import { QuickActions } from "~/components/quick-actions";
-import { UpdateBadge } from "~/components/update-badge";
+import { QuickStartPills } from "~/components/quick-start-pills";
 import { SponsorBanner } from "~/components/sponsor-banner";
-import { CategoryChips } from "~/components/category-chips";
+import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
 import { useCredits } from "~/hooks/use-credits";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
 import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
-import type { QUICK_ACTIONS } from "~/lib/placeholder-data";
 import type { MarketplacePageProps, ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
 
@@ -30,9 +30,10 @@ export function MarketplacePage({
   prompts: _prompts,
   lang,
 }: MarketplacePageProps) {
-  const translations = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { mode, setMode } = useMarketUI();
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -42,7 +43,7 @@ export function MarketplacePage({
 
   // Custom hooks for cleaner state management
   const { credits, refreshCredits } = useCredits();
-  const { filters, filteredPrompts, setSearchQuery, setViewMode } =
+  const { filters, filteredPrompts, setSearchQuery } =
     useMarketplaceFilters(allPrompts);
 
   const openModal = (modal: ModalType) => setActiveModal(modal);
@@ -59,6 +60,27 @@ export function MarketplacePage({
     // Go back to base marketplace URL
     router.push(`/${lang}`, { scroll: false });
   };
+
+  // Sync mode with URL on mount
+  useEffect(() => {
+    const modeParam = searchParams.get("mode");
+    if (modeParam === "gallery" || modeParam === "saved") {
+      setMode(modeParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Write mode to URL when it changes
+  useEffect(() => {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    if (mode === "browse") {
+      params.delete("mode");
+    } else {
+      params.set("mode", mode);
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : pathname;
+    router.replace(newUrl, { scroll: false });
+  }, [mode, searchParams, router, pathname]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -80,24 +102,21 @@ export function MarketplacePage({
     handleRouteChange();
   }, [pathname, lang, allPrompts]);
 
-  // Side effects for floating button actions
-  const handleGalleryIntent = () => {
-    setViewMode("gallery");
-  };
-
-  const handleSavedIntent = () => {
-    setViewMode("saved");
-  };
-
-  // Handle quick action clicks
-  const handleQuickAction = async (action: (typeof QUICK_ACTIONS)[0]) => {
-    // For now, just copy the prompt to clipboard
-    try {
-      await navigator.clipboard.writeText(action.prompt);
-    } catch (error) {
-      console.error("Failed to copy prompt:", error);
+  // Handle quick start pill selection
+  const handleQuickSelect = (id: string) => {
+    // Map quick start IDs to the placeholder data
+    const quickStartMap: Record<string, string> = {
+      "mens-portrait": "mens-portrait",
+      "womens-portrait": "womens-portrait",
+      "sunset-landscape": "sunset-landscape",
+      "modern-building": "modern-building",
+    };
+    
+    // Find the corresponding prompt and open it
+    const prompt = allPrompts.find((p) => p.id === quickStartMap[id]);
+    if (prompt) {
+      openPromptDetail(prompt);
     }
-    // Could also open a modal or navigate somewhere
   };
 
   // Handle sponsor banner CTA
@@ -111,63 +130,65 @@ export function MarketplacePage({
       <MarketplaceHeader credits={credits} onOpenModal={openModal} />
 
       {/* Main Content */}
-      <main className="flex flex-1 flex-col">
+      <main className="flex-1">
         {/* Hero Section */}
         <MarketplaceHero />
 
-        {/* Quick Actions */}
-        <QuickActions onActionClick={handleQuickAction} />
-
-        {/* Search and Filters */}
-        <section className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 py-6 backdrop-blur md:static md:bg-white/50">
-          <div className="container-tight">
-            <div className="mb-4 flex items-center justify-between">
-              <MarketplaceSearch
-                searchQuery={filters.searchQuery}
-                onSearchChange={setSearchQuery}
-              />
-              <UpdateBadge lastUpdated={new Date()} />
-            </div>
-            <CategoryChips
-              selectedCategories={selectedCategories}
-              onCategoriesChange={setSelectedCategories}
-            />
-          </div>
+        {/* Quick Start */}
+        <section className="mt-6 md:mt-8">
+          <Container>
+            <QuickStartPills onSelect={handleQuickSelect} />
+          </Container>
         </section>
-
-        {/* Prompts Container */}
-        <MarketplacePromptContainer
-          prompts={filteredPrompts}
-          viewMode={filters.viewMode}
-          onCreditsUpdate={refreshCredits}
-          onShowAuthModal={() => openModal("auth")}
-          onPromptClick={openPromptDetail}
-        />
       </main>
 
-      {/* Floating Buttons */}
-      <FloatingButtons
-        onGalleryClick={handleGalleryIntent}
-        onSavedClick={handleSavedIntent}
-        active={filters.viewMode}
-        onModeChange={setViewMode}
+      {/* Sticky Filter Bar */}
+      <MarketplaceFilterBar
+        searchQuery={filters.searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedCategories={selectedCategories}
+        onCategoriesChange={setSelectedCategories}
+        lastUpdated={new Date()}
       />
 
+      {/* Prompts Container */}
+      <MarketplacePromptContainer
+        prompts={filteredPrompts}
+        mode={mode}
+        onCreditsUpdate={refreshCredits}
+        onShowAuthModal={() => openModal("auth")}
+        onPromptClick={openPromptDetail}
+      />
+
+      {/* Desktop Floating Buttons */}
+      <FloatingButtons />
+
+      {/* Mobile FAB Dock */}
+      <MobileFabDock />
+
       {/* Sponsor Banner */}
-      <section className="py-8">
-        <div className="container-tight">
+      <section className="mt-6 pb-28 md:pb-0">
+        <Container>
           <SponsorBanner onCtaClick={handleSponsorCta} />
-        </div>
+        </Container>
       </section>
 
-      {/* Fixed Footer */}
-      <footer
-        id="site-footer"
-        className="fixed right-0 bottom-0 left-0 z-40 border-t border-slate-200 bg-slate-100 py-6"
-      >
-        <div className="container-tight text-center text-xs text-neutral-500 md:text-sm">
-          <p>{translations.marketplace.footer}</p>
-        </div>
+      {/* Footer */}
+      <footer className="border-t border-slate-200 bg-white mt-auto">
+        <Container className="flex flex-col items-center gap-2 py-6 text-sm text-slate-600 md:flex-row md:justify-between">
+          <span>? {new Date().getFullYear()} Prompt Store.</span>
+          <nav className="flex items-center gap-4">
+            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/terms">
+              Terms
+            </Link>
+            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/privacy">
+              Privacy
+            </Link>
+            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/contact">
+              Contact
+            </Link>
+          </nav>
+        </Container>
       </footer>
 
       {/* Modals */}

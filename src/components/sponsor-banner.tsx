@@ -25,13 +25,13 @@ export function SponsorBanner({ onCtaClick, className }: SponsorBannerProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg">
+            <div className="relative h-12 w-20 flex-shrink-0 overflow-hidden rounded-lg sm:h-16 sm:w-24">
               <Image
                 src={SPONSOR_DATA.imageUrl}
                 alt="Premium features preview"
                 fill
                 className="object-cover"
-                sizes="96px"
+                sizes="(max-width: 640px) 80px, 96px"
               />
             </div>
 

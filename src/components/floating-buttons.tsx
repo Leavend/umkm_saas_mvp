@@ -26,7 +26,7 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
 
   return (
     <div
-      className={`fixed bottom-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))] z-50 hidden items-center gap-2 md:flex ${className ?? ""} `}
+      className={`fixed bottom-safe z-50 hidden items-center gap-2 md:flex ${className ?? ""} `}
       style={{
         right:
           "max(1rem, calc((100vw - var(--container-max)) / 2 + var(--container-gutter)))",

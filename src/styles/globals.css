@@ -228,6 +228,7 @@
 :root {
   --fb-bottom: 2.5rem; /* jarak default dari bawah viewport */
   --footer-h: 96px; /* asumsi tinggi footer (boleh disesuaikan) */
+  --fab-gap: 1.5rem; /* jarak antara FAB dan footer (16-24px) */
 }
 
 /* Default: nempel bawah viewport dgn safe area */
@@ -238,7 +239,7 @@
 /* Saat footer kelihatan → dorong FAB ke atas setinggi footer */
 .fab-push-up {
   bottom: calc(
-    var(--fb-bottom) + var(--footer-h) + env(safe-area-inset-bottom)
+    var(--fb-bottom) + var(--footer-h) + var(--fab-gap) + env(safe-area-inset-bottom)
   );
 }
 

@@ -26,14 +26,10 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
 
   return (
     <div
-      className={`
-        fixed z-50
-        bottom-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))]
-        hidden md:flex items-center gap-2
-        ${className ?? ""}
-      `}
+      className={`fixed bottom-[max(1.25rem,calc(env(safe-area-inset-bottom)+1rem))] z-50 hidden items-center gap-2 md:flex ${className ?? ""} `}
       style={{
-        right: "max(1rem, calc((100vw - var(--container-max)) / 2 + var(--container-gutter)))",
+        right:
+          "max(1rem, calc((100vw - var(--container-max)) / 2 + var(--container-gutter)))",
       }}
       aria-label="Floating actions"
     >

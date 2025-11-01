@@ -67,10 +67,16 @@ export function MarketplacePage({
     if (modeParam === "gallery" || modeParam === "saved") {
       setMode(modeParam);
     }
+
+    // Sync category with URL on mount
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      setSelectedCategories([categoryParam]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Write mode to URL when it changes
+  // Write mode and category to URL when they change
   useEffect(() => {
     const params = new URLSearchParams(Array.from(searchParams.entries()));
     if (mode === "browse") {
@@ -78,9 +84,17 @@ export function MarketplacePage({
     } else {
       params.set("mode", mode);
     }
+
+    // Set category parameter
+    if (selectedCategories.length > 0 && selectedCategories[0]) {
+      params.set("category", selectedCategories[0]);
+    } else {
+      params.delete("category");
+    }
+
     const newUrl = params.toString() ? `?${params.toString()}` : pathname;
     router.replace(newUrl, { scroll: false });
-  }, [mode, searchParams, router, pathname]);
+  }, [mode, selectedCategories, searchParams, router, pathname]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -111,7 +125,7 @@ export function MarketplacePage({
       "sunset-landscape": "sunset-landscape",
       "modern-building": "modern-building",
     };
-    
+
     // Find the corresponding prompt and open it
     const prompt = allPrompts.find((p) => p.id === quickStartMap[id]);
     if (prompt) {
@@ -174,17 +188,26 @@ export function MarketplacePage({
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white mt-auto">
+      <footer className="mt-auto border-t border-slate-200 bg-white">
         <Container className="flex flex-col items-center gap-2 py-6 text-sm text-slate-600 md:flex-row md:justify-between">
           <span>? {new Date().getFullYear()} Prompt Store.</span>
           <nav className="flex items-center gap-4">
-            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/terms">
+            <Link
+              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
+              href="/terms"
+            >
               Terms
             </Link>
-            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/privacy">
+            <Link
+              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
+              href="/privacy"
+            >
               Privacy
             </Link>
-            <Link className="hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 rounded" href="/contact">
+            <Link
+              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
+              href="/contact"
+            >
               Contact
             </Link>
           </nav>

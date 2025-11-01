@@ -66,7 +66,7 @@ export function PromptListItem({
 
   return (
     <div
-      className="group relative flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-500/50"
+      className="group focus-visible:ring-brand-500/50 relative flex cursor-pointer items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:shadow-md focus-visible:ring-2"
       onClick={() => onClick?.(prompt)}
       tabIndex={0}
       role="button"
@@ -85,9 +85,9 @@ export function PromptListItem({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="line-clamp-1 text-base font-semibold text-slate-900">
               {prompt.title}
             </h3>
@@ -95,7 +95,7 @@ export function PromptListItem({
               {prompt.text}
             </p>
           </div>
-          <Badge className="bg-brand-500 text-slate-900 flex-shrink-0">
+          <Badge className="bg-brand-500 flex-shrink-0 text-slate-900">
             {prompt.category}
           </Badge>
         </div>
@@ -103,7 +103,7 @@ export function PromptListItem({
 
       {/* Action */}
       <Button
-        className={`flex-shrink-0 gap-2 rounded-md px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+        className={`focus-visible:ring-brand-500/50 flex-shrink-0 gap-2 rounded-md px-3 py-2 text-sm focus-visible:ring-2 ${
           isCopied
             ? "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900"
             : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"

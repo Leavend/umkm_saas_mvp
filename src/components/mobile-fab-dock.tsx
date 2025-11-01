@@ -20,9 +20,7 @@ export function MobileFabDock() {
 
   return (
     <div
-      className="md:hidden fixed z-50 right-4
-                 bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))]
-                 flex flex-col items-center gap-2 pointer-events-auto"
+      className="pointer-events-auto fixed right-4 bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] z-50 flex flex-col items-center gap-2 md:hidden"
       aria-label="Mobile floating actions"
     >
       {/* View toggles ? TOP */}

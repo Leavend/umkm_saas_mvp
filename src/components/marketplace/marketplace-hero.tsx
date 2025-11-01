@@ -14,10 +14,10 @@ export function MarketplaceHero() {
         <div className="flex flex-col items-center text-center">
           <h1
             className={cn(
-              "font-extrabold tracking-tight leading-[1.1] [text-wrap:balance] md:whitespace-nowrap max-w-none",
+              "max-w-none leading-[1.1] font-extrabold tracking-tight [text-wrap:balance] md:whitespace-nowrap",
               lang === "id"
                 ? "text-[clamp(34px,5.2vw,48px)]"
-                : "text-[clamp(34px,5.8vw,52px)]"
+                : "text-[clamp(34px,5.8vw,52px)]",
             )}
           >
             {translations.marketplace.hero.titleStart}{" "}
@@ -28,7 +28,7 @@ export function MarketplaceHero() {
               <> {translations.marketplace.hero.titleEnd}</>
             )}
           </h1>
-          <p className="mt-2 text-[clamp(14px,1.6vw,18px)] text-slate-600 md:whitespace-nowrap [text-wrap:balance] max-w-none">
+          <p className="mt-2 max-w-none text-[clamp(14px,1.6vw,18px)] [text-wrap:balance] text-slate-600 md:whitespace-nowrap">
             {translations.marketplace.hero.description}
           </p>
         </div>

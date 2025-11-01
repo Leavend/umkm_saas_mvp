@@ -67,7 +67,7 @@ export function MarketplaceFilterBar({
         {/* Mobile: collapsible search */}
         <div
           id="mobile-searchbar"
-          className="grid overflow-hidden transition-all duration-200 ease-out md:hidden [grid-template-rows:0fr] data-[open=true]:[grid-template-rows:1fr]"
+          className="grid [grid-template-rows:0fr] overflow-hidden transition-all duration-200 ease-out data-[open=true]:[grid-template-rows:1fr] md:hidden"
           data-open={isSearchOpen}
         >
           <div className="min-h-0 py-3">

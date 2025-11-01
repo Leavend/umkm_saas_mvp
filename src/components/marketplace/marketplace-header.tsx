@@ -85,10 +85,7 @@ export function MarketplaceHeader({
           {!session?.user && (
             <Link
               href="/signin"
-              className="inline-flex h-10 px-3 md:px-4 items-center justify-center rounded-full
-                       border border-slate-200 bg-white text-slate-900 text-sm font-medium
-                       hover:bg-slate-100 active:bg-slate-200 transition
-                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+              className="focus-visible:ring-brand-500/40 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:px-4"
             >
               Sign In
             </Link>

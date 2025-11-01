@@ -23,7 +23,7 @@ export function useMarketplaceFilters(prompts: Prompt[]) {
   // Filter prompts based on current filters
   const filteredPrompts = useMemo(() => {
     let filtered =
-      filters.selectedCategory === "all"
+      filters.selectedCategory === "all" || filters.selectedCategory === ""
         ? prompts
         : prompts.filter((p) => p.category === filters.selectedCategory);
 

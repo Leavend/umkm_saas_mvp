@@ -4,7 +4,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
 import { SettingsModal } from "~/components/settings-modal";
@@ -12,6 +11,7 @@ import { FloatingButtons } from "~/components/floating-buttons";
 import { MobileFabDock } from "~/components/mobile-fab-dock";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { Container } from "~/components/container";
+import { Footer } from "~/components/footer";
 import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
 import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
 
@@ -188,31 +188,12 @@ export function MarketplacePage({
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-200 bg-white">
-        <Container className="flex flex-col items-center gap-2 py-6 text-sm text-slate-600 md:flex-row md:justify-between">
-          <span>? {new Date().getFullYear()} Prompt Store.</span>
-          <nav className="flex items-center gap-4">
-            <Link
-              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
-              href="/terms"
-            >
-              Terms
-            </Link>
-            <Link
-              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
-              href="/privacy"
-            >
-              Privacy
-            </Link>
-            <Link
-              className="focus-visible:ring-brand-500/50 rounded hover:underline focus:outline-none focus-visible:ring-2"
-              href="/contact"
-            >
-              Contact
-            </Link>
-          </nav>
-        </Container>
-      </footer>
+      <Footer 
+        productName = "Apakek Prompt"
+        parentBrand = "UMKMJaya"
+        org = "Bontang Techno Hub"
+        lastUpdated="2025-11-01"
+      />
 
       {/* Modals */}
       <AuthModal

@@ -24,9 +24,13 @@ export function Footer({
   return (
     <footer 
       role="contentinfo" 
-      className="mx-auto max-w-[var(--container-max)] border-t border-slate-200 px-4 pt-8 pb-12 md:pt-10 md:pb-16 text-center"
+      className="mx-auto w-full max-w-[var(--page-max)] border-t border-slate-200 px-4 pt-6 pb-8 md:pt-8 md:pb-10 text-center"
+      style={{
+        paddingLeft: "var(--page-gutter)",
+        paddingRight: "var(--page-gutter)",
+      }}
     >
-      <div className="space-y-2">
+      <div className="space-y-1">
         <p className="text-sm text-slate-500 leading-6 xs:text-xs">
           © {currentYear} {productName} is part of {parentBrand} by {org}
         </p>

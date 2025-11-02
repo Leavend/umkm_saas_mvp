@@ -7,18 +7,17 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
 import { SettingsModal } from "~/components/settings-modal";
-import { FloatingButtons } from "~/components/floating-buttons";
-import { MobileFabDock } from "~/components/mobile-fab-dock";
+import { StickyActionsRail } from "~/components/sticky-actions-rail";
 import { useMarketUI } from "~/stores/use-market-ui";
-import { Container } from "~/components/container";
 import { Footer } from "~/components/footer";
 import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
 import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
+import { MarketplaceGallery } from "~/components/marketplace/marketplace-gallery";
+import { MarketplaceSaved } from "~/components/marketplace/marketplace-saved";
 
 import { MarketplacePromptContainer } from "~/components/marketplace/marketplace-prompt-container";
 import { PromptDetailModal } from "~/components/prompt-detail-modal";
 import { QuickStartPills } from "~/components/quick-start-pills";
-import { SponsorBanner } from "~/components/sponsor-banner";
 import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
 import { useCredits } from "~/hooks/use-credits";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
@@ -27,15 +26,37 @@ import type { MarketplacePageProps, ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
 
 export function MarketplacePage({
-  prompts: _prompts,
+  prompts,
   lang,
 }: MarketplacePageProps) {
+  const { mode, setMode } = useMarketUI();
+  const [activeModal, setActiveModal] = useState<ModalType | null>(null);
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { mode, setMode } = useMarketUI();
-  const [activeModal, setActiveModal] = useState<ModalType>(null);
-  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+
+  // Handle URL state sync for mode
+  useEffect(() => {
+    const currentMode = searchParams.get('mode');
+    if (currentMode === 'gallery' || currentMode === 'saved') {
+      setMode(currentMode);
+    }
+  }, [searchParams, setMode]);
+
+  // Update URL when mode changes
+  useEffect(() => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    
+    if (mode === null) {
+      currentParams.delete('mode');
+    } else {
+      currentParams.set('mode', mode);
+    }
+    
+    const newUrl = `${pathname}${currentParams.toString() ? `?${currentParams.toString()}` : ''}`;
+    router.replace(newUrl, { scroll: false });
+  }, [mode, pathname, router, searchParams]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // Use placeholder data for development
@@ -133,11 +154,6 @@ export function MarketplacePage({
     }
   };
 
-  // Handle sponsor banner CTA
-  const handleSponsorCta = () => {
-    openModal("topup");
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
       {/* Header */}
@@ -145,47 +161,57 @@ export function MarketplacePage({
 
       {/* Main Content */}
       <main className="flex-1">
-        {/* Hero Section */}
-        <MarketplaceHero />
+        {/* Unified page wrapper for all sections */}
+        <div className="mx-auto w-full max-w-[var(--page-max)] px-4 md:px-8">
+          {/* Hero Section */}
+          <MarketplaceHero />
 
-        {/* Quick Start */}
-        <section className="mt-6 md:mt-8">
-          <Container>
+          {/* Quick Start */}
+          <section className="mt-6 md:mt-8">
             <QuickStartPills onSelect={handleQuickSelect} />
-          </Container>
-        </section>
+          </section>
+
+          {/* Sticky Filter Bar */}
+          <MarketplaceFilterBar
+            searchQuery={filters.searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedCategories={selectedCategories}
+            onCategoriesChange={setSelectedCategories}
+            lastUpdated={new Date()}
+          />
+
+          {/* Cards / Available Prompts */}
+          <section className="relative pb-24 md:pb-28">
+            {/* Mode-specific content */}
+            {mode === 'gallery' ? (
+              <MarketplaceGallery
+                prompts={filteredPrompts}
+                onCreditsUpdate={refreshCredits}
+                onShowAuthModal={() => openModal("auth")}
+                onPromptClick={openPromptDetail}
+              />
+            ) : mode === 'saved' ? (
+              <MarketplaceSaved
+                prompts={filteredPrompts}
+                onCreditsUpdate={refreshCredits}
+                onShowAuthModal={() => openModal("auth")}
+                onPromptClick={openPromptDetail}
+              />
+            ) : (
+              <MarketplacePromptContainer
+                prompts={filteredPrompts}
+                mode={mode}
+                onCreditsUpdate={refreshCredits}
+                onShowAuthModal={() => openModal("auth")}
+                onPromptClick={openPromptDetail}
+              />
+            )}
+
+            {/* Sticky Actions Rail */}
+            <StickyActionsRail />
+          </section>
+        </div>
       </main>
-
-      {/* Sticky Filter Bar */}
-      <MarketplaceFilterBar
-        searchQuery={filters.searchQuery}
-        onSearchChange={setSearchQuery}
-        selectedCategories={selectedCategories}
-        onCategoriesChange={setSelectedCategories}
-        lastUpdated={new Date()}
-      />
-
-      {/* Prompts Container */}
-      <MarketplacePromptContainer
-        prompts={filteredPrompts}
-        mode={mode}
-        onCreditsUpdate={refreshCredits}
-        onShowAuthModal={() => openModal("auth")}
-        onPromptClick={openPromptDetail}
-      />
-
-      {/* Desktop Floating Buttons */}
-      <FloatingButtons />
-
-      {/* Mobile FAB Dock */}
-      <MobileFabDock />
-
-      {/* Sponsor Banner */}
-      <section className="mt-6 pb-28 md:pb-0">
-        <Container>
-          <SponsorBanner onCtaClick={handleSponsorCta} />
-        </Container>
-      </section>
 
       {/* Footer */}
       <Footer 

@@ -6,11 +6,11 @@ export function Container({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("mx-auto w-full", className)}
+      className={cn("mx-auto w-full relative", className)}
       style={{
-        maxWidth: "var(--container-max)",
-        paddingLeft: "var(--container-gutter)",
-        paddingRight: "var(--container-gutter)",
+        maxWidth: "var(--page-max)",
+        paddingLeft: "var(--page-gutter)",
+        paddingRight: "var(--page-gutter)",
       }}
       {...props}
     />

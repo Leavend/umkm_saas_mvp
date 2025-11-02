@@ -104,23 +104,21 @@
   --brand-700: oklch(0.65 0.17 85);
   --brand-800: oklch(0.55 0.18 85);
   --brand-900: oklch(0.45 0.19 85);
-  /* Container tokens */
-  --container-max: 1100px;
-  --container-gutter: 1.25rem; /* mobile: 20px */
-  --container-pad: 1.5rem;
-  --fb-bottom: 3.5rem;
-  --footer-h: 20px;
+  /* Page grid tokens */
+  --page-max: 1200px;
+  --page-gutter: 1rem; /* mobile: 16px */
+  --page-gutter-md: 2rem; /* md: 32px */
+  
+  /* Brand color tokens */
+  --brand-50: #fff7e6;
+  --brand-100: #feefcc;
+  --brand-500: #d9a632;
+  --brand-600: #c89228;
 }
 
 @media (min-width: 768px) {
   :root {
-    --container-gutter: 1.5rem; /* md: 24px */
-  }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --container-gutter: 2rem; /* lg: 32px */
+    --page-gutter: 2rem; /* md: 32px */
   }
 }
 

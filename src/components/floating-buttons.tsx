@@ -29,7 +29,7 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
       className={`fixed bottom-safe z-50 hidden items-center gap-2 md:flex ${className ?? ""} `}
       style={{
         right:
-          "max(1rem, calc((100vw - var(--container-max)) / 2 + var(--container-gutter)))",
+          "max(1rem, calc((100vw - var(--page-max)) / 2 + var(--page-gutter)))",
       }}
       aria-label="Floating actions"
     >

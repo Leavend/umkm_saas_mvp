@@ -63,7 +63,14 @@ export function MarketplaceFilterBar({
         isSearchOpen ? "border-b" : "border-transparent",
       )}
     >
-      <div className="mx-auto w-full max-w-[1100px] px-5 md:px-6 lg:px-8">
+      <div 
+        className="mx-auto w-full"
+              style={{
+        maxWidth: "var(--page-max)",
+        paddingLeft: "var(--page-gutter)",
+        paddingRight: "var(--page-gutter)",
+      }}
+      >
         {/* Mobile: collapsible search */}
         <div
           id="mobile-searchbar"

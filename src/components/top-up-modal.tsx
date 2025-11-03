@@ -106,15 +106,17 @@ export function TopUpModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="mx-4 sm:mx-0 sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{translations.dashboard.topUp.title}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            {translations.dashboard.topUp.title}
+          </DialogTitle>
           <p className="text-muted-foreground text-sm">
             {translations.dashboard.topUp.description}
           </p>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Currency Toggle */}
           <div className="flex justify-center">
             <div className="flex rounded-lg border p-1">
@@ -142,28 +144,30 @@ export function TopUpModal({
           </div>
 
           {/* Products */}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             {products.map((product) => (
               <div
                 key={product.id}
-                className={`relative rounded-lg border p-6 transition-all hover:shadow-md ${
+                className={`relative rounded-lg border p-4 transition-all hover:shadow-md sm:p-6 ${
                   product.popular ? "border-primary shadow-sm" : ""
                 }`}
               >
                 {product.popular && (
-                  <Badge className="bg-primary absolute -top-2 left-4">
+                  <Badge className="bg-primary absolute -top-2 left-2 text-xs sm:left-4">
                     Most Popular
                   </Badge>
                 )}
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <p className="text-2xl font-bold">
+                    <h3 className="text-sm font-semibold sm:text-base">
+                      {product.name}
+                    </h3>
+                    <p className="text-xl font-bold sm:text-2xl">
                       {currency === "USD" ? "$" : "Rp"}
                       {(product.amount ?? 0).toLocaleString()}
                     </p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-muted-foreground text-xs sm:text-sm">
                       {product.credits}{" "}
                       {translations.dashboard.topUp.creditsSuffix}
                     </p>
@@ -172,7 +176,7 @@ export function TopUpModal({
                   <Button
                     onClick={() => handlePurchase(product.id)}
                     disabled={isProcessing === product.id}
-                    className="w-full"
+                    className="w-full text-xs sm:text-sm"
                     variant={product.popular ? "default" : "outline"}
                   >
                     {isProcessing === product.id
@@ -185,7 +189,7 @@ export function TopUpModal({
           </div>
 
           {/* Footer Text */}
-          <div className="text-muted-foreground text-center text-sm">
+          <div className="text-muted-foreground text-center text-xs sm:text-sm">
             <p>{translations.dashboard.topUp.benefit}</p>
           </div>
         </div>

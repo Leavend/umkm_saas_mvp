@@ -171,16 +171,26 @@
   html {
     font-size: 20px; /* 125% scale for desktop */
   }
+  @media (max-width: 1024px) {
+    html {
+      font-size: 18px; /* Tablet */
+    }
+  }
   @media (max-width: 768px) {
     html {
-      font-size: 16px; /* Keep mobile sane */
+      font-size: 16px; /* Mobile */
+    }
+  }
+  @media (max-width: 640px) {
+    html {
+      font-size: 15px; /* Small mobile */
     }
   }
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground text-[15px] leading-relaxed md:text-[16px] lg:text-[17px];
+    @apply bg-background text-foreground leading-relaxed;
   }
 }
 
@@ -189,6 +199,11 @@
     max-width: 1100px;
     margin-inline: auto;
     padding-inline: 1.25rem; /* mobile: 20px */
+  }
+  @media (min-width: 640px) {
+    .container-tight {
+      padding-inline: 1.5rem;
+    }
   }
   @media (min-width: 768px) {
     :root {
@@ -211,6 +226,83 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari, Opera*/
+  }
+
+  /* Responsive text utilities */
+  .text-responsive-xs {
+    @apply text-xs sm:text-sm;
+  }
+  .text-responsive-sm {
+    @apply text-sm sm:text-base;
+  }
+  .text-responsive-base {
+    @apply text-base sm:text-lg;
+  }
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl;
+  }
+  .text-responsive-xl {
+    @apply text-xl sm:text-2xl;
+  }
+  .text-responsive-2xl {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  /* Responsive spacing utilities */
+  .space-responsive-y-2 {
+    @apply space-y-2 sm:space-y-3;
+  }
+  .space-responsive-y-3 {
+    @apply space-y-3 sm:space-y-4;
+  }
+  .space-responsive-y-4 {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  /* Responsive gap utilities */
+  .gap-responsive-2 {
+    @apply gap-2 sm:gap-3;
+  }
+  .gap-responsive-3 {
+    @apply gap-3 sm:gap-4;
+  }
+  .gap-responsive-4 {
+    @apply gap-4 sm:gap-6;
+  }
+  
+  /* Custom gap utilities */
+  .gap-126 {
+    gap: 31.5rem; /* 504px */
+  }
+  
+  @media (max-width: 1200px) {
+    .gap-126 {
+      gap: 24rem; /* 384px */
+    }
+  }
+  
+  @media (max-width: 1024px) {
+    .gap-126 {
+      gap: 18rem; /* 288px */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .gap-126 {
+      gap: 12rem; /* 192px */
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .gap-126 {
+      gap: 8rem; /* 128px */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .gap-126 {
+      gap: 4rem; /* 64px */
+    }
   }
 }
 
@@ -254,4 +346,63 @@
   .fixed.z-50[aria-label="View mode toggle"] {
     display: none !important;
   }
+}
+
+/* Search bar mobile optimizations */
+@media (max-width: 768px) {
+  #mobile-searchbar {
+    /* Ensure smooth animation on mobile */
+    will-change: transform, opacity;
+    /* Better performance on mobile */
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  
+  /* Prevent body scroll when search is open */
+  body.search-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+}
+
+/* Extra small mobile optimizations */
+@media (max-width: 640px) {
+  /* Header content shift animations for search */
+  #site-header {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Brand text truncation on very small screens */
+  .brand-text-truncate {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  @media (max-width: 480px) {
+    .brand-text-truncate {
+      max-width: 100px;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .brand-text-truncate {
+      max-width: 80px;
+    }
+  }
+}
+
+/* Enhanced search input focus states */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+}
+
+/* Smooth transitions for search interactions */
+.search-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

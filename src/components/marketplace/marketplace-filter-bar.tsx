@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { MarketplaceSearch } from "./marketplace-search";
 import { CategoryChips } from "~/components/category-chips";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 interface MarketplaceFilterBarProps {
   searchQuery: string;
@@ -20,27 +21,87 @@ export function MarketplaceFilterBar({
   selectedCategories,
   onCategoriesChange,
 }: MarketplaceFilterBarProps) {
-  const { isSearchOpen, closeSearch } = useMarketUI();
+  const { isSearchOpen, closeSearch, toggleSearch } = useMarketUI();
+  const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Enhanced focus management with proper timing
   useEffect(() => {
-    if (isSearchOpen) {
-      setTimeout(() => inputRef.current?.focus(), 80);
+    if (isSearchOpen && inputRef.current) {
+      // Use requestAnimationFrame for better timing
+      const focusTimer = requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        // Scroll search into view if needed
+        inputRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+
+      return () => cancelAnimationFrame(focusTimer);
     }
   }, [isSearchOpen]);
 
-  // Add Esc to close
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+  // Enhanced keyboard handling with better mobile support
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         closeSearch();
       }
-    };
+      // Handle Cmd/Ctrl + K for search toggle
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        toggleSearch();
+      }
+    },
+    [closeSearch, toggleSearch],
+  );
+
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [closeSearch]);
+  }, [handleKeyDown]);
+
+  // Handle click outside to close search
+  const handleClickOutside = useCallback(
+    (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        closeSearch();
+      }
+    },
+    [closeSearch],
+  );
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSearchOpen, handleClickOutside]);
+
+  useEffect(() => {
+    if (isSearchOpen && isMobile) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSearchOpen, isMobile]);
 
   // Set header height CSS variable on mount
   useEffect(() => {
@@ -58,32 +119,50 @@ export function MarketplaceFilterBar({
     <section
       id="filter-bar"
       className={cn(
-        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60",
+        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-300 ease-in-out",
         "md:border-b",
-        isSearchOpen ? "border-b" : "border-transparent",
+        isSearchOpen ? "border-b shadow-sm md:shadow-none" : "border-transparent",
+        isSearchOpen && "md:translate-x-0 sm:translate-x-2 xs:translate-x-1"
       )}
     >
-      <div 
-        className="mx-auto w-full"
-              style={{
-        maxWidth: "var(--page-max)",
-        paddingLeft: "var(--page-gutter)",
-        paddingRight: "var(--page-gutter)",
-      }}
+      <div
+        className={cn(
+          "mx-auto w-full transition-all duration-300 ease-in-out",
+          isSearchOpen && "md:translate-x-0 sm:-translate-x-8 xs:-translate-x-6"
+        )}
+        style={{
+          maxWidth: "var(--page-max)",
+          paddingLeft: "var(--page-gutter)",
+          paddingRight: "var(--page-gutter)",
+        }}
       >
-        {/* Mobile: collapsible search */}
+        {/* Mobile: collapsible search with improved animation */}
         <div
+          ref={searchContainerRef}
           id="mobile-searchbar"
-          className="grid [grid-template-rows:0fr] overflow-hidden transition-all duration-200 ease-out data-[open=true]:[grid-template-rows:1fr] md:hidden"
-          data-open={isSearchOpen}
+          className={cn(
+            "overflow-hidden transition-all duration-300 ease-in-out md:hidden",
+            isSearchOpen
+              ? "max-h-96 translate-y-0 opacity-100"
+              : "max-h-0 -translate-y-2 opacity-0",
+          )}
+          aria-hidden={!isSearchOpen}
         >
-          <div className="min-h-0 py-3">
-            <MarketplaceSearch
-              ref={inputRef}
-              searchQuery={searchQuery}
-              onSearchChange={onSearchChange}
-            />
-            <div className="mt-3">
+          <div
+            className={cn(
+              "py-4 transition-all duration-300",
+              isSearchOpen ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <div className="mb-3">
+              <MarketplaceSearch
+                ref={inputRef}
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+                placeholder="Search prompts..."
+              />
+            </div>
+            <div className="animate-in slide-in-from-top-2 duration-300">
               <CategoryChips
                 selectedCategories={selectedCategories}
                 onCategoriesChange={onCategoriesChange}
@@ -97,6 +176,7 @@ export function MarketplaceFilterBar({
           <MarketplaceSearch
             searchQuery={searchQuery}
             onSearchChange={onSearchChange}
+            placeholder="Search prompts..."
           />
           <div className="mt-3">
             <CategoryChips

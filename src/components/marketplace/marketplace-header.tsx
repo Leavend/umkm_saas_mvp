@@ -34,24 +34,41 @@ export function MarketplaceHeader({
   return (
     <nav
       id="site-header"
-      className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur"
+      className={cn(
+        "sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur transition-all duration-300 ease-in-out",
+        isSearchOpen && "md:border-b",
+      )}
     >
-      <Container className="flex h-16 items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-2">
-          <div className="bg-brand-500 flex h-8 w-8 items-center justify-center rounded-lg shadow-lg">
+      <Container className="flex h-16 items-center justify-center gap-126">
+        {/* Brand - shifts towards center when search is open on mobile */}
+        <div className={cn(
+          "flex items-center gap-2 transition-all duration-300 ease-in-out",
+          isSearchOpen && "md:translate-x-0 sm:translate-x-2 xs:translate-x-1"
+        )}>
+          <div className="bg-brand-500 flex h-8 w-8 items-center justify-center rounded-lg shadow-lg flex-shrink-0">
             <Sparkles className="h-5 w-5 text-slate-900" />
           </div>
-          <span className="text-brand-700 text-xl font-bold">
+          <span className={cn(
+            "text-brand-700 text-xl font-bold transition-all duration-300 brand-text-truncate",
+            isSearchOpen && "md:text-xl sm:text-lg xs:text-base"
+          )}>
             {translations.marketplace.brandName}
           </span>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          <Suspense fallback={null}>
-            <LanguageToggle />
-          </Suspense>
+        {/* Actions - shifts with more distance when search is open on mobile */}
+        <div className={cn(
+          "flex items-center gap-2 transition-all duration-300 ease-in-out",
+          isSearchOpen && "md:translate-x-0 sm:-translate-x-8 xs:-translate-x-6"
+        )}>
+          <div className={cn(
+            "transition-all duration-300 ease-in-out",
+            isSearchOpen && "md:translate-x-0 sm:-translate-x-2 xs:-translate-x-1"
+          )}>
+            <Suspense fallback={null}>
+              <LanguageToggle />
+            </Suspense>
+          </div>
 
           <button
             aria-label="Toggle search"
@@ -59,8 +76,10 @@ export function MarketplaceHeader({
             aria-controls="mobile-searchbar"
             onClick={toggleSearch}
             className={cn(btn, isSearchOpen ? on : off)}
+            type="button"
           >
             <Search className="h-5 w-5" />
+            <span className="sr-only">Toggle search</span>
           </button>
 
           {session?.user && credits !== null && (
@@ -83,12 +102,17 @@ export function MarketplaceHeader({
           ) : null}
 
           {!session?.user && (
-            <Link
-              href="/signin"
-              className="focus-visible:ring-brand-500/40 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:px-4"
-            >
-              Sign In
-            </Link>
+            <div className={cn(
+              "transition-all duration-300 ease-in-out",
+              isSearchOpen && "md:translate-x-0 sm:-translate-x-4 xs:-translate-x-3"
+            )}>
+              <Link
+                href="/signin"
+                className="focus-visible:ring-brand-500/40 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:px-4"
+              >
+                Sign In
+              </Link>
+            </div>
           )}
         </div>
       </Container>

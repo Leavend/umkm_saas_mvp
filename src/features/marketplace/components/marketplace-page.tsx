@@ -26,7 +26,7 @@ import type { MarketplacePageProps, ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
 
 export function MarketplacePage({
-  prompts,
+  prompts: _prompts,
   lang,
 }: MarketplacePageProps) {
   const { mode, setMode } = useMarketUI();
@@ -36,25 +36,17 @@ export function MarketplacePage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Handle URL state sync for mode
-  useEffect(() => {
-    const currentMode = searchParams.get('mode');
-    if (currentMode === 'gallery' || currentMode === 'saved') {
-      setMode(currentMode);
-    }
-  }, [searchParams, setMode]);
-
   // Update URL when mode changes
   useEffect(() => {
     const currentParams = new URLSearchParams(searchParams.toString());
-    
+
     if (mode === null) {
-      currentParams.delete('mode');
+      currentParams.delete("mode");
     } else {
-      currentParams.set('mode', mode);
+      currentParams.set("mode", mode);
     }
-    
-    const newUrl = `${pathname}${currentParams.toString() ? `?${currentParams.toString()}` : ''}`;
+
+    const newUrl = `${pathname}${currentParams.toString() ? `?${currentParams.toString()}` : ""}`;
     router.replace(newUrl, { scroll: false });
   }, [mode, pathname, router, searchParams]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -100,7 +92,7 @@ export function MarketplacePage({
   // Write mode and category to URL when they change
   useEffect(() => {
     const params = new URLSearchParams(Array.from(searchParams.entries()));
-    if (mode === "browse") {
+    if (mode === "browse" || mode === null) {
       params.delete("mode");
     } else {
       params.set("mode", mode);
@@ -183,14 +175,14 @@ export function MarketplacePage({
           {/* Cards / Available Prompts */}
           <section className="relative pb-24 md:pb-28">
             {/* Mode-specific content */}
-            {mode === 'gallery' ? (
+            {mode === "gallery" ? (
               <MarketplaceGallery
                 prompts={filteredPrompts}
                 onCreditsUpdate={refreshCredits}
                 onShowAuthModal={() => openModal("auth")}
                 onPromptClick={openPromptDetail}
               />
-            ) : mode === 'saved' ? (
+            ) : mode === "saved" ? (
               <MarketplaceSaved
                 prompts={filteredPrompts}
                 onCreditsUpdate={refreshCredits}
@@ -214,10 +206,10 @@ export function MarketplacePage({
       </main>
 
       {/* Footer */}
-      <Footer 
-        productName = "Apakek Prompt"
-        parentBrand = "UMKMJaya"
-        org = "Bontang Techno Hub"
+      <Footer
+        productName="Apakek Prompt"
+        parentBrand="UMKMJaya"
+        org="Bontang Techno Hub"
         lastUpdated="2025-11-01"
       />
 

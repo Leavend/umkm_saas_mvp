@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Images, Bookmark } from "lucide-react";
+import { Images, Bookmark, Square, FileText } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
 
@@ -11,7 +11,7 @@ interface FloatingButtonsProps {
 }
 
 export function FloatingButtons({ className }: FloatingButtonsProps) {
-  const { mode, setMode } = useMarketUI();
+  const { mode, setMode, cardViewMode, setCardViewMode } = useMarketUI();
 
   const pill =
     "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-xl select-none " +
@@ -26,36 +26,63 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
 
   return (
     <div
-      className={`fixed bottom-safe z-50 hidden items-center gap-2 md:flex ${className ?? ""} `}
+      className={`bottom-safe fixed z-50 hidden flex-col items-center gap-2 md:flex ${className ?? ""} `}
       style={{
         right:
           "max(1rem, calc((100vw - var(--page-max)) / 2 + var(--page-gutter)))",
       }}
       aria-label="Floating actions"
     >
-      <button
-        type="button"
-        aria-label="Gallery"
-        aria-pressed={mode === "gallery"}
-        data-state={mode === "gallery" ? "on" : "off"}
-        onClick={() => setMode(mode === "gallery" ? "browse" : "gallery")}
-        className={cn(pill, mode === "gallery" ? on : off)}
-      >
-        <Images className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-        <span>Gallery</span>
-      </button>
+      {/* Card View Mode Buttons */}
+      <div className="flex gap-2" aria-label="Card view modes">
+        <button
+          type="button"
+          aria-label="Image only view"
+          aria-pressed={cardViewMode === "image-only"}
+          onClick={() => setCardViewMode(cardViewMode === "image-only" ? "default" : "image-only")}
+          className={cn(pill, cardViewMode === "image-only" ? on : off)}
+        >
+          <Square className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span>Images</span>
+        </button>
+        <button
+          type="button"
+          aria-label="Full description view"
+          aria-pressed={cardViewMode === "full-description"}
+          onClick={() => setCardViewMode(cardViewMode === "full-description" ? "default" : "full-description")}
+          className={cn(pill, cardViewMode === "full-description" ? on : off)}
+        >
+          <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span>Full</span>
+        </button>
+      </div>
 
-      <button
-        type="button"
-        aria-label="Saved"
-        aria-pressed={mode === "saved"}
-        data-state={mode === "saved" ? "on" : "off"}
-        onClick={() => setMode(mode === "saved" ? "browse" : "saved")}
-        className={cn(pill, mode === "saved" ? on : off)}
-      >
-        <Bookmark className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-        <span>Saved</span>
-      </button>
+      {/* Content Mode Buttons */}
+      <div className="flex gap-2" aria-label="Content modes">
+        <button
+          type="button"
+          aria-label="Gallery"
+          aria-pressed={mode === "gallery"}
+          data-state={mode === "gallery" ? "on" : "off"}
+          onClick={() => setMode(mode === "gallery" ? "browse" : "gallery")}
+          className={cn(pill, mode === "gallery" ? on : off)}
+        >
+          <Images className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span>Gallery</span>
+        </button>
+
+        <button
+          type="button"
+          aria-label="Saved"
+          aria-pressed={mode === "saved"}
+          data-state={mode === "saved" ? "on" : "off"}
+          onClick={() => setMode(mode === "saved" ? "browse" : "saved")}
+          className={cn(pill, mode === "saved" ? on : off)}
+        >
+          <Bookmark className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span>Saved</span>
+        </button>
+      </div>
     </div>
   );
 }

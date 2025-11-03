@@ -42,7 +42,8 @@ export function PromptDetailModal({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        toast.error(result.error);
+        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        toast.error(errorMessage);
         return;
       }
 
@@ -83,27 +84,26 @@ export function PromptDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0">
-        <DialogHeader className="p-6 pb-0">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <DialogTitle className="pr-8 text-2xl font-bold text-slate-900">
+      <DialogContent className="mx-4 max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0 sm:mx-0">
+        <DialogHeader className="p-4 pb-0 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="pr-8 text-xl font-bold break-words text-slate-900 sm:text-2xl">
                 {prompt.title}
               </DialogTitle>
-              <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
+              <div className="mt-2 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex items-center gap-1">
-                  <Tag className="h-4 w-4" />
+                  <Tag className="h-4 w-4 flex-shrink-0" />
                   <Badge
                     variant="secondary"
-                    className="bg-brand-100 text-brand-800"
+                    className="bg-brand-100 text-brand-800 text-xs sm:text-sm"
                   >
                     {prompt.category}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    Last updated:{" "}
+                  <Clock className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">
                     {new Date(prompt.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -121,47 +121,58 @@ export function PromptDetailModal({
           </div>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
           {/* Image */}
-          <div className="relative mb-6 h-64 w-full overflow-hidden rounded-lg bg-slate-100 md:h-80">
+          <div className="relative mb-4 h-48 w-full overflow-hidden rounded-lg bg-slate-100 sm:mb-6 sm:h-64 md:h-80">
             <Image
               src={prompt.imageUrl}
               alt={prompt.title}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 768px) calc(100vw - 3rem), (max-width: 1024px) calc(100vw - 3rem), 896px"
             />
           </div>
 
           {/* Description */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <h3 className="mb-2 text-lg font-semibold text-slate-900">
               Description
             </h3>
-            <p className="leading-relaxed text-slate-700">{prompt.text}</p>
+            <p className="text-sm leading-relaxed text-slate-700 sm:text-base">
+              {prompt.text}
+            </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 border-t border-slate-200 pt-4">
+          <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row">
             <Button
-              className="bg-brand-500 hover:bg-brand-600 focus-visible:ring-brand-500/50 flex-1 gap-2 text-slate-900"
+              className="bg-brand-500 hover:bg-brand-600 focus-visible:ring-brand-500/50 w-full gap-2 text-slate-900 sm:flex-1"
               disabled={isLoading || isCopied}
               onClick={handleCopy}
             >
               {isLoading ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-                  {translations.promptCard.copying}
+                  <span className="hidden sm:inline">
+                    {translations.promptCard.copying}
+                  </span>
+                  <span className="sm:hidden">{translations.promptCard.copying}</span>
                 </>
               ) : isCopied ? (
                 <>
                   <Check className="h-4 w-4" />
-                  {translations.promptCard.copied}
+                  <span className="hidden sm:inline">
+                    {translations.promptCard.copied}
+                  </span>
+                  <span className="sm:hidden">{translations.promptCard.copied}</span>
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4" />
-                  {translations.promptCard.copyPrompt}
+                  <span className="hidden sm:inline">
+                    {translations.promptCard.copyPrompt}
+                  </span>
+                  <span className="sm:hidden">{translations.promptCard.copyPrompt}</span>
                 </>
               )}
             </Button>
@@ -169,7 +180,7 @@ export function PromptDetailModal({
             <Button
               variant="outline"
               onClick={onClose}
-              className="focus-visible:ring-brand-500/50 px-6"
+              className="focus-visible:ring-brand-500/50 w-full px-6 sm:w-auto"
             >
               Close
             </Button>

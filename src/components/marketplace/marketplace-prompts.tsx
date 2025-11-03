@@ -3,7 +3,9 @@
 import { Search } from "lucide-react";
 import { PromptCard } from "~/components/prompt-card";
 import { PromptListItem } from "~/components/prompt-list-item";
+import { PromptPhotoCard } from "~/components/prompt-photo-card";
 import { useTranslations } from "~/components/language-provider";
+import { useMarketUI } from "~/stores/use-market-ui";
 import type { Prompt } from "@prisma/client";
 
 interface MarketplacePromptsProps {
@@ -12,6 +14,7 @@ interface MarketplacePromptsProps {
   onShowAuthModal: () => void;
   onPromptClick: (prompt: Prompt) => void;
   view?: "grid" | "list";
+  mode?: string;
 }
 
 export function MarketplacePrompts({
@@ -20,8 +23,10 @@ export function MarketplacePrompts({
   onShowAuthModal,
   onPromptClick,
   view = "grid",
+  mode: _mode,
 }: MarketplacePromptsProps) {
   const translations = useTranslations();
+  const { mobileViewMode } = useMarketUI();
 
   if (prompts.length === 0) {
     return (
@@ -54,8 +59,26 @@ export function MarketplacePrompts({
     );
   }
 
+  // Mobile photo-only view
+  if (mobileViewMode === "photo-only") {
+    return (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        {prompts.map((prompt) => (
+          <PromptPhotoCard
+            key={prompt.id}
+            prompt={prompt}
+            onCreditsUpdate={onCreditsUpdate}
+            onShowAuthModal={onShowAuthModal}
+            onClick={onPromptClick}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Default grid view
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-5">
       {prompts.map((prompt) => (
         <PromptCard
           key={prompt.id}

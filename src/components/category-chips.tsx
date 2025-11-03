@@ -54,13 +54,13 @@ export function CategoryChips({
   return (
     <div className={className}>
       {/* Two columns: left = scrollable chips, right = fixed Clear */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* SCROLL CONTAINER: grows, never wraps */}
         <div
           ref={containerRef}
           role="tablist"
           aria-label="Categories"
-          className="flex min-w-0 flex-1 snap-x snap-proximity flex-nowrap items-center gap-2 overflow-x-auto overscroll-x-contain pb-1 whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex min-w-0 flex-1 snap-x snap-proximity flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pb-1 whitespace-nowrap [scrollbar-width:none] sm:gap-2 [&::-webkit-scrollbar]:hidden"
         >
           {realCategories.map((category) => {
             const isSelected = selectedCategory === category;
@@ -72,7 +72,7 @@ export function CategoryChips({
                 role="tab"
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
-                className={`focus-visible:ring-brand-500/50 inline-flex flex-shrink-0 items-center rounded-full border px-3 py-1.5 text-sm capitalize transition-colors focus:outline-none focus-visible:ring-2 ${
+                className={`focus-visible:ring-brand-500/50 inline-flex flex-shrink-0 items-center rounded-full border px-2 py-1 text-xs capitalize transition-colors focus:outline-none focus-visible:ring-2 sm:px-3 sm:py-1.5 sm:text-sm ${
                   isSelected
                     ? "bg-brand-500 border-brand-300 text-slate-900"
                     : "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200"
@@ -90,7 +90,7 @@ export function CategoryChips({
         {selectedCategory && (
           <button
             onClick={clearAll}
-            className="focus-visible:ring-brand-500/50 inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2"
+            className="focus-visible:ring-brand-500/50 inline-flex shrink-0 items-center rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 sm:px-3 sm:py-1.5 sm:text-sm"
             aria-label="Clear selected category"
           >
             Clear

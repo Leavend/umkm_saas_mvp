@@ -35,14 +35,14 @@ export function QuickStartPills({
 }) {
   const pill =
     "inline-flex items-center gap-2 rounded-full " +
-    "h-9 md:h-10 px-3 md:px-4 text-sm font-medium " +
+    "h-8 sm:h-9 md:h-10 px-2 sm:px-3 md:px-4 text-xs sm:text-sm font-medium " +
     "border border-slate-200 bg-white shadow-sm text-slate-900 " +
     "hover:bg-slate-100 active:bg-slate-200 " +
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 " +
-    "transition duration-150";
+    "transition duration-150 flex-shrink-0";
 
   return (
-    <div className="flex flex-wrap items-center gap-2 md:gap-3">
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
       {items.map((it) => (
         <button
           key={it.id}
@@ -51,8 +51,10 @@ export function QuickStartPills({
           onClick={() => onSelect(it.id)}
           className={cn(pill)}
         >
-          {it.icon}
-          <span>{it.label}</span>
+          <span className="hidden sm:inline">{it.icon}</span>
+          <span className="max-w-[100px] truncate sm:max-w-none">
+            {it.label}
+          </span>
         </button>
       ))}
     </div>

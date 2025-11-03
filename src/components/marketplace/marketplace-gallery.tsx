@@ -11,20 +11,24 @@ interface MarketplaceGalleryProps {
 
 export function MarketplaceGallery({
   prompts,
-  onCreditsUpdate,
-  onShowAuthModal,
+  onCreditsUpdate: _onCreditsUpdate,
+  onShowAuthModal: _onShowAuthModal,
   onPromptClick,
 }: MarketplaceGalleryProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-slate-900">Gallery View</h2>
-        <p className="text-slate-600 mt-2">Browse all prompts in gallery mode</p>
+        <p className="mt-2 text-slate-600">
+          Browse all prompts in gallery mode
+        </p>
       </div>
-      
+
       <MarketplacePrompts
         prompts={prompts}
         mode="gallery"
+        onCreditsUpdate={_onCreditsUpdate}
+        onShowAuthModal={_onShowAuthModal}
         onPromptClick={onPromptClick}
       />
     </div>

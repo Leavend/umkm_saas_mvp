@@ -15,6 +15,8 @@ import {
 } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { copyPrompt } from "~/actions/prompts";
+import { cn } from "~/lib/utils";
+import { useMarketUI } from "~/stores/use-market-ui";
 import type { Prompt } from "@prisma/client";
 
 interface PromptCardProps {
@@ -23,6 +25,7 @@ interface PromptCardProps {
   onShowAuthModal?: () => void;
   onClick?: (prompt: Prompt) => void;
   reviewSafeImage?: boolean;
+  cardViewMode?: "default" | "image-only" | "full-description";
 }
 
 export function PromptCard({
@@ -31,10 +34,14 @@ export function PromptCard({
   onShowAuthModal,
   onClick,
   reviewSafeImage,
+  cardViewMode,
 }: PromptCardProps) {
   const translations = useTranslations();
+  const { cardViewMode: globalCardViewMode } = useMarketUI();
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  const currentCardViewMode = cardViewMode ?? globalCardViewMode;
 
   const handleCopy = async () => {
     try {
@@ -43,9 +50,10 @@ export function PromptCard({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        toast.error(result.error);
+        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        toast.error(errorMessage);
         // If insufficient credits and we have a callback to show auth modal, use it
-        if (result.error.includes("Insufficient credits") && onShowAuthModal) {
+        if (typeof result.error === 'string' && result.error.includes("Insufficient credits") && onShowAuthModal) {
           onShowAuthModal();
         }
         return;
@@ -79,14 +87,23 @@ export function PromptCard({
 
   return (
     <Card
-      className="group focus-visible:ring-brand-500/50 relative flex h-full cursor-pointer flex-col overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+      className={`group focus-visible:ring-brand-500/50 relative flex h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2 ${
+        currentCardViewMode === "image-only" ? "aspect-square" : "flex-col"
+      }`}
       onClick={() => onClick?.(prompt)}
       tabIndex={0}
       role="button"
       aria-label={`View details for ${prompt.title}`}
     >
       {/* Image */}
-      <div className="relative aspect-[4/5] overflow-hidden rounded-t-2xl bg-slate-100">
+      <div
+        className={cn(
+          "relative overflow-hidden",
+          currentCardViewMode === "image-only"
+            ? "h-full w-full rounded-2xl bg-slate-100"
+            : "aspect-[4/5] sm:aspect-[3/4] rounded-t-2xl bg-slate-100",
+        )}
+      >
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -95,52 +112,65 @@ export function PromptCard({
           loading="lazy"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
-        <Badge className="bg-brand-500 absolute top-2 right-2 text-slate-900">
+        <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
           {prompt.category}
         </Badge>
       </div>
 
-      {/* Content */}
-      <CardHeader className="flex-1">
-        <CardTitle className="line-clamp-1 text-base leading-tight font-semibold [text-wrap:balance] text-slate-800 md:text-lg">
-          {prompt.title}
-        </CardTitle>
-        <CardDescription className="mt-1 line-clamp-2 text-sm text-slate-600">
-          {prompt.text}
-        </CardDescription>
-      </CardHeader>
+      {/* Content - Hidden for image-only mode */}
+      {currentCardViewMode !== "image-only" && (
+        <CardHeader className={`flex-1 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}>
+          <CardTitle className={`line-clamp-1 leading-tight font-semibold [text-wrap:balance] text-slate-800 ${currentCardViewMode === "full-description" ? "text-base sm:text-lg" : "text-sm sm:text-base md:text-lg"}`}>
+            {prompt.title}
+          </CardTitle>
+          <CardDescription className={`mt-1 text-slate-600 ${currentCardViewMode === "full-description" ? "text-sm sm:text-base line-clamp-none" : "text-xs sm:text-sm line-clamp-2"}`}>
+            {prompt.text}
+          </CardDescription>
+        </CardHeader>
+      )}
 
-      {/* Footer with Copy Button */}
-      <CardFooter className="rounded-xl border border-slate-200 p-3">
-        <Button
-          className={`focus-visible:ring-brand-500/50 w-full gap-2 rounded-md px-3 py-2 text-sm focus-visible:ring-2 ${
-            isCopied
-              ? "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900"
-              : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
-          }`}
-          disabled={isLoading || isCopied}
-          onClick={handleCopy}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {translations.promptCard.copying}
-            </>
-          ) : isCopied ? (
-            <>
-              <Check className="h-4 w-4" />
-              {translations.promptCard.copied}
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4" />
-              {translations.promptCard.copyPrompt}
-            </>
-          )}
-        </Button>
-      </CardFooter>
+      {/* Footer with Copy Button - Hidden for image-only mode */}
+      {currentCardViewMode !== "image-only" && (
+        <CardFooter className={`rounded-xl border border-slate-200 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}>
+          <Button
+            className={`focus-visible:ring-brand-500/50 w-full gap-2 rounded-md px-3 py-2 text-xs focus-visible:ring-2 sm:text-sm ${
+              isCopied
+                ? "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900"
+                : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
+            }`}
+            disabled={isLoading || isCopied}
+            onClick={handleCopy}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">
+                  {translations.promptCard.copying}
+                </span>
+                <span className="sm:hidden">{translations.promptCard.copying}</span>
+              </>
+            ) : isCopied ? (
+              <>
+                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">
+                  {translations.promptCard.copied}
+                </span>
+                <span className="sm:hidden">{translations.promptCard.copied}</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">
+                  {translations.promptCard.copyPrompt}
+                </span>
+                <span className="sm:hidden">{translations.promptCard.copyPrompt}</span>
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

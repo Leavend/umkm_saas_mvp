@@ -8,7 +8,7 @@ import { deductCredits } from "./projects";
 
 type ActionError = {
   success: false;
-  error: string;
+  error: string | { code: string; message: string };
 };
 
 type PromptsListSuccess = {
@@ -98,6 +98,15 @@ export async function copyPrompt(
     };
   } catch (error: unknown) {
     console.error("Copy prompt error:", error);
+    if (error instanceof Error && error.message.includes("Not enough credits")) {
+      return {
+        success: false,
+        error: {
+          code: "INSUFFICIENT_CREDITS",
+          message: "You do not have enough credits to perform this action.",
+        },
+      };
+    }
     return {
       success: false,
       error: "Failed to copy prompt. Please try again.",

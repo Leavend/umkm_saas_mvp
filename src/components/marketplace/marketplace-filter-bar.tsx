@@ -5,7 +5,6 @@ import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { MarketplaceSearch } from "./marketplace-search";
 import { CategoryChips } from "~/components/category-chips";
-import { useIsMobile } from "~/hooks/use-mobile";
 
 interface MarketplaceFilterBarProps {
   searchQuery: string;
@@ -22,7 +21,6 @@ export function MarketplaceFilterBar({
   onCategoriesChange,
 }: MarketplaceFilterBarProps) {
   const { isSearchOpen, closeSearch, toggleSearch } = useMarketUI();
-  const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
@@ -91,18 +89,6 @@ export function MarketplaceFilterBar({
     };
   }, [isSearchOpen, handleClickOutside]);
 
-  useEffect(() => {
-    if (isSearchOpen && isMobile) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isSearchOpen, isMobile]);
-
   // Set header height CSS variable on mount
   useEffect(() => {
     const header = document.getElementById("site-header");
@@ -119,7 +105,7 @@ export function MarketplaceFilterBar({
     <section
       id="filter-bar"
       className={cn(
-        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/80 backdrop-blur transition-all duration-300 ease-in-out supports-[backdrop-filter]:bg-white/60",
+        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/60 backdrop-blur transition-all duration-300 ease-in-out supports-[backdrop-filter]:bg-white/30",
         "md:border-b",
         isSearchOpen
           ? "border-b shadow-sm md:shadow-none"

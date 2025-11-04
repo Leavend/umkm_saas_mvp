@@ -5,14 +5,7 @@
 import { useState } from "react";
 import Image from "next/image";
 // Impor ikon baru
-import {
-  Copy,
-  Loader2,
-  Check,
-  Share2,
-  Bookmark,
-  Send,
-} from "lucide-react";
+import { Copy, Loader2, Check, Share2, Bookmark, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
@@ -56,7 +49,9 @@ export function PromptCard({
       const result = await copyPrompt(prompt.id);
       if (!result.success) {
         const errorMessage =
-          typeof result.error === "string" ? result.error : result.error.message;
+          typeof result.error === "string"
+            ? result.error
+            : result.error.message;
         toast.error(errorMessage);
         if (
           typeof result.error === "string" &&
@@ -97,13 +92,13 @@ export function PromptCard({
     // ... (kode untuk mode image-only tetap sama)
     return (
       <Card
-        className="group focus-visible:ring-brand-500/50 relative flex h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2 aspect-square"
+        className="group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
         onClick={() => onClick?.(prompt)}
         tabIndex={0}
         role="button"
         aria-label={`View details for ${prompt.title}`}
       >
-        <div className="relative overflow-hidden h-full w-full rounded-2xl bg-slate-100">
+        <div className="relative h-full w-full overflow-hidden rounded-2xl bg-slate-100">
           <Image
             src={prompt.imageUrl}
             alt={prompt.title}
@@ -126,13 +121,13 @@ export function PromptCard({
   return (
     <Card
       // Hapus padding 'py-6' dari Card
-      className="focus-visible:ring-brand-500/50 p-0 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+      className="focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2"
       tabIndex={0}
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
       {/* Gambar Review Full */}
-      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden rounded-t-2xl">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -200,12 +195,12 @@ export function PromptCard({
           <Separator className="my-0 bg-slate-300" />
 
           {/* 5. Tombol Bawah (Di dalam container) */}
-          <div className="flex items-center justify-between gap-2 p-2.5">
+          <div className="flex flex-wrap items-center gap-2 p-2.5">
             {/* Tombol Generate (Menghapus w-full, menggunakan flex-1) */}
             <Button
               size="sm"
               variant="outline"
-              className="h-7 flex-1 gap-1.5 text-xs sm:flex-none sm:w-auto sm:text-sm"
+              className="h-7 flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs"
               onClick={() => onClick?.(prompt)}
             >
               <Send className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -216,7 +211,7 @@ export function PromptCard({
             <Button
               size="sm"
               className={cn(
-                "h-7 flex-1 gap-1.5 text-xs sm:flex-none sm:w-auto sm:text-sm",
+                "h-7 flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs",
                 isCopied
                   ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
                   : "bg-brand-500 hover:bg-brand-600 text-slate-900",

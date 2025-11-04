@@ -89,7 +89,7 @@ export function PromptCard({
 
   // Menjaga fungsionalitas mode image-only
   if (currentCardViewMode === "image-only") {
-    // ... (kode untuk mode image-only tetap sama, saya biarkan di sini untuk kelengkapan)
+    // ... (kode untuk mode image-only tetap sama)
     return (
       <Card
         className="group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
@@ -120,13 +120,14 @@ export function PromptCard({
   // --- DESAIN KARTU BARU SESUAI GAMBAR 2 ---
   return (
     <Card
-      className="focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+      // 1. Menghapus padding 'py-6' dari Card
+      className="focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2"
       tabIndex={0}
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
-      {/* 1. Gambar Review Full - menghapus padding untuk memenuhi kartu */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
+      {/* Gambar Review Full (Sudah benar dengan rounded-t-2xl) */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -160,8 +161,8 @@ export function PromptCard({
       </div>
 
       {/* Konten di bawah gambar */}
-      <div className="flex flex-1 flex-col p-3 sm:p-4">
-        {/* 3. Kategori */}
+      <div className="flex flex-1 flex-col p-3 pt-2 sm:p-4">
+        {/* Kategori */}
         <div className="mb-2 flex flex-wrap gap-1">
           <Badge
             variant="secondary"
@@ -169,20 +170,19 @@ export function PromptCard({
           >
             {prompt.category}
           </Badge>
-          {/* Tambahkan badge lain di sini jika data Anda mendukung */}
         </div>
 
-        {/* 2. Deskripsi Scrollable (Menambahkan kelas scrollbar) */}
-        <div className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 h-24 overflow-y-auto">
+        {/* 2. Deskripsi Scrollable (Menghapus kelas scrollbar-thin) */}
+        <div className="h-24 overflow-y-auto">
           <p className="text-sm text-slate-700">{prompt.text}</p>
         </div>
 
-        {/* 5. Separator */}
+        {/* Separator */}
         <Separator className="my-3" />
 
-        {/* 6. Tombol Bawah */}
-        <div className="mt-auto flex items-center justify-between gap-2">
-          {/* 3. Tombol Generate (Menambahkan size="sm") */}
+        {/* Tombol Bawah */}
+        <div className="flex items-center justify-between gap-2">
+          {/* 3. Tombol Generate (Menggunakan size="sm" h-8) */}
           <Button
             size="sm"
             variant="outline"
@@ -193,7 +193,7 @@ export function PromptCard({
             {translations.common.actions.goToGenerate}
           </Button>
 
-          {/* 3. Tombol Copy (Menambahkan size="sm") */}
+          {/* 3. Tombol Copy (Menggunakan size="sm" h-8) */}
           <Button
             size="sm"
             className={cn(

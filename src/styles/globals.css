@@ -108,7 +108,7 @@
   --page-max: 1200px;
   --page-gutter: 1rem; /* mobile: 16px */
   --page-gutter-md: 2rem; /* md: 32px */
-  
+
   /* Brand color tokens */
   --brand-50: #fff7e6;
   --brand-100: #feefcc;
@@ -218,14 +218,14 @@
       padding-inline: 2rem;
     }
   }
-  
+
   /* Hide scrollbars while keeping functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari, Opera*/
+    display: none; /* Chrome, Safari, Opera*/
   }
 
   /* Responsive text utilities */
@@ -269,36 +269,36 @@
   .gap-responsive-4 {
     @apply gap-4 sm:gap-6;
   }
-  
+
   /* Custom gap utilities */
   .gap-126 {
     gap: 31.5rem; /* 504px */
   }
-  
+
   @media (max-width: 1200px) {
     .gap-126 {
       gap: 24rem; /* 384px */
     }
   }
-  
+
   @media (max-width: 1024px) {
     .gap-126 {
       gap: 18rem; /* 288px */
     }
   }
-  
+
   @media (max-width: 768px) {
     .gap-126 {
       gap: 12rem; /* 192px */
     }
   }
-  
+
   @media (max-width: 640px) {
     .gap-126 {
       gap: 8rem; /* 128px */
     }
   }
-  
+
   @media (max-width: 480px) {
     .gap-126 {
       gap: 4rem; /* 64px */
@@ -329,7 +329,8 @@
 /* Saat footer kelihatan → dorong FAB ke atas setinggi footer */
 .fab-push-up {
   bottom: calc(
-    var(--fb-bottom) + var(--footer-h) + var(--fab-gap) + env(safe-area-inset-bottom)
+    var(--fb-bottom) + var(--footer-h) + var(--fab-gap) +
+      env(safe-area-inset-bottom)
   );
 }
 
@@ -357,13 +358,6 @@
     backface-visibility: hidden;
     transform: translateZ(0);
   }
-  
-  /* Prevent body scroll when search is open */
-  body.search-open {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-  }
 }
 
 /* Extra small mobile optimizations */
@@ -372,7 +366,7 @@
   #site-header {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   /* Brand text truncation on very small screens */
   .brand-text-truncate {
     max-width: 120px;
@@ -380,13 +374,13 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
+
   @media (max-width: 480px) {
     .brand-text-truncate {
       max-width: 100px;
     }
   }
-  
+
   @media (max-width: 400px) {
     .brand-text-truncate {
       max-width: 80px;

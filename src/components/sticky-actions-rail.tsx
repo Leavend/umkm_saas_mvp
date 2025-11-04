@@ -3,6 +3,7 @@
 
 import { Images, Bookmark } from "lucide-react";
 import { useMarketUI } from "~/stores/use-market-ui";
+import { cn } from "~/lib/utils";
 
 interface StickyActionsRailProps {
   onGalleryClick?: () => void;
@@ -40,7 +41,10 @@ export function StickyActionsRail({
     <div
       role="region"
       aria-label="Quick actions"
-      className="pointer-events-none sticky bottom-[max(16px,env(safe-area-inset-bottom)+12px)] z-40 flex justify-end"
+      className={cn(
+        "pointer-events-none sticky bottom-[max(16px,env(safe-area-inset-bottom)+12px)] z-40 justify-end",
+        "hidden md:flex",
+      )}
       style={{
         maxWidth: "var(--page-max)",
         paddingLeft: "var(--page-gutter)",

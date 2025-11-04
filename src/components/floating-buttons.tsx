@@ -39,7 +39,11 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
           type="button"
           aria-label="Image only view"
           aria-pressed={cardViewMode === "image-only"}
-          onClick={() => setCardViewMode(cardViewMode === "image-only" ? "default" : "image-only")}
+          onClick={() =>
+            setCardViewMode(
+              cardViewMode === "image-only" ? "default" : "image-only",
+            )
+          }
           className={cn(pill, cardViewMode === "image-only" ? on : off)}
         >
           <Square className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
@@ -49,7 +53,13 @@ export function FloatingButtons({ className }: FloatingButtonsProps) {
           type="button"
           aria-label="Full description view"
           aria-pressed={cardViewMode === "full-description"}
-          onClick={() => setCardViewMode(cardViewMode === "full-description" ? "default" : "full-description")}
+          onClick={() =>
+            setCardViewMode(
+              cardViewMode === "full-description"
+                ? "default"
+                : "full-description",
+            )
+          }
           className={cn(pill, cardViewMode === "full-description" ? on : off)}
         >
           <FileText className="h-4 w-4 flex-shrink-0" aria-hidden="true" />

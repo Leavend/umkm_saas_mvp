@@ -41,9 +41,16 @@ export function PromptListItem({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        const errorMessage =
+          typeof result.error === "string"
+            ? result.error
+            : result.error.message;
         toast.error(errorMessage);
-        if (typeof result.error === 'string' && result.error.includes("Insufficient credits") && onShowAuthModal) {
+        if (
+          typeof result.error === "string" &&
+          result.error.includes("Insufficient credits") &&
+          onShowAuthModal
+        ) {
           onShowAuthModal();
         }
         return;
@@ -82,17 +89,23 @@ export function PromptListItem({
       aria-label={`View details for ${prompt.title}`}
     >
       {/* Thumbnail */}
-      <div className={`relative flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 ${
-        currentCardViewMode === "full-description" 
-          ? "h-48 w-full sm:h-64" 
-          : "h-16 w-16 sm:h-20 sm:w-20"
-      }`}>
+      <div
+        className={`relative flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 ${
+          currentCardViewMode === "full-description"
+            ? "h-48 w-full sm:h-64"
+            : "h-16 w-16 sm:h-20 sm:w-20"
+        }`}
+      >
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
           fill
           className="object-cover object-center"
-          sizes={currentCardViewMode === "full-description" ? "(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw" : "(max-width: 640px) 64px, 80px"}
+          sizes={
+            currentCardViewMode === "full-description"
+              ? "(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+              : "(max-width: 640px) 64px, 80px"
+          }
         />
         <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
           {prompt.category}
@@ -100,21 +113,33 @@ export function PromptListItem({
       </div>
 
       {/* Content */}
-      <div className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "w-full" : ""}`}>
-        <div className={`flex items-start justify-between gap-2 ${
-          currentCardViewMode === "full-description" ? "flex-col gap-3" : ""
-        }`}>
-          <div className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "text-center" : ""}`}>
-            <h3 className={`line-clamp-1 font-semibold text-slate-900 ${
-              currentCardViewMode === "full-description" ? "text-base sm:text-lg mb-2" : "text-sm sm:text-base"
-            }`}>
+      <div
+        className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "w-full" : ""}`}
+      >
+        <div
+          className={`flex items-start justify-between gap-2 ${
+            currentCardViewMode === "full-description" ? "flex-col gap-3" : ""
+          }`}
+        >
+          <div
+            className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "text-center" : ""}`}
+          >
+            <h3
+              className={`line-clamp-1 font-semibold text-slate-900 ${
+                currentCardViewMode === "full-description"
+                  ? "mb-2 text-base sm:text-lg"
+                  : "text-sm sm:text-base"
+              }`}
+            >
               {prompt.title}
             </h3>
-            <p className={`text-slate-600 ${
-              currentCardViewMode === "full-description" 
-                ? "text-sm sm:text-base" 
-                : "mt-1 line-clamp-1 text-xs sm:line-clamp-2 sm:text-sm"
-            }`}>
+            <p
+              className={`text-slate-600 ${
+                currentCardViewMode === "full-description"
+                  ? "text-sm sm:text-base"
+                  : "mt-1 line-clamp-1 text-xs sm:line-clamp-2 sm:text-sm"
+              }`}
+            >
               {prompt.text}
             </p>
           </div>

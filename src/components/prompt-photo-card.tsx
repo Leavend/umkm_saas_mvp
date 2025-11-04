@@ -193,7 +193,7 @@ export function PromptPhotoCard({
               ) : (
                 <>
                   <Copy className="mr-2 h-4 w-4" />
-                  {translations.promptCard.copyPrompt} (1 Credit)
+                  {translations.promptCard.copyPrompt}
                 </>
               )}
             </Button>

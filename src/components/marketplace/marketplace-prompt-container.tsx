@@ -6,6 +6,7 @@ import { Images, Bookmark } from "lucide-react";
 import { Container } from "~/components/container";
 import { MarketplacePrompts } from "./marketplace-prompts";
 import { useMarketUI } from "~/stores/use-market-ui";
+import { useTranslations } from "~/components/language-provider";
 import type { Prompt } from "@prisma/client";
 import type { Mode } from "~/stores/use-market-ui";
 
@@ -45,6 +46,7 @@ export function MarketplacePromptContainer({
   onPromptClick,
 }: MarketplacePromptContainerProps) {
   const { view } = useMarketUI();
+  const translations = useTranslations();
 
   return (
     <section className="mt-6 pb-28 md:mt-8 md:pb-10">
@@ -52,16 +54,16 @@ export function MarketplacePromptContainer({
         {mode === "gallery" && (
           <EmptyPanel
             icon={Images}
-            title="Gallery"
-            desc="Your generated images appear here."
+            title={translations.marketplace.galleryTitle}
+            desc={translations.marketplace.galleryDescription}
           />
         )}
 
         {mode === "saved" && (
           <EmptyPanel
             icon={Bookmark}
-            title="Saved"
-            desc="Your saved prompts appear here."
+            title={translations.marketplace.savedTitle}
+            desc={translations.marketplace.savedPromptsDescription}
           />
         )}
 
@@ -73,10 +75,10 @@ export function MarketplacePromptContainer({
             {/* Header "Available Prompts" tetap dipertahankan */}
             <div className="mb-4 flex items-center justify-between px-1">
               <h2 className="text-xl font-semibold text-slate-900">
-                Available Prompts
+                {translations.marketplace.availablePrompts}
               </h2>
               <div className="text-sm text-neutral-500">
-                {prompts.length} {prompts.length === 1 ? "prompt" : "prompts"}
+                {prompts.length} {prompts.length === 1 ? translations.marketplace.promptSingular : translations.marketplace.promptPlural}
               </div>
             </div>
 

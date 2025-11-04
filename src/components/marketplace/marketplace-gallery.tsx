@@ -1,4 +1,5 @@
 // src/components/marketplace/marketplace-gallery.tsx
+import { useTranslations } from "~/components/language-provider";
 import { MarketplacePrompts } from "./marketplace-prompts";
 import type { Prompt } from "@prisma/client";
 
@@ -15,12 +16,14 @@ export function MarketplaceGallery({
   onShowAuthModal: _onShowAuthModal,
   onPromptClick,
 }: MarketplaceGalleryProps) {
+  const translations = useTranslations();
+  
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Gallery View</h2>
+        <h2 className="text-2xl font-bold text-slate-900">{translations.marketplace.galleryView}</h2>
         <p className="mt-2 text-slate-600">
-          Browse all prompts in gallery mode
+          {translations.marketplace.browseAllPrompts}
         </p>
       </div>
 

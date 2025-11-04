@@ -168,7 +168,7 @@ export function PromptListItem({
         ) : (
           <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
         )}
-        <span className="ml-1 hidden sm:inline">Copy</span>
+        <span className="ml-1 hidden sm:inline">{translations.promptCard.copyPrompt}</span>
       </Button>
     </div>
   );

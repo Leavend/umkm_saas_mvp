@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
+import { useTranslations } from "~/components/language-provider";
 import { MarketplaceSearch } from "./marketplace-search";
 import { CategoryChips } from "~/components/category-chips";
 
@@ -23,6 +24,7 @@ export function MarketplaceFilterBar({
   const { isSearchOpen, closeSearch, toggleSearch } = useMarketUI();
   const inputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const translations = useTranslations();
 
   // Enhanced focus management with proper timing
   useEffect(() => {
@@ -150,7 +152,7 @@ export function MarketplaceFilterBar({
                 ref={inputRef}
                 searchQuery={searchQuery}
                 onSearchChange={onSearchChange}
-                placeholder="Search prompts..."
+                placeholder={translations.marketplace.searchPlaceholder}
               />
             </div>
             <div className="animate-in slide-in-from-top-2 duration-300">

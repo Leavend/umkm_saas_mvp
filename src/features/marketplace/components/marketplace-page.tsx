@@ -22,6 +22,7 @@ import { QuickStartPills } from "~/components/quick-start-pills";
 import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
 import { useCredits } from "~/hooks/use-credits";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
+import { useIsMobile } from "~/hooks/use-mobile";
 import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
 import type { MarketplacePageProps, ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
@@ -30,12 +31,22 @@ export function MarketplacePage({
   prompts: _prompts,
   lang,
 }: MarketplacePageProps) {
-  const { mode, setMode } = useMarketUI();
+  const { mode, setMode, setMobileViewMode } = useMarketUI();
+  const isMobile = useIsMobile();
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  // Set default view mode based on device
+  useEffect(() => {
+    if (isMobile) {
+      setMobileViewMode("photo-only"); // Grid view for mobile
+    } else {
+      setMobileViewMode("default"); // List view for desktop
+    }
+  }, [isMobile, setMobileViewMode]);
 
   // Update URL when mode changes
   useEffect(() => {

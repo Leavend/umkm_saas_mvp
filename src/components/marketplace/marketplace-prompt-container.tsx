@@ -78,7 +78,10 @@ export function MarketplacePromptContainer({
                 {translations.marketplace.availablePrompts}
               </h2>
               <div className="text-sm text-neutral-500">
-                {prompts.length} {prompts.length === 1 ? translations.marketplace.promptSingular : translations.marketplace.promptPlural}
+                {prompts.length}{" "}
+                {prompts.length === 1
+                  ? translations.marketplace.promptSingular
+                  : translations.marketplace.promptPlural}
               </div>
             </div>
 

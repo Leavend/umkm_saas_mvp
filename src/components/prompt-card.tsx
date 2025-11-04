@@ -4,12 +4,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
-// 1. Impor ikon baru
+// Impor ikon baru
 import { Copy, Loader2, Check, Share2, Bookmark, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
-// 2. Impor Separator
+// Impor Separator
 import { Separator } from "~/components/ui/separator";
 import { Card } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -89,6 +89,7 @@ export function PromptCard({
 
   // Menjaga fungsionalitas mode image-only
   if (currentCardViewMode === "image-only") {
+    // ... (kode untuk mode image-only tetap sama, saya biarkan di sini untuk kelengkapan)
     return (
       <Card
         className="group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
@@ -124,8 +125,8 @@ export function PromptCard({
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
-      {/* 1. Gambar Review Full + 2. Tombol Overlay */}
-      <div className="relative aspect-[4/3] w-full bg-slate-100">
+      {/* 1. Gambar Review Full (Menambahkan overflow-hidden dan rounded-t-2xl) */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -171,9 +172,8 @@ export function PromptCard({
           {/* Tambahkan badge lain di sini jika data Anda mendukung */}
         </div>
 
-        {/* 4. Deskripsi Scrollable */}
-        {/* Menggunakan h-24 (96px) untuk memberi ruang, sesuaikan jika perlu */}
-        <div className="h-24 overflow-y-auto [scrollbar-color:var(--brand-500)_transparent] [scrollbar-width:thin]">
+        {/* 2. Deskripsi Scrollable (Menambahkan kelas scrollbar) */}
+        <div className="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 h-24 overflow-y-auto">
           <p className="text-sm text-slate-700">{prompt.text}</p>
         </div>
 
@@ -182,19 +182,20 @@ export function PromptCard({
 
         {/* 6. Tombol Bawah */}
         <div className="flex items-center justify-between gap-2">
-          {/* Tombol Generate (kiri) */}
+          {/* 3. Tombol Generate (Menambahkan size="sm") */}
           <Button
+            size="sm"
             variant="outline"
             className="w-full flex-1 gap-1.5 text-xs sm:text-sm"
             onClick={() => onClick?.(prompt)}
           >
             <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-            {/* Menggunakan teks dari i18n */}
             {translations.common.actions.goToGenerate}
           </Button>
 
-          {/* Tombol Copy (kanan) */}
+          {/* 3. Tombol Copy (Menambahkan size="sm") */}
           <Button
+            size="sm"
             className={cn(
               "w-full flex-1 gap-1.5 text-xs sm:text-sm",
               isCopied
@@ -211,7 +212,6 @@ export function PromptCard({
             ) : (
               <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
             )}
-            {/* Teks tombol dinamis */}
             {isLoading
               ? translations.promptCard.copying
               : isCopied

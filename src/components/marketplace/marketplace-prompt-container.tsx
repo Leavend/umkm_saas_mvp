@@ -48,7 +48,7 @@ export function MarketplacePromptContainer({
 
   return (
     <section className="mt-6 pb-28 md:mt-8 md:pb-10">
-      <Container>
+      <Container className="h-full">
         {mode === "gallery" && (
           <EmptyPanel
             icon={Images}
@@ -65,11 +65,13 @@ export function MarketplacePromptContainer({
           />
         )}
 
+        {/* ===== PERUBAHAN DI SINI ===== */}
+        {/* Div pembungkus (rounded-2xl, border, bg-white, shadow-sm, p-6) telah dihapus */}
+        {/* Kita ganti dengan React Fragment <></> agar tidak ada div ekstra */}
         {mode === "browse" && (
-          <div
-            className={`flex flex-col rounded-2xl border border-slate-200 bg-white shadow-sm ${prompts.length ? "p-6" : "p-4"}`}
-          >
-            <div className="mb-3 flex items-center justify-between">
+          <>
+            {/* Header "Available Prompts" tetap dipertahankan */}
+            <div className="mb-4 flex items-center justify-between px-1">
               <h2 className="text-xl font-semibold text-slate-900">
                 Available Prompts
               </h2>
@@ -78,6 +80,7 @@ export function MarketplacePromptContainer({
               </div>
             </div>
 
+            {/* Komponen MarketplacePrompts (grid kartu) */}
             <MarketplacePrompts
               prompts={prompts}
               onCreditsUpdate={onCreditsUpdate}
@@ -85,8 +88,9 @@ export function MarketplacePromptContainer({
               onPromptClick={onPromptClick}
               view={view}
             />
-          </div>
+          </>
         )}
+        {/* ===== BATAS PERUBAHAN ===== */}
       </Container>
     </section>
   );

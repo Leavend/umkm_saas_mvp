@@ -201,22 +201,22 @@ export function PromptCard({
 
           {/* 5. Tombol Bawah (Di dalam container) */}
           <div className="flex items-center justify-between gap-2 p-2.5">
-            {/* Tombol Generate (Menggunakan h-7) */}
+            {/* Tombol Generate (Menghapus w-full, menggunakan flex-1) */}
             <Button
               size="sm"
               variant="outline"
-              className="h-7 w-full flex-1 gap-1.5 text-xs sm:text-sm" // DIUBAH: size="sm" + h-7
+              className="h-7 flex-1 gap-1.5 text-xs sm:flex-none sm:w-auto sm:text-sm"
               onClick={() => onClick?.(prompt)}
             >
               <Send className="h-3 w-3 sm:h-4 sm:w-4" />
               {translations.common.actions.goToGenerate}
             </Button>
 
-            {/* Tombol Copy (Menggunakan h-7) */}
+            {/* Tombol Copy (Menghapus w-full, menggunakan flex-1) */}
             <Button
               size="sm"
               className={cn(
-                "h-7 w-full flex-1 gap-1.5 text-xs sm:text-sm", // DIUBAH: size="sm" + h-7
+                "h-7 flex-1 gap-1.5 text-xs sm:flex-none sm:w-auto sm:text-sm",
                 isCopied
                   ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
                   : "bg-brand-500 hover:bg-brand-600 text-slate-900",

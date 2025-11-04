@@ -84,10 +84,7 @@ export function LanguageToggle({
       {...props}
     >
       <Languages className="h-4 w-4" />
-      <span className="hidden text-xs font-medium sm:inline">{label}</span>
-      <span className="text-xs font-semibold uppercase sm:hidden">
-        {shortLabel}
-      </span>
+      <span className="text-xs font-semibold uppercase">{shortLabel}</span>
     </Button>
   );
 }

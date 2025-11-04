@@ -1,12 +1,11 @@
 // src/components/marketplace/marketplace-hero.tsx
 
-import { useTranslations, useLanguage } from "~/components/language-provider";
+import { useTranslations } from "~/components/language-provider";
 import { Container } from "~/components/container";
 import { cn } from "~/lib/utils";
 
 export function MarketplaceHero() {
   const translations = useTranslations();
-  const { lang } = useLanguage();
 
   return (
     <section className="pt-8 pb-4 md:pt-10 md:pb-5">
@@ -15,9 +14,7 @@ export function MarketplaceHero() {
           <h1
             className={cn(
               "max-w-none leading-[1.1] font-extrabold tracking-tight [text-wrap:balance] md:whitespace-nowrap",
-              lang === "id"
-                ? "text-[clamp(34px,5.2vw,48px)]"
-                : "text-[clamp(34px,5.8vw,52px)]",
+              "text-[clamp(34px,5.2vw,48px)]",
             )}
           >
             {translations.marketplace.hero.titleStart}{" "}

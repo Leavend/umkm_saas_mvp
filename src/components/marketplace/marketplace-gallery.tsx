@@ -17,11 +17,13 @@ export function MarketplaceGallery({
   onPromptClick,
 }: MarketplaceGalleryProps) {
   const translations = useTranslations();
-  
+
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-900">{translations.marketplace.galleryView}</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          {translations.marketplace.galleryView}
+        </h2>
         <p className="mt-2 text-slate-600">
           {translations.marketplace.browseAllPrompts}
         </p>

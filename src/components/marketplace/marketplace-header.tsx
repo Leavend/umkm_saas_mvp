@@ -41,30 +41,41 @@ export function MarketplaceHeader({
     >
       <Container className="flex h-16 items-center justify-center gap-126">
         {/* Brand - shifts towards center when search is open on mobile */}
-        <div className={cn(
-          "flex items-center gap-2 transition-all duration-300 ease-in-out",
-          isSearchOpen && "md:translate-x-0 sm:translate-x-2 xs:translate-x-1"
-        )}>
-          <div className="bg-brand-500 flex h-8 w-8 items-center justify-center rounded-lg shadow-lg flex-shrink-0">
+        <div
+          className={cn(
+            "flex items-center gap-2 transition-all duration-300 ease-in-out",
+            isSearchOpen &&
+              "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
+          )}
+        >
+          <div className="bg-brand-500 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg shadow-lg">
             <Sparkles className="h-5 w-5 text-slate-900" />
           </div>
-          <span className={cn(
-            "text-brand-700 text-xl font-bold transition-all duration-300 brand-text-truncate",
-            isSearchOpen && "md:text-xl sm:text-lg xs:text-base"
-          )}>
+          <span
+            className={cn(
+              "text-brand-700 brand-text-truncate text-xl font-bold transition-all duration-300",
+              isSearchOpen && "xs:text-base sm:text-lg md:text-xl",
+            )}
+          >
             {translations.marketplace.brandName}
           </span>
         </div>
 
         {/* Actions - shifts with more distance when search is open on mobile */}
-        <div className={cn(
-          "flex items-center gap-2 transition-all duration-300 ease-in-out",
-          isSearchOpen && "md:translate-x-0 sm:-translate-x-8 xs:-translate-x-6"
-        )}>
-          <div className={cn(
-            "transition-all duration-300 ease-in-out",
-            isSearchOpen && "md:translate-x-0 sm:-translate-x-2 xs:-translate-x-1"
-          )}>
+        <div
+          className={cn(
+            "flex items-center gap-2 transition-all duration-300 ease-in-out",
+            isSearchOpen &&
+              "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
+          )}
+        >
+          <div
+            className={cn(
+              "transition-all duration-300 ease-in-out",
+              isSearchOpen &&
+                "xs:-translate-x-1 sm:-translate-x-2 md:translate-x-0",
+            )}
+          >
             <Suspense fallback={null}>
               <LanguageToggle />
             </Suspense>
@@ -102,10 +113,13 @@ export function MarketplaceHeader({
           ) : null}
 
           {!session?.user && (
-            <div className={cn(
-              "transition-all duration-300 ease-in-out",
-              isSearchOpen && "md:translate-x-0 sm:-translate-x-4 xs:-translate-x-3"
-            )}>
+            <div
+              className={cn(
+                "transition-all duration-300 ease-in-out",
+                isSearchOpen &&
+                  "xs:-translate-x-3 sm:-translate-x-4 md:translate-x-0",
+              )}
+            >
               <Link
                 href="/signin"
                 className="focus-visible:ring-brand-500/40 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:px-4"

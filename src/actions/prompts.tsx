@@ -98,7 +98,10 @@ export async function copyPrompt(
     };
   } catch (error: unknown) {
     console.error("Copy prompt error:", error);
-    if (error instanceof Error && error.message.includes("Not enough credits")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("Not enough credits")
+    ) {
       return {
         success: false,
         error: {

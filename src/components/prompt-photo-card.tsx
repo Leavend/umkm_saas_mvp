@@ -51,12 +51,17 @@ export function PromptPhotoCard({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        const errorMessage =
+          typeof result.error === "string"
+            ? result.error
+            : result.error.message;
         toast.error(errorMessage);
 
-        const isInsufficientCredits = 
-          (typeof result.error !== 'string' && result.error.code === 'INSUFFICIENT_CREDITS') ||
-          (typeof result.error === 'string' && result.error.includes("Insufficient credits"));
+        const isInsufficientCredits =
+          (typeof result.error !== "string" &&
+            result.error.code === "INSUFFICIENT_CREDITS") ||
+          (typeof result.error === "string" &&
+            result.error.includes("Insufficient credits"));
 
         if (isInsufficientCredits && onShowAuthModal) {
           onShowAuthModal();
@@ -83,7 +88,7 @@ export function PromptPhotoCard({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onClick?.(prompt);
     }
@@ -91,7 +96,7 @@ export function PromptPhotoCard({
 
   return (
     <div
-      className={`group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+      className={`group focus-visible:ring-brand-500/50 relative cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2 ${
         currentCardViewMode === "full-description" ? "aspect-auto" : ""
       }`}
       onClick={() => onClick?.(prompt)}
@@ -101,7 +106,9 @@ export function PromptPhotoCard({
       aria-label={`View details for ${prompt.title}`}
     >
       {/* Image Container */}
-      <div className={`relative ${currentCardViewMode === "full-description" ? "aspect-[4/3]" : "aspect-square"} overflow-hidden`}>
+      <div
+        className={`relative ${currentCardViewMode === "full-description" ? "aspect-[4/3]" : "aspect-square"} overflow-hidden`}
+      >
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -112,11 +119,11 @@ export function PromptPhotoCard({
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
         />
-        
+
         {/* Overlay with copy button - Hidden for full-description mode */}
         {currentCardViewMode !== "full-description" && (
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="absolute bottom-0 left-0 right-0 p-3">
+            <div className="absolute right-0 bottom-0 left-0 p-3">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-sm font-medium text-white">
@@ -128,10 +135,10 @@ export function PromptPhotoCard({
                 </div>
                 <Button
                   size="sm"
-                  className={`ml-2 h-8 w-8 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+                  className={`focus-visible:ring-brand-500/50 ml-2 h-8 w-8 rounded-full p-0 focus-visible:ring-2 ${
                     isCopied
                       ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                      : "bg-white/90 hover:bg-white text-slate-900"
+                      : "bg-white/90 text-slate-900 hover:bg-white"
                   }`}
                   disabled={isLoading || isCopied}
                   onClick={handleCopy}
@@ -153,39 +160,39 @@ export function PromptPhotoCard({
         <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
           {prompt.category}
         </Badge>
-        
+
         {/* Full Description Content */}
         {currentCardViewMode === "full-description" && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4">
-            <h3 className="text-base font-semibold text-white mb-2 line-clamp-1">
+          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4">
+            <h3 className="mb-2 line-clamp-1 text-base font-semibold text-white">
               {prompt.title}
             </h3>
-            <p className="text-sm text-white/90 line-clamp-3 mb-3">
+            <p className="mb-3 line-clamp-3 text-sm text-white/90">
               {prompt.text}
             </p>
             <Button
               size="sm"
-              className={`w-full focus-visible:ring-2 focus-visible:ring-brand-500/50 ${
+              className={`focus-visible:ring-brand-500/50 w-full focus-visible:ring-2 ${
                 isCopied
                   ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                  : "bg-white/90 hover:bg-white text-slate-900"
+                  : "bg-white/90 text-slate-900 hover:bg-white"
               }`}
               disabled={isLoading || isCopied}
               onClick={handleCopy}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {translations.promptCard.copying}
                 </>
               ) : isCopied ? (
                 <>
-                  <Check className="h-4 w-4 mr-2" />
+                  <Check className="mr-2 h-4 w-4" />
                   {translations.promptCard.copied}
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 mr-2" />
+                  <Copy className="mr-2 h-4 w-4" />
                   {translations.promptCard.copyPrompt} (1 Credit)
                 </>
               )}

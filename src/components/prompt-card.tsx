@@ -50,10 +50,17 @@ export function PromptCard({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        const errorMessage =
+          typeof result.error === "string"
+            ? result.error
+            : result.error.message;
         toast.error(errorMessage);
         // If insufficient credits and we have a callback to show auth modal, use it
-        if (typeof result.error === 'string' && result.error.includes("Insufficient credits") && onShowAuthModal) {
+        if (
+          typeof result.error === "string" &&
+          result.error.includes("Insufficient credits") &&
+          onShowAuthModal
+        ) {
           onShowAuthModal();
         }
         return;
@@ -101,7 +108,7 @@ export function PromptCard({
           "relative overflow-hidden",
           currentCardViewMode === "image-only"
             ? "h-full w-full rounded-2xl bg-slate-100"
-            : "aspect-[4/5] sm:aspect-[3/4] rounded-t-2xl bg-slate-100",
+            : "aspect-[4/5] rounded-t-2xl bg-slate-100 sm:aspect-[3/4]",
         )}
       >
         <Image
@@ -121,11 +128,17 @@ export function PromptCard({
 
       {/* Content - Hidden for image-only mode */}
       {currentCardViewMode !== "image-only" && (
-        <CardHeader className={`flex-1 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}>
-          <CardTitle className={`line-clamp-1 leading-tight font-semibold [text-wrap:balance] text-slate-800 ${currentCardViewMode === "full-description" ? "text-base sm:text-lg" : "text-sm sm:text-base md:text-lg"}`}>
+        <CardHeader
+          className={`flex-1 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}
+        >
+          <CardTitle
+            className={`line-clamp-1 leading-tight font-semibold [text-wrap:balance] text-slate-800 ${currentCardViewMode === "full-description" ? "text-base sm:text-lg" : "text-sm sm:text-base md:text-lg"}`}
+          >
             {prompt.title}
           </CardTitle>
-          <CardDescription className={`mt-1 text-slate-600 ${currentCardViewMode === "full-description" ? "text-sm sm:text-base line-clamp-none" : "text-xs sm:text-sm line-clamp-2"}`}>
+          <CardDescription
+            className={`mt-1 text-slate-600 ${currentCardViewMode === "full-description" ? "line-clamp-none text-sm sm:text-base" : "line-clamp-2 text-xs sm:text-sm"}`}
+          >
             {prompt.text}
           </CardDescription>
         </CardHeader>
@@ -133,7 +146,9 @@ export function PromptCard({
 
       {/* Footer with Copy Button - Hidden for image-only mode */}
       {currentCardViewMode !== "image-only" && (
-        <CardFooter className={`rounded-xl border border-slate-200 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}>
+        <CardFooter
+          className={`rounded-xl border border-slate-200 ${currentCardViewMode === "full-description" ? "p-4 sm:p-6" : "p-3 sm:p-4"}`}
+        >
           <Button
             className={`focus-visible:ring-brand-500/50 w-full gap-2 rounded-md px-3 py-2 text-xs focus-visible:ring-2 sm:text-sm ${
               isCopied
@@ -149,7 +164,9 @@ export function PromptCard({
                 <span className="hidden sm:inline">
                   {translations.promptCard.copying}
                 </span>
-                <span className="sm:hidden">{translations.promptCard.copying}</span>
+                <span className="sm:hidden">
+                  {translations.promptCard.copying}
+                </span>
               </>
             ) : isCopied ? (
               <>
@@ -157,7 +174,9 @@ export function PromptCard({
                 <span className="hidden sm:inline">
                   {translations.promptCard.copied}
                 </span>
-                <span className="sm:hidden">{translations.promptCard.copied}</span>
+                <span className="sm:hidden">
+                  {translations.promptCard.copied}
+                </span>
               </>
             ) : (
               <>
@@ -165,7 +184,9 @@ export function PromptCard({
                 <span className="hidden sm:inline">
                   {translations.promptCard.copyPrompt}
                 </span>
-                <span className="sm:hidden">{translations.promptCard.copyPrompt}</span>
+                <span className="sm:hidden">
+                  {translations.promptCard.copyPrompt}
+                </span>
               </>
             )}
           </Button>

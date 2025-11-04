@@ -8,6 +8,7 @@ import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
 import { SettingsModal } from "~/components/settings-modal";
 import { StickyActionsRail } from "~/components/sticky-actions-rail";
+import { MobileFabDock } from "~/components/mobile-fab-dock";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { Footer } from "~/components/footer";
 import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
@@ -234,6 +235,8 @@ export function MarketplacePage({
         onClose={closePromptDetail}
         onCreditsUpdate={refreshCredits}
       />
+
+      <MobileFabDock />
     </div>
   );
 }

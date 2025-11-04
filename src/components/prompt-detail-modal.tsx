@@ -42,7 +42,10 @@ export function PromptDetailModal({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        const errorMessage = typeof result.error === 'string' ? result.error : result.error.message;
+        const errorMessage =
+          typeof result.error === "string"
+            ? result.error
+            : result.error.message;
         toast.error(errorMessage);
         return;
       }
@@ -156,7 +159,9 @@ export function PromptDetailModal({
                   <span className="hidden sm:inline">
                     {translations.promptCard.copying}
                   </span>
-                  <span className="sm:hidden">{translations.promptCard.copying}</span>
+                  <span className="sm:hidden">
+                    {translations.promptCard.copying}
+                  </span>
                 </>
               ) : isCopied ? (
                 <>
@@ -164,7 +169,9 @@ export function PromptDetailModal({
                   <span className="hidden sm:inline">
                     {translations.promptCard.copied}
                   </span>
-                  <span className="sm:hidden">{translations.promptCard.copied}</span>
+                  <span className="sm:hidden">
+                    {translations.promptCard.copied}
+                  </span>
                 </>
               ) : (
                 <>
@@ -172,7 +179,9 @@ export function PromptDetailModal({
                   <span className="hidden sm:inline">
                     {translations.promptCard.copyPrompt}
                   </span>
-                  <span className="sm:hidden">{translations.promptCard.copyPrompt}</span>
+                  <span className="sm:hidden">
+                    {translations.promptCard.copyPrompt}
+                  </span>
                 </>
               )}
             </Button>

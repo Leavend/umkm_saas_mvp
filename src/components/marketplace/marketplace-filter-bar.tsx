@@ -119,16 +119,19 @@ export function MarketplaceFilterBar({
     <section
       id="filter-bar"
       className={cn(
-        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 transition-all duration-300 ease-in-out",
+        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/80 backdrop-blur transition-all duration-300 ease-in-out supports-[backdrop-filter]:bg-white/60",
         "md:border-b",
-        isSearchOpen ? "border-b shadow-sm md:shadow-none" : "border-transparent",
-        isSearchOpen && "md:translate-x-0 sm:translate-x-2 xs:translate-x-1"
+        isSearchOpen
+          ? "border-b shadow-sm md:shadow-none"
+          : "border-transparent",
+        isSearchOpen && "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
       )}
     >
       <div
         className={cn(
           "mx-auto w-full transition-all duration-300 ease-in-out",
-          isSearchOpen && "md:translate-x-0 sm:-translate-x-8 xs:-translate-x-6"
+          isSearchOpen &&
+            "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
         )}
         style={{
           maxWidth: "var(--page-max)",

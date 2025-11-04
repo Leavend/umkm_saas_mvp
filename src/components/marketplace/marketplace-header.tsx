@@ -2,7 +2,8 @@
 
 import { Suspense } from "react";
 import { Sparkles, Coins, User, Search } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import Image from "next/image";
+// import { Button } from "~/components/ui/button";
 import { Container } from "~/components/container";
 import { LanguageToggle } from "~/components/language-toggle";
 import { useTranslations } from "~/components/language-provider";
@@ -10,7 +11,6 @@ import { useSession } from "~/lib/auth-client";
 import type { ModalType } from "~/lib/types";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { cn } from "~/lib/utils";
-import Link from "next/link";
 
 interface MarketplaceHeaderProps {
   credits: number | null;
@@ -93,26 +93,38 @@ export function MarketplaceHeader({
             <span className="sr-only">Toggle search</span>
           </button>
 
-          {session?.user && credits !== null && (
-            <div className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold shadow-sm sm:flex">
-              <Coins className="h-4 w-4 text-orange-500" />
-              <span>TP {credits}</span>
-            </div>
-          )}
-
+          {/* JIKA USER SUDAH LOGIN */}
           {session?.user ? (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={() => onOpenModal("settings")}
-              className="hidden gap-2 sm:inline-flex"
+              className="focus-visible:ring-brand-500/40 hidden items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-sm font-semibold shadow-sm transition hover:bg-slate-100 focus-visible:ring-2 active:bg-slate-200 sm:flex"
+              aria-label="Buka pengaturan pengguna dan lihat kredit"
             >
-              <User className="h-4 w-4" />
-              Profile
-            </Button>
-          ) : null}
-
-          {!session?.user && (
+              {/* Avatar Pengguna */}
+              <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-100">
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt={session.user.name ?? "User avatar"}
+                    fill
+                    sizes="28px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <User className="absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-slate-500" />
+                )}
+              </div>
+              {/* Tampilan Kredit */}
+              {credits !== null && (
+                <>
+                  <Coins className="h-4 w-4 text-orange-500" />
+                  <span>TP {credits}</span>
+                </>
+              )}
+            </button>
+          ) : (
+            /* JIKA USER BELUM LOGIN */
             <div
               className={cn(
                 "transition-all duration-300 ease-in-out",
@@ -120,12 +132,15 @@ export function MarketplaceHeader({
                   "xs:-translate-x-3 sm:-translate-x-4 md:translate-x-0",
               )}
             >
-              <Link
-                href="/signin"
-                className="focus-visible:ring-brand-500/40 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:px-4"
+              <button
+                type="button"
+                onClick={() => onOpenModal("auth")}
+                className="focus-visible:ring-brand-500/40 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white p-0 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:w-auto md:gap-2 md:px-3"
+                aria-label="Login"
               >
-                Sign In
-              </Link>
+                <User className="h-5 w-5" />
+                <span className="hidden md:inline">Login</span>
+              </button>
             </div>
           )}
         </div>

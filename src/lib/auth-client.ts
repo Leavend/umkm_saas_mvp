@@ -15,6 +15,7 @@ const resolveBaseUrl = () => {
 
 export const authClient = createAuthClient({
   baseURL: resolveBaseUrl(),
+  socialAuthFlow: "popup",
 });
 
 // Export hooks untuk digunakan di components

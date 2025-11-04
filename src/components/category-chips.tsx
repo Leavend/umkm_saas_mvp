@@ -7,14 +7,14 @@ import { useEffect, useRef } from "react";
 import { CATEGORIES } from "~/lib/placeholder-data";
 
 interface CategoryChipsProps {
-  selectedCategories: string[];
-  onCategoriesChange: (categories: string[]) => void;
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
   className?: string;
 }
 
 export function CategoryChips({
-  selectedCategories,
-  onCategoriesChange,
+  selectedCategory,
+  onCategoryChange,
   className,
 }: CategoryChipsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,16 +23,12 @@ export function CategoryChips({
   // Filter out "all"
   const realCategories = CATEGORIES.filter((c) => c !== "all");
 
-  // Only single select
-  const selectedCategory =
-    selectedCategories.length > 0 ? selectedCategories[0] : null;
-
   const handleCategorySelect = (category: string) => {
-    if (selectedCategory === category) onCategoriesChange([]);
-    else onCategoriesChange([category]);
+    if (selectedCategory === category) onCategoryChange(null);
+    else onCategoryChange(category);
   };
 
-  const clearAll = () => onCategoriesChange([]);
+  const clearAll = () => onCategoryChange(null);
 
   // Scroll active chip into view (center-ish)
   useEffect(() => {

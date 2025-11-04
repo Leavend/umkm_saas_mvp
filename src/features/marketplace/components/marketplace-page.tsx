@@ -51,27 +51,27 @@ export function MarketplacePage({
     }
   }, [isMobile, setMobileViewMode]);
 
-  // Update URL when mode changes
-  useEffect(() => {
-    const currentParams = new URLSearchParams(searchParams.toString());
+  // Update URL when mode changes - DISABLED to prevent URL changes
+  // useEffect(() => {
+  //   const currentParams = new URLSearchParams(searchParams.toString());
 
-    if (mode === null) {
-      currentParams.delete("mode");
-    } else {
-      currentParams.set("mode", mode);
-    }
+  //   if (mode === null) {
+  //     currentParams.delete("mode");
+  //   } else {
+  //     currentParams.set("mode", mode);
+  //   }
 
-    const newUrl = `${pathname}${currentParams.toString() ? `?${currentParams.toString()}` : ""}`;
-    router.replace(newUrl, { scroll: false });
-  }, [mode, pathname, router, searchParams]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  //   const newUrl = `${pathname}${currentParams.toString() ? `?${currentParams.toString()}` : ""}`;
+  //   router.replace(newUrl, { scroll: false });
+  // }, [mode, pathname, router, searchParams]);
+  // State lokal selectedCategories dihapus, gunakan dari useMarketplaceFilters
 
   // Use placeholder data for development
   const allPrompts = PLACEHOLDER_PROMPTS;
 
   // Custom hooks for cleaner state management
   const { credits, refreshCredits } = useCredits();
-  const { filters, filteredPrompts, setSearchQuery } =
+  const { filters, filteredPrompts, setSearchQuery, setSelectedCategory } =
     useMarketplaceFilters(allPrompts);
 
   const openModal = (modal: ModalType) => setActiveModal(modal);
@@ -99,30 +99,30 @@ export function MarketplacePage({
     // Sync category with URL on mount
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
-      setSelectedCategories([categoryParam]);
+      setSelectedCategory(categoryParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Write mode and category to URL when they change
-  useEffect(() => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    if (mode === "browse" || mode === null) {
-      params.delete("mode");
-    } else {
-      params.set("mode", mode);
-    }
+  // Write mode and category to URL when they change - DISABLED to prevent URL changes
+  // useEffect(() => {
+  //   const params = new URLSearchParams(Array.from(searchParams.entries()));
+  //   if (mode === "browse" || mode === null) {
+  //     params.delete("mode");
+  //   } else {
+  //     params.set("mode", mode);
+  //   }
 
-    // Set category parameter
-    if (selectedCategories.length > 0 && selectedCategories[0]) {
-      params.set("category", selectedCategories[0]);
-    } else {
-      params.delete("category");
-    }
+  //   // Set category parameter
+  //   if (selectedCategories.length > 0 && selectedCategories[0]) {
+  //     params.set("category", selectedCategories[0]);
+  //   } else {
+  //     params.delete("category");
+  //   }
 
-    const newUrl = params.toString() ? `?${params.toString()}` : pathname;
-    router.replace(newUrl, { scroll: false });
-  }, [mode, selectedCategories, searchParams, router, pathname]);
+  //   const newUrl = params.toString() ? `?${params.toString()}` : pathname;
+  //   router.replace(newUrl, { scroll: false });
+  // }, [mode, selectedCategories, searchParams, router, pathname]);
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -167,8 +167,14 @@ export function MarketplacePage({
           <MarketplaceFilterBar
             searchQuery={filters.searchQuery}
             onSearchChange={setSearchQuery}
-            selectedCategories={selectedCategories}
-            onCategoriesChange={setSelectedCategories}
+            selectedCategory={
+              filters.selectedCategory === "all"
+                ? null
+                : filters.selectedCategory
+            }
+            onCategoryChange={(category) =>
+              setSelectedCategory(category ?? "all")
+            }
             lastUpdated={new Date()}
           />
 

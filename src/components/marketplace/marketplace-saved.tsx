@@ -38,7 +38,7 @@ export function MarketplaceSaved({
             {translations.marketplace.noSavedPrompts}
           </p>
           <p className="mt-2 text-sm text-slate-500">
-            {translations.marketplace.featureNotImplemented}
+            More features coming soon!
           </p>
         </div>
       ) : (

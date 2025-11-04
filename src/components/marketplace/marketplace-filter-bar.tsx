@@ -10,16 +10,16 @@ import { CategoryChips } from "~/components/category-chips";
 interface MarketplaceFilterBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedCategories: string[];
-  onCategoriesChange: (categories: string[]) => void;
+  selectedCategory: string | null;
+  onCategoryChange: (category: string | null) => void;
   lastUpdated: Date;
 }
 
 export function MarketplaceFilterBar({
   searchQuery,
   onSearchChange,
-  selectedCategories,
-  onCategoriesChange,
+  selectedCategory,
+  onCategoryChange,
 }: MarketplaceFilterBarProps) {
   const { isSearchOpen, closeSearch, toggleSearch } = useMarketUI();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -157,8 +157,8 @@ export function MarketplaceFilterBar({
             </div>
             <div className="animate-in slide-in-from-top-2 duration-300">
               <CategoryChips
-                selectedCategories={selectedCategories}
-                onCategoriesChange={onCategoriesChange}
+                selectedCategory={selectedCategory}
+                onCategoryChange={onCategoryChange}
               />
             </div>
           </div>
@@ -173,8 +173,8 @@ export function MarketplaceFilterBar({
           />
           <div className="mt-2">
             <CategoryChips
-              selectedCategories={selectedCategories}
-              onCategoriesChange={onCategoriesChange}
+              selectedCategory={selectedCategory}
+              onCategoryChange={onCategoryChange}
             />
           </div>
         </div>

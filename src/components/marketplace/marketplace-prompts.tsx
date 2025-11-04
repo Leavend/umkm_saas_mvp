@@ -76,25 +76,17 @@ export function MarketplacePrompts({
     );
   }
 
-  // Default grid view diubah menjadi Horizontal Scroll
+  // Default grid view
   return (
-    <div
-      className="flex flex-nowrap gap-3 overflow-x-auto pb-4 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
-      role="list"
-    >
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
       {prompts.map((prompt) => (
-        <div
+        <PromptCard
           key={prompt.id}
-          className="w-72 flex-shrink-0 sm:w-80"
-          role="listitem"
-        >
-          <PromptCard
-            prompt={prompt}
-            onCreditsUpdate={onCreditsUpdate}
-            onShowAuthModal={onShowAuthModal}
-            onClick={onPromptClick}
-          />
-        </div>
+          prompt={prompt}
+          onCreditsUpdate={onCreditsUpdate}
+          onShowAuthModal={onShowAuthModal}
+          onClick={onPromptClick}
+        />
       ))}
     </div>
   );

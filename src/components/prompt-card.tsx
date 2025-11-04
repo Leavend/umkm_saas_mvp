@@ -108,7 +108,7 @@ export function PromptCard({
           "relative overflow-hidden",
           currentCardViewMode === "image-only"
             ? "h-full w-full rounded-2xl bg-slate-100"
-            : "aspect-[4/5] rounded-t-2xl bg-slate-100 sm:aspect-[3/4]",
+            : "aspect-[3/4] rounded-t-2xl bg-slate-100",
         )}
       >
         <Image

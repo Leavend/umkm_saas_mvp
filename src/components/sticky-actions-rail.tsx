@@ -4,6 +4,7 @@
 import { Images, Bookmark } from "lucide-react";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { cn } from "~/lib/utils";
+import { useTranslations } from "~/components/language-provider";
 
 interface StickyActionsRailProps {
   onGalleryClick?: () => void;
@@ -15,6 +16,12 @@ export function StickyActionsRail({
   onSavedClick,
 }: StickyActionsRailProps) {
   const { mode, setMode } = useMarketUI();
+  const translations = useTranslations();
+
+  // Safe accessor for marketplace translations with fallback
+  const getMarketplaceLabel = (key: 'galleryTitle' | 'savedTitle'): string => {
+    return translations?.marketplace?.[key] ?? (key === 'galleryTitle' ? 'Gallery' : 'Saved');
+  };
 
   const toggleMode = (nextMode: "gallery" | "saved") => {
     // If clicking the same mode, turn it off (set to null)
@@ -57,11 +64,11 @@ export function StickyActionsRail({
           type="button"
           onClick={() => toggleMode("gallery")}
           className={`${baseClasses} ${mode === "gallery" ? activeClasses : inactiveClasses}`}
-          aria-label="Toggle Gallery mode"
+          aria-label={getMarketplaceLabel('galleryTitle')}
           aria-pressed={mode === "gallery"}
         >
           <Images className="h-4 w-4" />
-          <span className="hidden sm:inline">Gallery</span>
+          <span className="hidden sm:inline">{getMarketplaceLabel('galleryTitle')}</span>
         </button>
 
         {/* Saved Button */}
@@ -69,11 +76,11 @@ export function StickyActionsRail({
           type="button"
           onClick={() => toggleMode("saved")}
           className={`${baseClasses} ${mode === "saved" ? activeClasses : inactiveClasses}`}
-          aria-label="Toggle Saved mode"
+          aria-label={getMarketplaceLabel('savedTitle')}
           aria-pressed={mode === "saved"}
         >
           <Bookmark className="h-4 w-4" />
-          <span className="hidden sm:inline">Saved</span>
+          <span className="hidden sm:inline">{getMarketplaceLabel('savedTitle')}</span>
         </button>
       </div>
     </div>

@@ -4,28 +4,31 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
+import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
+import { MarketplaceGallery } from "~/components/marketplace/marketplace-gallery";
+import { MarketplaceSaved } from "~/components/marketplace/marketplace-saved";
+import { MarketplacePromptContainer } from "~/components/marketplace/marketplace-prompt-container";
+import { PromptDetailModal } from "~/components/prompt-detail-modal";
+import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
+import { StickyActionsRail } from "~/components/sticky-actions-rail";
+import { Footer } from "~/components/footer";
 import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
 import { SettingsModal } from "~/components/settings-modal";
-import { StickyActionsRail } from "~/components/sticky-actions-rail";
 import { MobileFabDock } from "~/components/mobile-fab-dock";
 import { useMarketUI } from "~/stores/use-market-ui";
-import { Footer } from "~/components/footer";
-import { MarketplaceHeader } from "~/components/marketplace/marketplace-header";
-import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
-import { MarketplaceGallery } from "~/components/marketplace/marketplace-gallery";
-import { MarketplaceSaved } from "~/components/marketplace/marketplace-saved";
-
-import { MarketplacePromptContainer } from "~/components/marketplace/marketplace-prompt-container";
-import { PromptDetailModal } from "~/components/prompt-detail-modal";
-import { QuickStartPills } from "~/components/quick-start-pills";
-import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
-import { useCredits } from "~/hooks/use-credits";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
+import { useCredits } from "~/hooks/use-credits";
 import { useIsMobile } from "~/hooks/use-mobile";
-import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
-import type { MarketplacePageProps, ModalType } from "~/lib/types";
+import type { ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
+import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
+
+interface MarketplacePageProps {
+  prompts: Prompt[];
+  lang: string;
+}
 
 export function MarketplacePage({
   prompts: _prompts,
@@ -128,7 +131,7 @@ export function MarketplacePage({
       if (pathParts.length === 2 && pathParts[0] === lang) {
         // We're on /[lang]/[id] - find and open the prompt
         const promptId = pathParts[1];
-        const prompt = allPrompts.find((p) => p.id === promptId);
+        const prompt = allPrompts.find((p: Prompt) => p.id === promptId);
         if (prompt) {
           setSelectedPrompt(prompt);
         }
@@ -141,23 +144,6 @@ export function MarketplacePage({
     handleRouteChange();
   }, [pathname, lang, allPrompts]);
 
-  // Handle quick start pill selection
-  const handleQuickSelect = (id: string) => {
-    // Map quick start IDs to the placeholder data
-    const quickStartMap: Record<string, string> = {
-      "mens-portrait": "mens-portrait",
-      "womens-portrait": "womens-portrait",
-      "sunset-landscape": "sunset-landscape",
-      "modern-building": "modern-building",
-    };
-
-    // Find the corresponding prompt and open it
-    const prompt = allPrompts.find((p) => p.id === quickStartMap[id]);
-    if (prompt) {
-      openPromptDetail(prompt);
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
       {/* Header */}
@@ -166,14 +152,16 @@ export function MarketplacePage({
       {/* Main Content */}
       <main className="flex-1">
         {/* Unified page wrapper for all sections */}
-        <div className="mx-auto w-full max-w-[var(--page-max)] px-4 md:px-8">
+        <div className="mx-auto w-full max-w-[var(--page-max)]">
           {/* Hero Section */}
           <MarketplaceHero />
 
           {/* Quick Start */}
-          <section className="mt-6 md:mt-8">
-            <QuickStartPills onSelect={handleQuickSelect} />
-          </section>
+          {/* <section className="mt-6 md:mt-8">
+            <Container>
+              <QuickStartPills onSelect={handleQuickSelect} />
+            </Container>
+          </section> */}
 
           {/* Sticky Filter Bar */}
           <MarketplaceFilterBar
@@ -189,14 +177,14 @@ export function MarketplacePage({
             {/* Mode-specific content */}
             {mode === "gallery" ? (
               <MarketplaceGallery
-                prompts={filteredPrompts}
+                prompts={[]}
                 onCreditsUpdate={refreshCredits}
                 onShowAuthModal={() => openModal("auth")}
                 onPromptClick={openPromptDetail}
               />
             ) : mode === "saved" ? (
               <MarketplaceSaved
-                prompts={filteredPrompts}
+                prompts={[]}
                 onCreditsUpdate={refreshCredits}
                 onShowAuthModal={() => openModal("auth")}
                 onPromptClick={openPromptDetail}

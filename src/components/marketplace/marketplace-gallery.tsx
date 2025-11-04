@@ -1,5 +1,7 @@
 // src/components/marketplace/marketplace-gallery.tsx
+import { Images } from "lucide-react";
 import { useTranslations } from "~/components/language-provider";
+import { Container } from "~/components/container";
 import { MarketplacePrompts } from "./marketplace-prompts";
 import type { Prompt } from "@prisma/client";
 
@@ -19,7 +21,7 @@ export function MarketplaceGallery({
   const translations = useTranslations();
 
   return (
-    <div className="space-y-6">
+    <Container className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-slate-900">
           {translations.marketplace.galleryView}
@@ -29,13 +31,25 @@ export function MarketplaceGallery({
         </p>
       </div>
 
-      <MarketplacePrompts
-        prompts={prompts}
-        mode="gallery"
-        onCreditsUpdate={_onCreditsUpdate}
-        onShowAuthModal={_onShowAuthModal}
-        onPromptClick={onPromptClick}
-      />
-    </div>
+      {prompts.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 py-12 text-center">
+          <Images className="mx-auto mb-4 h-12 w-12 text-slate-400" />
+          <p className="font-medium text-slate-600">
+            {translations.marketplace.galleryDescription}
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            {translations.marketplace.featureNotImplemented}
+          </p>
+        </div>
+      ) : (
+        <MarketplacePrompts
+          prompts={prompts}
+          mode="gallery"
+          onCreditsUpdate={_onCreditsUpdate}
+          onShowAuthModal={_onShowAuthModal}
+          onPromptClick={onPromptClick}
+        />
+      )}
+    </Container>
   );
 }

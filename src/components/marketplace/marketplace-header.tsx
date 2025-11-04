@@ -39,7 +39,7 @@ export function MarketplaceHeader({
         isSearchOpen && "md:border-b",
       )}
     >
-      <Container className="flex h-16 items-center justify-center gap-126">
+      <Container className="flex h-16 items-center justify-between">
         {/* Brand - shifts towards center when search is open on mobile */}
         <div
           className={cn(

@@ -169,7 +169,7 @@ export function MarketplaceFilterBar({
           <MarketplaceSearch
             searchQuery={searchQuery}
             onSearchChange={onSearchChange}
-            placeholder="Search prompts..."
+            placeholder={translations.marketplace.searchPlaceholder}
           />
           <div className="mt-2">
             <CategoryChips

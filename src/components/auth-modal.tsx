@@ -2,10 +2,11 @@
 
 "use client";
 
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
 import { authClient } from "~/lib/auth-client";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -20,6 +21,11 @@ export function AuthModal({ isOpen, onClose, lang }: AuthModalProps) {
     try {
       const origin = window.location.origin;
       const callbackURL = `${origin}/${lang}/dashboard`;
+      
+      // Close modal first to prevent any interference
+      onClose();
+      
+      // Use popup flow for better user experience - configured globally in auth-client.ts
       await authClient.signIn.social({
         provider: "google",
         callbackURL,
@@ -32,6 +38,9 @@ export function AuthModal({ isOpen, onClose, lang }: AuthModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
+        <VisuallyHidden.Root>
+          <DialogTitle>Sign in to your account</DialogTitle>
+        </VisuallyHidden.Root>
         <div className="flex justify-center">
           <Button
             onClick={handleGoogleAuth}

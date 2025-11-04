@@ -105,12 +105,14 @@ export function MarketplaceFilterBar({
     <section
       id="filter-bar"
       className={cn(
-        "sticky top-[var(--site-header-h,64px)] z-40 bg-white/60 backdrop-blur transition-all duration-300 ease-in-out supports-[backdrop-filter]:bg-white/30",
+        "sticky z-40 bg-white/60 backdrop-blur transition-all duration-300 ease-in-out supports-[backdrop-filter]:bg-white/30",
         "md:border-b",
         isSearchOpen
           ? "border-b shadow-sm md:shadow-none"
           : "border-transparent",
         isSearchOpen && "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
+        // Add gap for desktop, direct attachment for mobile
+        "top-[var(--site-header-h,64px)] md:top-[calc(var(--site-header-h,64px)+0.75rem)]",
       )}
     >
       <div

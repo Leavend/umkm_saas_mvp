@@ -125,8 +125,8 @@ export function PromptCard({
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
-      {/* 1. Gambar Review Full (Menambahkan overflow-hidden dan rounded-t-2xl) */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
+      {/* 1. Gambar Review Full - menghapus padding untuk memenuhi kartu */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -160,7 +160,7 @@ export function PromptCard({
       </div>
 
       {/* Konten di bawah gambar */}
-      <div className="flex flex-1 flex-col p-3 pt-2 sm:p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         {/* 3. Kategori */}
         <div className="mb-2 flex flex-wrap gap-1">
           <Badge
@@ -181,7 +181,7 @@ export function PromptCard({
         <Separator className="my-3" />
 
         {/* 6. Tombol Bawah */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="mt-auto flex items-center justify-between gap-2">
           {/* 3. Tombol Generate (Menambahkan size="sm") */}
           <Button
             size="sm"

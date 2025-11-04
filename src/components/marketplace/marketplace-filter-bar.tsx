@@ -139,11 +139,11 @@ export function MarketplaceFilterBar({
         >
           <div
             className={cn(
-              "py-4 transition-all duration-300",
+              "py-3 transition-all duration-300",
               isSearchOpen ? "opacity-100" : "opacity-0",
             )}
           >
-            <div className="mb-3">
+            <div className="mb-2">
               <MarketplaceSearch
                 ref={inputRef}
                 searchQuery={searchQuery}
@@ -161,13 +161,13 @@ export function MarketplaceFilterBar({
         </div>
 
         {/* Desktop: persistent search */}
-        <div className="hidden py-4 md:block">
+        <div className="hidden py-3 md:block">
           <MarketplaceSearch
             searchQuery={searchQuery}
             onSearchChange={onSearchChange}
             placeholder="Search prompts..."
           />
-          <div className="mt-3">
+          <div className="mt-2">
             <CategoryChips
               selectedCategories={selectedCategories}
               onCategoriesChange={onCategoriesChange}

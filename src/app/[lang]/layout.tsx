@@ -3,7 +3,7 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Rubik } from "next/font/google";
 import { Toaster } from "sonner";
 
 import { Providers } from "~/components/providers";
@@ -25,6 +25,12 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
+const rubik = Rubik({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-rubik",
+});
+
 export default async function RootLayout({
   children,
   params,
@@ -37,7 +43,7 @@ export default async function RootLayout({
   assertValidLocale(lang);
 
   return (
-    <html lang={lang} className={`${geist.variable}`}>
+    <html lang={lang} className={`${geist.variable} ${rubik.variable}`}>
       <body>
         <Providers initialLocale={lang}>
           {children}

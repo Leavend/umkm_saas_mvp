@@ -10,6 +10,9 @@
   --font-sans:
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  --font-rubik:
+    var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
 }
 
 @theme inline {
@@ -195,6 +198,10 @@
 }
 
 @layer utilities {
+  .font-rubik {
+    font-family: var(--font-rubik);
+  }
+  
   .container-tight {
     max-width: 1100px;
     margin-inline: auto;

@@ -48,7 +48,7 @@ export function MarketplacePromptContainer({
 
   return (
     <section className="mt-6 pb-28 md:mt-8 md:pb-10">
-      <Container className="h-full">
+      <Container>
         {mode === "gallery" && (
           <EmptyPanel
             icon={Images}

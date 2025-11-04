@@ -5,7 +5,14 @@
 import { useState } from "react";
 import Image from "next/image";
 // Impor ikon baru
-import { Copy, Loader2, Check, Share2, Bookmark, Send } from "lucide-react";
+import {
+  Copy,
+  Loader2,
+  Check,
+  Share2,
+  Bookmark,
+  Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
@@ -49,9 +56,7 @@ export function PromptCard({
       const result = await copyPrompt(prompt.id);
       if (!result.success) {
         const errorMessage =
-          typeof result.error === "string"
-            ? result.error
-            : result.error.message;
+          typeof result.error === "string" ? result.error : result.error.message;
         toast.error(errorMessage);
         if (
           typeof result.error === "string" &&
@@ -92,13 +97,13 @@ export function PromptCard({
     // ... (kode untuk mode image-only tetap sama)
     return (
       <Card
-        className="group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+        className="group focus-visible:ring-brand-500/50 relative flex h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2 aspect-square"
         onClick={() => onClick?.(prompt)}
         tabIndex={0}
         role="button"
         aria-label={`View details for ${prompt.title}`}
       >
-        <div className="relative h-full w-full overflow-hidden rounded-2xl bg-slate-100">
+        <div className="relative overflow-hidden h-full w-full rounded-2xl bg-slate-100">
           <Image
             src={prompt.imageUrl}
             alt={prompt.title}
@@ -117,17 +122,17 @@ export function PromptCard({
     );
   }
 
-  // --- DESAIN KARTU BARU SESUAI GAMBAR 2 ---
+  // --- DESAIN KARTU BARU ---
   return (
     <Card
-      // 1. Menghapus padding 'py-6' dari Card
-      className="focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2"
+      // Hapus padding 'py-6' dari Card
+      className="focus-visible:ring-brand-500/50 p-0 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
       tabIndex={0}
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
-      {/* Gambar Review Full (Sudah benar dengan rounded-t-2xl) */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
+      {/* Gambar Review Full */}
+      <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden rounded-t-2xl">
         <Image
           src={prompt.imageUrl}
           alt={prompt.title}
@@ -161,7 +166,7 @@ export function PromptCard({
       </div>
 
       {/* Konten di bawah gambar */}
-      <div className="flex flex-1 flex-col p-3 pt-2 sm:p-4">
+      <div className="flex flex-1 flex-col p-3 pt-1.5 sm:p-4 sm:pt-2">
         {/* Kategori */}
         <div className="mb-2 flex flex-wrap gap-1">
           <Badge
@@ -172,53 +177,69 @@ export function PromptCard({
           </Badge>
         </div>
 
-        {/* 2. Deskripsi Scrollable (Menghapus kelas scrollbar-thin) */}
-        <div className="h-24 overflow-y-auto">
-          <p className="text-sm text-slate-700">{prompt.text}</p>
-        </div>
-
-        {/* Separator */}
-        <Separator className="my-3" />
-
-        {/* Tombol Bawah */}
-        <div className="flex items-center justify-between gap-2">
-          {/* 3. Tombol Generate (Menggunakan size="sm" h-8) */}
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full flex-1 gap-1.5 text-xs sm:text-sm"
-            onClick={() => onClick?.(prompt)}
-          >
-            <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-            {translations.common.actions.goToGenerate}
-          </Button>
-
-          {/* 3. Tombol Copy (Menggunakan size="sm" h-8) */}
-          <Button
-            size="sm"
+        {/* ===== PERUBAHAN DI SINI ===== */}
+        {/* 1. Container Bergaris untuk Deskripsi DAN Tombol */}
+        <div
+          className={cn(
+            "flex flex-1 flex-col rounded-lg border border-slate-300 bg-slate-50/50", // Desain container
+            "overflow-hidden", // Pastikan konten internal tidak keluar dari border
+          )}
+        >
+          {/* 2. Container Teks Scrollable */}
+          <div
             className={cn(
-              "w-full flex-1 gap-1.5 text-xs sm:text-sm",
-              isCopied
-                ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                : "bg-brand-500 hover:bg-brand-600 text-slate-900",
+              "h-24 overflow-y-auto p-2.5", // Padding HANYA untuk teks
+              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400", // Scrollbar
             )}
-            disabled={isLoading || isCopied}
-            onClick={handleCopy}
           >
-            {isLoading ? (
-              <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
-            ) : isCopied ? (
-              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-            ) : (
-              <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-            )}
-            {isLoading
-              ? translations.promptCard.copying
-              : isCopied
-                ? translations.promptCard.copied
-                : translations.promptCard.copyPrompt}
-          </Button>
+            {/* 3. Font Rubik */}
+            <p className="font-rubik text-sm text-slate-800">{prompt.text}</p>
+          </div>
+
+          {/* 4. Separator (Di dalam container) */}
+          <Separator className="my-0 bg-slate-300" />
+
+          {/* 5. Tombol Bawah (Di dalam container) */}
+          <div className="flex items-center justify-between gap-2 p-2.5">
+            {/* Tombol Generate (Menggunakan h-7) */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 w-full flex-1 gap-1.5 text-xs sm:text-sm" // DIUBAH: size="sm" + h-7
+              onClick={() => onClick?.(prompt)}
+            >
+              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+              {translations.common.actions.goToGenerate}
+            </Button>
+
+            {/* Tombol Copy (Menggunakan h-7) */}
+            <Button
+              size="sm"
+              className={cn(
+                "h-7 w-full flex-1 gap-1.5 text-xs sm:text-sm", // DIUBAH: size="sm" + h-7
+                isCopied
+                  ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
+                  : "bg-brand-500 hover:bg-brand-600 text-slate-900",
+              )}
+              disabled={isLoading || isCopied}
+              onClick={handleCopy}
+            >
+              {isLoading ? (
+                <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
+              ) : isCopied ? (
+                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+              ) : (
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
+              {isLoading
+                ? translations.promptCard.copying
+                : isCopied
+                  ? translations.promptCard.copied
+                  : translations.promptCard.copyPrompt}
+            </Button>
+          </div>
         </div>
+        {/* ===== BATAS PERUBAHAN ===== */}
       </div>
     </Card>
   );

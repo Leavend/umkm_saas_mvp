@@ -1,4 +1,5 @@
 // src/components/sidebar/sidebar-menu-items.tsx
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 "use client"; // Ini Client Component
 

@@ -20,9 +20,10 @@ export const auth = betterAuth({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       scope: ["openid", "email", "profile"],
-      // Always get refresh token
       accessType: "offline",
       prompt: "select_account consent",
+      flow: "popup",
+      // newWindow configuration removed - handled client-side
     },
   },
 });

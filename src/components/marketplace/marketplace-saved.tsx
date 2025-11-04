@@ -21,7 +21,7 @@ export function MarketplaceSaved({
   const translations = useTranslations();
 
   return (
-    <Container className="space-y-6">
+    <Container className="space-y-6 pb-16">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-slate-900">
           {translations.marketplace.savedPrompts}

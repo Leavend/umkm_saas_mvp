@@ -16,8 +16,8 @@ import {
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   TRANSLATIONS,
-  normalizeLocale,
   type Locale,
+  normalizeLocale,
 } from "~/lib/i18n";
 import { addLocalePrefixToPath } from "~/lib/routing";
 
@@ -141,7 +141,7 @@ export function useLanguage() {
   return context;
 }
 
-export function useTranslations() {
+export function useTranslations(): (typeof TRANSLATIONS)[Locale] {
   const { translations } = useLanguage();
   return translations;
 }

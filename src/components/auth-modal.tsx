@@ -21,11 +21,11 @@ export function AuthModal({ isOpen, onClose, lang }: AuthModalProps) {
     try {
       const origin = window.location.origin;
       const callbackURL = `${origin}/${lang}/dashboard`;
-      
+
       // Close modal first to prevent any interference
       onClose();
-      
-      // Use popup flow for better user experience - configured globally in auth-client.ts
+
+      // Use popup flow - configured globally in auth-client.ts
       await authClient.signIn.social({
         provider: "google",
         callbackURL,

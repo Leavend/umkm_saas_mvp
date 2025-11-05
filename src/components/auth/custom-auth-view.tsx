@@ -4,11 +4,12 @@
 
 import { AuthView } from "@daveyplate/better-auth-ui";
 import { Button } from "~/components/ui/button";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { authClient, useSession } from "~/lib/auth-client";
 import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
 import { logError } from "~/lib/errors";
+import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 interface CustomAuthViewProps {
   path: string;
@@ -54,23 +55,13 @@ export function CustomAuthView({
     void performSignOut();
   }, [isSignOutView, sessionPending, sessionData, router, signOutRedirectPath]);
 
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = useCallback(async () => {
     try {
-      const origin = window.location.origin;
-      const callbackURL = new URL(redirectToPath, origin).toString();
-
-      authClient.signIn
-        .social({
-          provider: "google",
-          callbackURL,
-        })
-        .catch((err) => {
-          logError("Google authentication failed or was cancelled", err);
-        });
+      await initiateGoogleSignIn({ callbackPath: redirectToPath });
     } catch (error) {
-      logError("Google authentication setup failed", error);
+      logError("Google authentication failed or was cancelled", error);
     }
-  };
+  }, [redirectToPath]);
 
   if (!path || isSignOutView) {
     return (

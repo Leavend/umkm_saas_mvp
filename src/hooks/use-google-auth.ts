@@ -5,10 +5,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { getErrorMessage } from "~/lib/errors";
-import {
-  authClient,
-  isGoogleOneTapEnabled,
-} from "~/lib/auth-client";
+import { authClient, isGoogleOneTapEnabled } from "~/lib/auth-client";
 import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 import { useTranslations } from "~/components/language-provider";
@@ -61,8 +58,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
         errorMessage = "Authentication failed due to an unexpected error";
       }
 
-      // Log only the safe error message, not the original error object
-      console.error(`Google authentication failed: ${errorMessage}`);
+      // Avoid logging to prevent circular reference serialization issues
 
       // Provide user feedback
       if (
@@ -83,7 +79,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [options, translations, isGoogleOneTapEnabled]);
+  }, [options, translations]);
 
   return {
     signInWithGoogle,

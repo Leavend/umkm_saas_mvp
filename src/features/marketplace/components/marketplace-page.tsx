@@ -220,11 +220,7 @@ export function MarketplacePage({
       />
 
       {/* Modals */}
-      <AuthModal
-        isOpen={activeModal === "auth"}
-        onClose={closeModal}
-        lang={lang}
-      />
+      <AuthModal isOpen={activeModal === "auth"} onClose={closeModal} />
       <TopUpModal
         isOpen={activeModal === "topup"}
         onClose={closeModal}

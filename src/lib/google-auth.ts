@@ -1,4 +1,7 @@
 // src/lib/google-auth.ts
+"use client";
+
+import { authClient } from "~/lib/auth-client";
 
 interface GoogleSignInOptions {
   /**
@@ -13,7 +16,7 @@ interface GoogleSignInOptions {
  *
  * The caller is responsible for handling any errors that might be thrown.
  */
-export async function initiateGoogleSignIn({
+export function initiateGoogleSignIn({
   callbackPath,
 }: GoogleSignInOptions): Promise<void> {
   if (typeof window === "undefined") {
@@ -23,9 +26,7 @@ export async function initiateGoogleSignIn({
   const callbackURL = new URL(callbackPath, window.location.origin).toString();
 
   try {
-    const { authClient } = await import("~/lib/auth-client");
-
-    await authClient.signIn.social({
+    return authClient.signIn.social({
       provider: "google",
       callbackURL,
     });

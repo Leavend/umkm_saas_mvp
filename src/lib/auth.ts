@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { oneTap } from "better-auth/plugins";
 import { env } from "~/env";
+import { AUTH_CONFIG } from "~/lib/auth-config";
 
 const prisma = new PrismaClient();
 
@@ -18,14 +19,8 @@ export const auth = betterAuth({
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
-      scope: ["openid", "email", "profile"],
-      accessType: "offline",
-      prompt: "select_account consent",
-      flow: "popup",
-      newWindow: true,
+      ...AUTH_CONFIG.google,
     },
   },
-  plugins: [
-    oneTap(),
-  ],
+  plugins: [oneTap()],
 });

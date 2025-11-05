@@ -3,9 +3,10 @@
 import { Prisma } from "@prisma/client";
 
 import { db } from "~/server/db";
+import { AUTH_CONFIG } from "~/lib/auth-config";
 
-const DAILY_CREDIT_AMOUNT = 1;
-const DAILY_CREDIT_CAP = 10;
+const DAILY_CREDIT_AMOUNT = AUTH_CONFIG.credits.dailyAmount;
+const DAILY_CREDIT_CAP = AUTH_CONFIG.credits.dailyCap;
 
 const getStartOfUtcDay = (date: Date) =>
   new Date(

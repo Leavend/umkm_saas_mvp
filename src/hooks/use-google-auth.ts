@@ -3,10 +3,10 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { useParams } from "next/navigation";
-import { getErrorMessage, logError } from "~/lib/errors";
-import { initiateGoogleSignIn } from "~/lib/google-auth";
-import { normalizeLocale, DEFAULT_LOCALE } from "~/lib/i18n";
+
+import { getErrorMessage } from "~/lib/errors";
+import { authClient } from "~/lib/auth-client";
+
 import { useTranslations } from "~/components/language-provider";
 
 interface UseGoogleAuthOptions {
@@ -17,17 +17,21 @@ interface UseGoogleAuthOptions {
 
 export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
-  const params = useParams<{ lang?: string }>();
-  //   const router = useRouter();
-  const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
   const translations = useTranslations();
 
   const signInWithGoogle = useCallback(async () => {
     setIsLoading(true);
     try {
-      const callbackPath = options.redirectPath ?? `/${lang}/dashboard`;
-      await initiateGoogleSignIn({ callbackPath });
-      options.onSuccess?.();
+      await authClient.oneTap({
+        fetchOptions: {
+          onSuccess: () => {
+            options.onSuccess?.();
+          },
+        },
+        onPromptNotification: (notification: { type: string }) => {
+          console.warn("One Tap prompt notification:", notification.type);
+        },
+      });
     } catch (error: unknown) {
       // Safely extract error message, handling circular references
       let errorMessage: string;
@@ -60,7 +64,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [lang, options, translations]);
+  }, [options, translations]);
 
   return {
     signInWithGoogle,

@@ -38,8 +38,17 @@ export const toError = (value: unknown): Error => {
   } catch {
     // If JSON.stringify fails, try to extract a meaningful message
     if (value && typeof value === "object") {
-      // Try to get message property if it exists
-      const message = (value as any).message || (value as any).toString?.() || String(value);
+      const obj = value as Record<string, unknown>;
+      let message: string;
+      if ("message" in obj && typeof obj.message === "string") {
+        message = obj.message;
+      } else if ("toString" in obj && typeof obj.toString === "function") {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        message = obj.toString();
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+        message = String(value);
+      }
       return new Error(message);
     }
     return new Error(String(value));

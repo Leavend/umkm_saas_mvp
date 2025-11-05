@@ -7,11 +7,12 @@ import {
   UnauthorizedError,
 } from "~/lib/errors";
 import { db } from "~/server/db";
+import { AUTH_CONFIG } from "~/lib/auth-config";
 
-const INITIAL_GUEST_CREDITS = 10;
-const DAILY_CREDIT_AMOUNT = 1;
-const DAILY_CREDIT_CAP = 10;
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const INITIAL_GUEST_CREDITS = AUTH_CONFIG.credits.initialGuest;
+const DAILY_CREDIT_AMOUNT = AUTH_CONFIG.credits.dailyAmount;
+const DAILY_CREDIT_CAP = AUTH_CONFIG.credits.dailyCap;
+const SESSION_TTL_MS = AUTH_CONFIG.session.ttlMs;
 const ACCESS_TOKEN_BYTES = 32;
 const SESSION_SECRET_BYTES = 32;
 const FINGERPRINT_BYTES = 16;

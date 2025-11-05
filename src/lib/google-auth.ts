@@ -66,7 +66,9 @@ export function initiateGoogleSignIn({
     // Always create a clean error object to avoid circular references
     if (error instanceof Error) {
       // Create a new error with just the message to avoid circular references
-      throw new Error(error.message || "Unable to initiate Google authentication.");
+      throw new Error(
+        error.message || "Unable to initiate Google authentication.",
+      );
     } else {
       throw new Error("Unable to initiate Google authentication.");
     }

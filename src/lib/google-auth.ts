@@ -24,13 +24,43 @@ export function initiateGoogleSignIn({
   }
 
   const callbackURL = new URL(callbackPath, window.location.origin).toString();
+  const width = 500;
+  const height = 650;
+  const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
+  const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
+
+  const popup = window.open(
+    "about:blank",
+    "better-auth-google",
+    `popup,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no`,
+  );
+
+  if (!popup) {
+    throw new Error(
+      "Popup diblokir oleh browser. Izinkan popup untuk melanjutkan proses masuk dengan Google.",
+    );
+  }
 
   try {
-    return authClient.signIn.social({
+    popup.focus();
+
+    return (authClient.signIn.social as unknown as (
+      options: {
+        provider: string;
+        callbackURL: string;
+        mode?: "popup";
+        openedWindow?: Window | null;
+      },
+    ) => Promise<void>)({
       provider: "google",
       callbackURL,
+      mode: "popup",
+      openedWindow: popup,
     });
   } catch (error) {
+    if (!popup.closed) {
+      popup.close();
+    }
     throw error instanceof Error
       ? error
       : new Error("Unable to initiate Google authentication.");

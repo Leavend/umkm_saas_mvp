@@ -12,6 +12,12 @@ const googleOneTapPlugin = shouldEnableGoogleOneTap
       autoSelect: false,
       cancelOnTapOutside: true,
       context: "signin",
+      // FedCM compatibility - tambahkan useFedCM flag
+      additionalOptions: {
+        useFedCM: true,
+        // Disable deprecated UI status methods yang menyebabkan warning
+        disabledUiStatusMethods: ["display_moment", "skipped_moment"],
+      },
       promptOptions: {
         baseDelay: 1000,
         maxAttempts: 5,
@@ -20,7 +26,7 @@ const googleOneTapPlugin = shouldEnableGoogleOneTap
   : undefined;
 
 export const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL,
+  baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
   socialAuthFlow: "popup",
   plugins: googleOneTapPlugin ? [googleOneTapPlugin] : [],
 });

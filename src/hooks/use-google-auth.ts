@@ -29,10 +29,15 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
             onSuccess: () => {
               options.onSuccess?.();
             },
+            onError: (error) => {
+              console.error("One Tap authentication error:", error);
+              options.onError?.(
+                new Error("Google One Tap authentication failed"),
+              );
+            },
           },
-          onPromptNotification: (notification: { type: string }) => {
-            console.warn("One Tap prompt notification:", notification.type);
-          },
+          // FedCM compatibility options
+          callbackURL: options.redirectPath || "/",
         });
         return;
       }

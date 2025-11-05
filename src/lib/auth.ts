@@ -23,7 +23,7 @@ export const auth = betterAuth({
       accessType: "offline",
       prompt: "select_account consent",
       flow: "popup",
-      // newWindow configuration removed - handled client-side
+      newWindow: true,
     },
   },
 });

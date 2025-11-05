@@ -20,7 +20,9 @@ export function initiateGoogleSignIn({
   callbackPath,
 }: GoogleSignInOptions): Promise<void> {
   if (typeof window === "undefined") {
-    throw new Error("Google authentication can only be initiated in the browser.");
+    throw new Error(
+      "Google authentication can only be initiated in the browser.",
+    );
   }
 
   const callbackURL = new URL(callbackPath, window.location.origin).toString();
@@ -44,14 +46,14 @@ export function initiateGoogleSignIn({
   try {
     popup.focus();
 
-    return (authClient.signIn.social as unknown as (
-      options: {
+    return (
+      authClient.signIn.social as unknown as (options: {
         provider: string;
         callbackURL: string;
         mode?: "popup";
         openedWindow?: Window | null;
-      },
-    ) => Promise<void>)({
+      }) => Promise<void>
+    )({
       provider: "google",
       callbackURL,
       mode: "popup",
@@ -61,8 +63,12 @@ export function initiateGoogleSignIn({
     if (!popup.closed) {
       popup.close();
     }
-    throw error instanceof Error
-      ? error
-      : new Error("Unable to initiate Google authentication.");
+    // Always create a clean error object to avoid circular references
+    if (error instanceof Error) {
+      // Create a new error with just the message to avoid circular references
+      throw new Error(error.message || "Unable to initiate Google authentication.");
+    } else {
+      throw new Error("Unable to initiate Google authentication.");
+    }
   }
 }

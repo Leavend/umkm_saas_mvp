@@ -1,8 +1,7 @@
-// src/lib/auth.ts
-
 import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { oneTap } from "better-auth/plugins";
 import { env } from "~/env";
 
 const prisma = new PrismaClient();
@@ -26,4 +25,7 @@ export const auth = betterAuth({
       newWindow: true,
     },
   },
+  plugins: [
+    oneTap(),
+  ],
 });

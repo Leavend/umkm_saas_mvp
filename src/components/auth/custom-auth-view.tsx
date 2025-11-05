@@ -27,11 +27,13 @@ export function CustomAuthView({
   const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
   const { data: sessionData, isPending: sessionPending } = useSession();
   const signOutTriggeredRef = useRef(false);
+  const oneTapTriggeredRef = useRef(false);
 
   const redirectToPath = `/${lang}/dashboard`;
   const signOutRedirectPath = `/${lang}/auth/sign-in`;
   const normalizedPath = path?.split("?")[0] ?? "";
   const isSignOutView = normalizedPath === "sign-out";
+  const isSignInView = normalizedPath === "sign-in";
 
   useEffect(() => {
     if (!isSignOutView || sessionPending || signOutTriggeredRef.current) {
@@ -54,6 +56,29 @@ export function CustomAuthView({
 
     void performSignOut();
   }, [isSignOutView, sessionPending, sessionData, router, signOutRedirectPath]);
+
+  useEffect(() => {
+    if (isSignInView && !sessionData?.user && !sessionPending && !oneTapTriggeredRef.current) {
+      oneTapTriggeredRef.current = true;
+      const runOneTap = async () => {
+        try {
+          await authClient.oneTap({
+            fetchOptions: {
+              onSuccess: () => {
+                router.push(redirectToPath);
+              },
+            },
+            onPromptNotification: (notification) => {
+              console.warn("One Tap prompt notification:", notification.type);
+            },
+          });
+        } catch (error) {
+          logError("One Tap initiation failed", error);
+        }
+      };
+      void runOneTap();
+    }
+  }, [isSignInView, sessionData, sessionPending, redirectToPath, router]);
 
   const handleGoogleAuth = useCallback(async () => {
     try {

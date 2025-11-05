@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
-import { logError } from "~/lib/errors";
+import { getErrorMessage, logError } from "~/lib/errors";
 import { initiateGoogleSignIn } from "~/lib/google-auth";
 import { normalizeLocale, DEFAULT_LOCALE } from "~/lib/i18n";
 import { useTranslations } from "~/components/language-provider";
@@ -29,14 +29,34 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
       await initiateGoogleSignIn({ callbackPath });
       options.onSuccess?.();
     } catch (error: unknown) {
-      const err =
-        error instanceof Error
-          ? error
-          : new Error("Google authentication failed");
+      // Safely extract error message, handling circular references
+      let errorMessage: string;
+      try {
+        errorMessage = getErrorMessage(error);
+      } catch {
+        // Fallback if getErrorMessage itself fails
+        errorMessage = "Authentication failed due to an unexpected error";
+      }
 
-      logError("Google authentication failed", err);
-      toast.error(err.message || translations.auth.modal.authFailed);
-      options.onError?.(err);
+      // Log only the safe error message, not the original error object
+      console.error(`Google authentication failed: ${errorMessage}`);
+
+      // Provide user feedback
+      if (
+        errorMessage.includes("Popup blocked") ||
+        errorMessage.includes("closed")
+      ) {
+        toast.error("Popup was blocked or closed before completion.");
+      } else {
+        toast.error(
+          errorMessage === "NEXT_NOT_FOUND"
+            ? translations.auth.modal.authFailed
+            : `Error: ${errorMessage}`,
+        );
+      }
+
+      // Call the onError callback with a clean error
+      options.onError?.(new Error(errorMessage));
     } finally {
       setIsLoading(false);
     }

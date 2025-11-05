@@ -12,16 +12,6 @@ const googleOneTapPlugin = shouldEnableGoogleOneTap
       autoSelect: false,
       cancelOnTapOutside: true,
       context: "signin",
-      // FedCM compatibility - tambahkan useFedCM flag
-      additionalOptions: {
-        useFedCM: true,
-        // Disable deprecated UI status methods yang menyebabkan warning
-        disabledUiStatusMethods: ["display_moment", "skipped_moment"],
-      },
-      promptOptions: {
-        baseDelay: 1000,
-        maxAttempts: 5,
-      },
     })
   : undefined;
 

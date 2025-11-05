@@ -22,5 +22,19 @@ export const auth = betterAuth({
       ...AUTH_CONFIG.google,
     },
   },
-  plugins: [oneTap()],
+  plugins: [
+    oneTap({
+      // Server-side configuration untuk One Tap
+      disableSignUp: false,
+      // Pastikan clientId sama dengan yang digunakan di client
+      clientId: env.GOOGLE_CLIENT_ID,
+    }),
+  ],
+  // Tambahkan CORS configuration untuk development
+  cors: {
+    origin: process.env.NODE_ENV === "development" 
+      ? ["http://localhost:3000", "https://*.ngrok-free.app"] 
+      : [env.BETTER_AUTH_URL],
+    credentials: true,
+  },
 });

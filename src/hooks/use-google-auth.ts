@@ -5,7 +5,11 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { getErrorMessage } from "~/lib/errors";
-import { authClient } from "~/lib/auth-client";
+import {
+  authClient,
+  isGoogleOneTapEnabled,
+} from "~/lib/auth-client";
+import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 import { useTranslations } from "~/components/language-provider";
 
@@ -22,16 +26,31 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
   const signInWithGoogle = useCallback(async () => {
     setIsLoading(true);
     try {
-      await authClient.oneTap({
-        fetchOptions: {
-          onSuccess: () => {
-            options.onSuccess?.();
+      if (isGoogleOneTapEnabled) {
+        await authClient.oneTap({
+          fetchOptions: {
+            onSuccess: () => {
+              options.onSuccess?.();
+            },
           },
-        },
-        onPromptNotification: (notification: { type: string }) => {
-          console.warn("One Tap prompt notification:", notification.type);
-        },
+          onPromptNotification: (notification: { type: string }) => {
+            console.warn("One Tap prompt notification:", notification.type);
+          },
+        });
+        return;
+      }
+
+      const fallbackCallbackPath =
+        options.redirectPath ??
+        (typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : "/");
+
+      await initiateGoogleSignIn({
+        callbackPath: fallbackCallbackPath,
       });
+
+      options.onSuccess?.();
     } catch (error: unknown) {
       // Safely extract error message, handling circular references
       let errorMessage: string;
@@ -64,7 +83,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [options, translations]);
+  }, [options, translations, isGoogleOneTapEnabled]);
 
   return {
     signInWithGoogle,

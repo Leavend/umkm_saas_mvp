@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   Dialog,
@@ -14,8 +15,8 @@ import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
 import { toast } from "sonner";
 import { logError } from "~/lib/errors";
-import { authClient } from "~/lib/auth-client";
 import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
+import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 // --- Komponen Ikon Google (SVG) ---
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -42,37 +43,23 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const params = useParams<{ lang?: string }>();
   const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
   const translations = useTranslations();
+  const modalTranslations = translations.auth.modal;
+  const fallbackErrorMessage =
+    (modalTranslations.genericError as string | undefined) ??
+    (modalTranslations.authFailed as string);
 
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = useCallback(async () => {
     try {
-      const origin = window.location.origin;
-      const callbackURL = `${origin}/${lang}/dashboard`;
-
-      authClient.signIn
-        .social({
-          provider: "google",
-          callbackURL,
-        })
-        .catch((err: unknown) => {
-          logError("Google authentication failed", err);
-          toast.error(
-            err instanceof Error
-              ? err.message
-              : (translations.auth.modal.authFailed as string),
-          );
-        });
-
-      onClose();
+      await initiateGoogleSignIn({ callbackPath: `/${lang}/dashboard` });
     } catch (error: unknown) {
-      logError("Google authentication setup failed", error);
+      logError("Google authentication failed", error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : (translations.auth.modal.genericError as string),
+        error instanceof Error && error.message ? error.message : fallbackErrorMessage,
       );
+    } finally {
       onClose();
     }
-  };
+  }, [fallbackErrorMessage, lang, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

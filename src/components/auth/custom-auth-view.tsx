@@ -54,16 +54,21 @@ export function CustomAuthView({
     void performSignOut();
   }, [isSignOutView, sessionPending, sessionData, router, signOutRedirectPath]);
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     try {
       const origin = window.location.origin;
       const callbackURL = new URL(redirectToPath, origin).toString();
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL,
-      });
+
+      authClient.signIn
+        .social({
+          provider: "google",
+          callbackURL,
+        })
+        .catch((err) => {
+          logError("Google authentication failed or was cancelled", err);
+        });
     } catch (error) {
-      logError("Google authentication failed", error);
+      logError("Google authentication setup failed", error);
     }
   };
 

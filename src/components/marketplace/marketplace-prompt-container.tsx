@@ -1,5 +1,4 @@
 // src/components/marketplace/marketplace-prompt-container.tsx
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 "use client";
 

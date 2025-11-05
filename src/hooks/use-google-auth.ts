@@ -23,24 +23,8 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
   const signInWithGoogle = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (isGoogleOneTapEnabled) {
-        await authClient.oneTap({
-          fetchOptions: {
-            onSuccess: () => {
-              options.onSuccess?.();
-            },
-            onError: (error) => {
-              console.error("One Tap authentication error:", error);
-              options.onError?.(
-                new Error("Google One Tap authentication failed"),
-              );
-            },
-          },
-          // FedCM compatibility options
-          callbackURL: options.redirectPath || "/",
-        });
-        return;
-      }
+      // One Tap is now handled automatically by the plugin configuration
+      // No need to manually call oneTap method
 
       const fallbackCallbackPath =
         options.redirectPath ??

@@ -47,6 +47,13 @@ const googleOneTapPlugin =
         clientId: env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
         allowedParentOrigin:
           allowedGoogleOrigins.length > 0 ? allowedGoogleOrigins : undefined,
+        autoSelect: false,
+        cancelOnTapOutside: true,
+        context: "signin",
+        promptOptions: {
+          baseDelay: 1000,
+          maxAttempts: 5,
+        },
       })
     : undefined;
 

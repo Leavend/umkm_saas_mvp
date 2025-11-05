@@ -1,8 +1,8 @@
-import { toNodeHandler } from "better-auth/node";
+import { toNextJsHandler } from "better-auth/next-js";
 import { auth } from "~/lib/auth";
 
 // Export handlers untuk semua HTTP methods
-const handler = toNodeHandler(auth);
+const handler = toNextJsHandler(auth);
 
 export const GET = handler;
 export const POST = handler;

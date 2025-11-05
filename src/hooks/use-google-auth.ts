@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { getErrorMessage } from "~/lib/errors";
-import { authClient, isGoogleOneTapEnabled } from "~/lib/auth-client";
+// Removed unused imports - One Tap is now handled by plugin configuration
 import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 import { useTranslations } from "~/components/language-provider";

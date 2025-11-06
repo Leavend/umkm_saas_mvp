@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -111,9 +112,9 @@ export function TopUpModal({
           <DialogTitle className="text-lg sm:text-xl">
             {translations.dashboard.topUp.title}
           </DialogTitle>
-          <p className="text-muted-foreground text-sm">
+          <DialogDescription className="text-muted-foreground text-sm">
             {translations.dashboard.topUp.description}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6">

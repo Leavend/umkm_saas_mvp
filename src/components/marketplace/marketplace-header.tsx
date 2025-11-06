@@ -115,13 +115,25 @@ export function MarketplaceHeader({
                   <User className="absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-slate-500" />
                 )}
               </div>
-              {/* Tampilan Kredit */}
-              {credits !== null && (
-                <>
-                  <Coins className="h-4 w-4 text-orange-500" />
-                  <span>TP {credits}</span>
-                </>
-              )}
+              {/* Tampilan Nama & Kredit */}
+              <div className="flex items-center gap-2">
+                {/* User Initials */}
+                <span className="text-xs font-semibold text-slate-700">
+                  {session.user.name
+                    ?.split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase() ?? "U"}
+                </span>
+                
+                {/* Kredit */}
+                {credits !== null && (
+                  <>
+                    <Coins className="h-4 w-4 text-orange-500" />
+                    <span className="text-xs font-semibold">{credits}</span>
+                  </>
+                )}
+              </div>
             </button>
           ) : (
             /* JIKA USER BELUM LOGIN */

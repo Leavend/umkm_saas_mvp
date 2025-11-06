@@ -2,13 +2,11 @@
 
 "use client";
 
-import { Button } from "~/components/ui/button";
-
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
 import { useParams, useRouter } from "next/navigation";
 import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
-import { useGoogleAuth } from "~/hooks/use-google-auth";
-import { GoogleIcon } from "~/components/icons/google-icon";
 import { useSignOut } from "~/hooks/use-sign-out";
+import { useEffect } from "react";
 
 interface CustomAuthViewProps {
   path: string;
@@ -30,14 +28,49 @@ export function CustomAuthView({
   const normalizedPath = path?.split("?")[0] ?? "";
   const isSignOutView = normalizedPath === "sign-out";
 
-  const { signInWithGoogle } = useGoogleAuth({
-    onSuccess: () => router.push(redirectToPath),
-  });
-
   useSignOut({
     signOutRedirectPath,
     isSignOutView,
   });
+
+  useEffect(() => {
+    // Define global callback for Google Identity Services
+    const handleCredentialResponse = async (response: {
+      credential: string;
+    }) => {
+      try {
+        const res = await fetch("/api/auth/google", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ credential: response.credential }),
+        });
+        if (res.ok) {
+          router.push(redirectToPath);
+        } else {
+          console.error("Google sign-in failed");
+        }
+      } catch (error) {
+        console.error("Error during Google sign-in:", error);
+      }
+    };
+
+    (window as any).handleCredentialResponse = handleCredentialResponse;
+
+    // Initialize Google Sign-In
+    if ((window as any).google?.accounts?.id) {
+      (window as any).google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        callback: handleCredentialResponse,
+      });
+    }
+
+    return () => {
+      // Cleanup
+      delete (window as any).handleCredentialResponse;
+    };
+  }, [router, redirectToPath]);
 
   if (!path || isSignOutView) {
     return (
@@ -52,15 +85,22 @@ export function CustomAuthView({
       <h2 className="text-center text-lg font-semibold">
         {localization.SIGN_IN ?? "Sign In"}
       </h2>
-      {/* Google Sign In Button */}
-      <Button
-        onClick={signInWithGoogle}
-        variant="outline"
-        className="flex w-full items-center justify-center gap-2 py-2"
-      >
-        <GoogleIcon className="h-4 w-4" />
-        {localization.GOOGLE_CONTINUE ?? "Continue with Google"}
-      </Button>
+      {/* Google Identity Services Sign In */}
+      <div
+        id="g_id_onload"
+        data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false"
+      ></div>
+      <div
+        className="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="continue_with"
+        data-shape="rectangular"
+        data-logo_alignment="left"
+      ></div>
     </div>
   );
 }

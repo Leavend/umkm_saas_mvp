@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { oneTap } from "better-auth/plugins";
 import { env } from "~/env";
 import { AUTH_CONFIG } from "~/lib/auth-config";
 
@@ -23,12 +22,13 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    oneTap({
-      // Server-side configuration untuk One Tap
-      disableSignup: false,
-      // Pastikan clientId sama dengan yang digunakan di client
-      clientId: env.GOOGLE_CLIENT_ID,
-    }),
+    // Disable One Tap to avoid conflicts with popup social auth
+    // oneTap({
+    //   // Server-side configuration untuk One Tap
+    //   disableSignup: false,
+    //   // Pastikan clientId sama dengan yang digunakan di client
+    //   clientId: env.GOOGLE_CLIENT_ID,
+    // }),
   ],
   // Tambahkan CORS configuration untuk development
   cors: {

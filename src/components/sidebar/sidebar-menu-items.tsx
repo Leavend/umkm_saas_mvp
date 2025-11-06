@@ -2,7 +2,7 @@
 
 "use client"; // Ini Client Component
 
-import { CreditCard, Settings } from "lucide-react";
+import { CreditCard, Settings, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar";
 import Link from "next/link";
@@ -61,6 +61,14 @@ export default function SidebarMenuItems() {
     // All available items
     const allItems = [
       {
+        key: "login",
+        title: "Login",
+        basePath: "/auth/sign-in",
+        icon: User,
+        requiresAuth: false, // Show only to non-authenticated
+        showOnlyIfNotAuth: true,
+      },
+      {
         key: "topUp",
         title: translations.sidebar.items.topUp,
         basePath: "/dashboard/top-up",
@@ -82,6 +90,10 @@ export default function SidebarMenuItems() {
       if (isGuest && item.requiresAuth) {
         return false;
       }
+      // Show login only if not authenticated
+      if (item.showOnlyIfNotAuth && isAuthenticated) {
+        return false;
+      }
       return true;
     });
 
@@ -97,6 +109,7 @@ export default function SidebarMenuItems() {
   }, [
     currentPathWithoutLocale,
     isGuest,
+    isAuthenticated,
     toLocalePath,
     translations.sidebar.items,
   ]);

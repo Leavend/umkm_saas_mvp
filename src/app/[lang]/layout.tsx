@@ -44,6 +44,9 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} className={`${geist.variable} ${rubik.variable}`}>
+      <head>
+        <script src="https://accounts.google.com/gsi/client" async defer />
+      </head>
       <body>
         <Providers initialLocale={lang}>
           {children}

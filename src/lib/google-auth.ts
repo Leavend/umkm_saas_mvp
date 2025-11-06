@@ -12,9 +12,9 @@ interface GoogleSignInOptions {
 }
 
 /**
- * Triggers the Better Auth Google sign-in flow using redirect.
+ * Triggers the Better Auth Google sign-in flow using popup.
  *
- * This avoids popup conflicts with One Tap and uses the standard better-auth flow.
+ * This provides a better UX by keeping the user on the site without full page redirects.
  */
 export async function initiateGoogleSignIn({
   redirectTo,
@@ -26,7 +26,7 @@ export async function initiateGoogleSignIn({
   }
 
   try {
-    // Use the standard better-auth social sign-in with redirect flow
+    // Use the popup flow for better UX
     await authClient.signIn.social({
       provider: "google",
       callbackURL: new URL(redirectTo, window.location.origin).toString(),

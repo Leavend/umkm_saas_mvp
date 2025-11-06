@@ -21,8 +21,8 @@ const googleOneTapPlugin = shouldEnableGoogleOneTap
 
 export const authClient = createAuthClient({
   baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
-  // Use redirect flow to avoid popup conflicts with One Tap
-  socialAuthFlow: "redirect",
+  // Use popup flow for better UX, avoiding full page redirects
+  socialAuthFlow: "popup",
   plugins: googleOneTapPlugin ? [googleOneTapPlugin] : [],
 });
 

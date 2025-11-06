@@ -98,7 +98,7 @@ export function MarketplaceHeader({
             <button
               type="button"
               onClick={() => onOpenModal("settings")}
-              className="focus-visible:ring-brand-500/40 hidden items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-sm font-semibold shadow-sm transition hover:bg-slate-100 focus-visible:ring-2 active:bg-slate-200 sm:flex"
+              className="focus-visible:ring-brand-500/40 flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-sm font-semibold shadow-sm transition hover:bg-slate-100 focus-visible:ring-2 active:bg-slate-200"
               aria-label="Buka pengaturan pengguna dan lihat kredit"
             >
               {/* Avatar Pengguna */}
@@ -125,23 +125,15 @@ export function MarketplaceHeader({
             </button>
           ) : (
             /* JIKA USER BELUM LOGIN */
-            <div
-              className={cn(
-                "transition-all duration-300 ease-in-out",
-                isSearchOpen &&
-                  "xs:-translate-x-3 sm:-translate-x-4 md:translate-x-0",
-              )}
+            <button
+              type="button"
+              onClick={() => onOpenModal("auth")}
+              className="focus-visible:ring-brand-500/40 inline-flex h-10 w-auto items-center justify-center gap-2 rounded-full border border-slate-200 bg-white p-0 px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200"
+              aria-label="Login"
             >
-              <button
-                type="button"
-                onClick={() => onOpenModal("auth")}
-                className="focus-visible:ring-brand-500/40 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white p-0 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200 md:w-auto md:gap-2 md:px-3"
-                aria-label="Login"
-              >
-                <User className="h-5 w-5" />
-                <span className="hidden md:inline">Login</span>
-              </button>
-            </div>
+              <User className="h-5 w-5" />
+              <span>Login</span>
+            </button>
           )}
         </div>
       </Container>

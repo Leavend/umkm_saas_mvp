@@ -4,8 +4,9 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
-import { getErrorMessage } from "~/lib/errors";
-// Removed unused imports - One Tap is now handled by plugin configuration
+// Hapus import getErrorMessage - INI PENTING
+// import { getErrorMessage } from "~/lib/errors"; 
+
 import { initiateGoogleSignIn } from "~/lib/google-auth";
 
 import { useTranslations } from "~/components/language-provider";
@@ -23,33 +24,35 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
   const signInWithGoogle = useCallback(async () => {
     setIsLoading(true);
     try {
-      // One Tap is now handled automatically by the plugin configuration
-      // No need to manually call oneTap method
-
-      const fallbackCallbackPath =
+      // 1. Gunakan nama variabel yang benar (redirectPath)
+      const fallbackRedirectPath =
         options.redirectPath ??
         (typeof window !== "undefined"
           ? window.location.pathname + window.location.search
           : "/");
 
+      // 2. Kirim 'redirectTo' (bukan callbackPath)
       await initiateGoogleSignIn({
-        callbackPath: fallbackCallbackPath,
+        redirectTo: fallbackRedirectPath,
       });
 
       options.onSuccess?.();
     } catch (error: unknown) {
-      // Safely extract error message, handling circular references
+      // 3. Blok catch yang AMAN (tidak pakai getErrorMessage)
       let errorMessage: string;
-      try {
-        errorMessage = getErrorMessage(error);
-      } catch {
-        // Fallback if getErrorMessage itself fails
-        errorMessage = "Authentication failed due to an unexpected error";
+
+      if (error instanceof Error) {
+        // Ini akan menangkap Error bersih dari initiateGoogleSignIn
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else {
+        // Fallback jika terjadi sesuatu yang sangat aneh
+        errorMessage = "An unexpected authentication error occurred.";
       }
+      // =========================================================
 
-      // Avoid logging to prevent circular reference serialization issues
-
-      // Provide user feedback
+      // Tampilkan toast
       if (
         errorMessage.includes("Popup blocked") ||
         errorMessage.includes("closed")
@@ -63,7 +66,7 @@ export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
         );
       }
 
-      // Call the onError callback with a clean error
+      // Panggil onError callback
       options.onError?.(new Error(errorMessage));
     } finally {
       setIsLoading(false);

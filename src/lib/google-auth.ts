@@ -8,16 +8,16 @@ interface GoogleSignInOptions {
    * Path that the user should land on after Google authentication completes.
    * This will be combined with the current window origin to produce an absolute URL.
    */
-  callbackPath: string;
+  redirectTo: string;
 }
 
 /**
- * Triggers the Better Auth Google sign-in flow in a popup window.
+ * Triggers the Better Auth Google sign-in flow using redirect.
  *
- * The caller is responsible for handling any errors that might be thrown.
+ * This avoids popup conflicts with One Tap and uses the standard better-auth flow.
  */
-export function initiateGoogleSignIn({
-  callbackPath,
+export async function initiateGoogleSignIn({
+  redirectTo,
 }: GoogleSignInOptions): Promise<void> {
   if (typeof window === "undefined") {
     throw new Error(
@@ -25,51 +25,19 @@ export function initiateGoogleSignIn({
     );
   }
 
-  const callbackURL = new URL(callbackPath, window.location.origin).toString();
-  const width = 500;
-  const height = 600; // Reduced height for better UX
-  const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
-  const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
-
-  const popup = window.open(
-    "about:blank",
-    "better-auth-google",
-    `popup,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,location=no,toolbar=no,menubar=no`,
-  );
-
-  if (!popup) {
-    throw new Error(
-      "Popup diblokir oleh browser. Izinkan popup untuk melanjutkan proses masuk dengan Google.",
-    );
-  }
-
   try {
-    popup.focus();
-
-    return (
-      authClient.signIn.social as unknown as (options: {
-        provider: string;
-        callbackURL: string;
-        mode?: "popup";
-        openedWindow?: Window | null;
-      }) => Promise<void>
-    )({
+    // Use the standard better-auth social sign-in with redirect flow
+    await authClient.signIn.social({
       provider: "google",
-      callbackURL,
-      mode: "popup",
-      openedWindow: popup,
+      callbackURL: new URL(redirectTo, window.location.origin).toString(),
     });
   } catch (error) {
-    if (!popup.closed) {
-      popup.close();
-    }
-    // Always create a clean error object to avoid circular references
+    // Handle any authentication errors
     const errorMessage =
       error instanceof Error
         ? error.message
-        : "Unable to initiate Google authentication.";
+        : "An error occurred during Google authentication.";
 
-    // Create a new error with just the message to avoid circular references
     throw new Error(errorMessage);
   }
 }

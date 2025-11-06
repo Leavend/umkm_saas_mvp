@@ -11,6 +11,7 @@ import { useLocalePath } from "~/components/language-provider";
 import { useSession } from "~/lib/auth-client";
 
 import { CustomAuthView } from "./custom-auth-view";
+import { OneTapTrigger } from "./one-tap-trigger";
 
 type AuthLocalization = Record<string, string | undefined>;
 
@@ -62,10 +63,13 @@ export function AuthClientView({
   }
 
   return (
-    <CustomAuthView
-      path={path}
-      loadingText={loadingText}
-      localization={localization}
-    />
+    <>
+      <OneTapTrigger path={path} />
+      <CustomAuthView
+        path={path}
+        loadingText={loadingText}
+        localization={localization}
+      />
+    </>
   );
 }

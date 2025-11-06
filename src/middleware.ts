@@ -13,7 +13,12 @@ import {
 } from "./lib/i18n";
 
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
-const STATIC_PATH_PREFIXES = ["/api/", "/_next/static/", "/_next/image/"];
+const STATIC_PATH_PREFIXES = [
+  "/api/",
+  "/_next/static/",
+  "/_next/image/",
+  "/.well-known/",
+];
 const STATIC_FILE_EXTENSIONS = [
   ".ico",
   ".png",
@@ -98,5 +103,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|api/|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!_next|api/|favicon.ico|\\.well-known|.*\\..*).*)"],
 };

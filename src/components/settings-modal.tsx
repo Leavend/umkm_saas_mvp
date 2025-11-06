@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
@@ -44,9 +45,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{translations.settings.title}</DialogTitle>
-          <p className="text-muted-foreground text-sm">
+          <DialogDescription className="text-muted-foreground text-sm">
             {translations.settings.description}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

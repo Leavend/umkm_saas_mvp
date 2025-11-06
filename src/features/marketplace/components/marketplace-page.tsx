@@ -21,6 +21,7 @@ import { useMarketUI } from "~/stores/use-market-ui";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
 import { useCredits } from "~/hooks/use-credits";
 import { useIsMobile } from "~/hooks/use-mobile";
+import { useSession } from "~/lib/auth-client";
 import type { ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
 import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
@@ -36,6 +37,7 @@ export function MarketplacePage({
 }: MarketplacePageProps) {
   const { mode, setMode, setMobileViewMode } = useMarketUI();
   const isMobile = useIsMobile();
+  const { data: session, isPending: sessionLoading } = useSession();
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const router = useRouter();
@@ -50,6 +52,14 @@ export function MarketplacePage({
       setMobileViewMode("default"); // List view for desktop
     }
   }, [isMobile, setMobileViewMode]);
+
+  // Auto-close auth modal when user successfully logs in
+  useEffect(() => {
+    if (session?.user && activeModal === "auth") {
+      console.log("User logged in successfully, closing auth modal");
+      closeModal();
+    }
+  }, [session?.user, activeModal]);
 
   // Update URL when mode changes - DISABLED to prevent URL changes
   // useEffect(() => {
@@ -74,7 +84,14 @@ export function MarketplacePage({
   const { filters, filteredPrompts, setSearchQuery, setSelectedCategory } =
     useMarketplaceFilters(allPrompts);
 
-  const openModal = (modal: ModalType) => setActiveModal(modal);
+  const openModal = (modal: ModalType) => {
+    // Only open auth modal if user is not authenticated
+    if (modal === "auth" && session?.user) {
+      console.log("User already authenticated:", session.user);
+      return;
+    }
+    setActiveModal(modal);
+  };
   const closeModal = () => setActiveModal(null);
 
   const openPromptDetail = (prompt: Prompt) => {

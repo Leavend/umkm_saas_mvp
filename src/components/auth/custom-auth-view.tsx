@@ -2,7 +2,6 @@
 
 "use client";
 
-import { AuthView } from "@daveyplate/better-auth-ui";
 import { Button } from "~/components/ui/button";
 
 import { useParams, useRouter } from "next/navigation";
@@ -50,24 +49,9 @@ export function CustomAuthView({
 
   return (
     <div className="w-full max-w-sm space-y-4">
-      <AuthView
-        path={path}
-        redirectTo={redirectToPath}
-        localization={localization}
-      />
-
-      {/* Separator */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">
-            {localization.OR ?? "or"}
-          </span>
-        </div>
-      </div>
-
+      <h2 className="text-center text-lg font-semibold">
+        {localization.SIGN_IN ?? "Sign In"}
+      </h2>
       {/* Google Sign In Button */}
       <Button
         onClick={signInWithGoogle}

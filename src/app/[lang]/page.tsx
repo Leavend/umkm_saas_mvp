@@ -100,7 +100,9 @@ export default async function HomePage({
 
   // Fetch all prompts
   const promptsResult = await getAllPrompts();
-  const prompts = promptsResult.success ? promptsResult.prompts : [];
+  const prompts = promptsResult.success
+    ? (promptsResult.data?.prompts ?? [])
+    : [];
 
   return (
     <Suspense

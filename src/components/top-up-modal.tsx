@@ -13,14 +13,12 @@ import {
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { useTranslations } from "~/components/language-provider";
-import {
-  PRODUCT_IDS,
-  PRODUCT_NAMES,
-  PRODUCT_AMOUNTS,
-  PRODUCT_AMOUNTS_USD,
-  CREDITS_MAP,
-} from "~/lib/constants";
+import { PRODUCT_CONFIG } from "~/lib/constants";
 import { toast } from "sonner";
+import { X } from "lucide-react";
+import { authClient } from "~/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { useLocalePath } from "~/components/language-provider";
 
 interface TopUpModalProps {
   isOpen: boolean;
@@ -36,38 +34,41 @@ export function TopUpModal({
   onCreditsUpdate: _onCreditsUpdate,
 }: TopUpModalProps) {
   const translations = useTranslations();
+  const router = useRouter();
+  const toLocalePath = useLocalePath();
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
 
   const products = [
     {
-      id: PRODUCT_IDS.SMALL,
-      name: PRODUCT_NAMES[PRODUCT_IDS.SMALL],
-      credits: CREDITS_MAP[PRODUCT_IDS.SMALL],
+      id: PRODUCT_CONFIG.SMALL.id,
+      name: PRODUCT_CONFIG.SMALL.name,
+      credits: PRODUCT_CONFIG.SMALL.credits,
       amount:
         currency === "USD"
-          ? PRODUCT_AMOUNTS_USD[PRODUCT_IDS.SMALL]
-          : PRODUCT_AMOUNTS[PRODUCT_IDS.SMALL],
+          ? PRODUCT_CONFIG.SMALL.usdAmount
+          : PRODUCT_CONFIG.SMALL.amount,
       popular: false,
     },
     {
-      id: PRODUCT_IDS.MEDIUM,
-      name: PRODUCT_NAMES[PRODUCT_IDS.MEDIUM],
-      credits: CREDITS_MAP[PRODUCT_IDS.MEDIUM],
+      id: PRODUCT_CONFIG.MEDIUM.id,
+      name: PRODUCT_CONFIG.MEDIUM.name,
+      credits: PRODUCT_CONFIG.MEDIUM.credits,
       amount:
         currency === "USD"
-          ? PRODUCT_AMOUNTS_USD[PRODUCT_IDS.MEDIUM]
-          : PRODUCT_AMOUNTS[PRODUCT_IDS.MEDIUM],
+          ? PRODUCT_CONFIG.MEDIUM.usdAmount
+          : PRODUCT_CONFIG.MEDIUM.amount,
       popular: true,
     },
     {
-      id: PRODUCT_IDS.LARGE,
-      name: PRODUCT_NAMES[PRODUCT_IDS.LARGE],
-      credits: CREDITS_MAP[PRODUCT_IDS.LARGE],
+      id: PRODUCT_CONFIG.LARGE.id,
+      name: PRODUCT_CONFIG.LARGE.name,
+      credits: PRODUCT_CONFIG.LARGE.credits,
       amount:
         currency === "USD"
-          ? PRODUCT_AMOUNTS_USD[PRODUCT_IDS.LARGE]
-          : PRODUCT_AMOUNTS[PRODUCT_IDS.LARGE],
+          ? PRODUCT_CONFIG.LARGE.usdAmount
+          : PRODUCT_CONFIG.LARGE.amount,
       popular: false,
     },
   ];
@@ -105,16 +106,47 @@ export function TopUpModal({
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await authClient.signOut();
+      toast.success("Logout berhasil");
+      onClose(); // Close modal
+      router.push(toLocalePath("/")); // Redirect to home
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout gagal. Silakan coba lagi.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="mx-4 sm:mx-0 sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">
-            {translations.dashboard.topUp.title}
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground text-sm">
-            {translations.dashboard.topUp.description}
-          </DialogDescription>
+        {/* Custom close button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-4 right-4 h-8 w-8 rounded-full p-0"
+          onClick={onClose}
+          disabled={isLoggingOut || !!isProcessing}
+          aria-label="Close modal"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+
+        <DialogHeader className="pr-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-lg sm:text-xl">
+                {translations.dashboard.topUp.title}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm">
+                {translations.dashboard.topUp.description}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6">
@@ -192,6 +224,29 @@ export function TopUpModal({
           {/* Footer Text */}
           <div className="text-muted-foreground text-center text-xs sm:text-sm">
             <p>{translations.dashboard.topUp.benefit}</p>
+          </div>
+
+          {/* Logout Button */}
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              disabled={isLoggingOut || !!isProcessing}
+              className="text-muted-foreground hover:text-destructive flex items-center gap-2 text-xs"
+            >
+              {isLoggingOut ? (
+                <>
+                  <div className="border-muted-foreground h-3 w-3 animate-spin rounded-full border-2 border-t-transparent" />
+                  <span>Logging out...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm">↪</span>
+                  <span>Logout</span>
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </DialogContent>

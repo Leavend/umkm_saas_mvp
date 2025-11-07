@@ -22,9 +22,23 @@ const config = {
       },
     ],
   },
-  // CORS configuration untuk better-auth
+  // CORS configuration untuk better-auth + Cross-Origin-Opener-Policy untuk popup auth
   async headers() {
     return [
+      {
+        // Terapkan Cross-Origin-Opener-Policy ke semua rute untuk mengizinkan popup communication
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "unsafe-none", // Allow popup communication (less restrictive for development)
+          },
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "unsafe-none", // Allow embedding (required for popup flow)
+          },
+        ],
+      },
       {
         source: "/api/auth/:path*",
         headers: [

@@ -7,8 +7,8 @@ import Image from "next/image";
 import { Container } from "~/components/container";
 import { LanguageToggle } from "~/components/language-toggle";
 import { useTranslations } from "~/components/language-provider";
-import { useSession } from "~/lib/auth-client";
 import type { ModalType } from "~/lib/types";
+import { useAuthSession } from "~/hooks/use-auth-session";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { cn } from "~/lib/utils";
 
@@ -22,7 +22,7 @@ export function MarketplaceHeader({
   onOpenModal,
 }: MarketplaceHeaderProps) {
   const translations = useTranslations();
-  const { data: session } = useSession();
+  const { isAuthenticated, user } = useAuthSession();
   const { isSearchOpen, toggleSearch } = useMarketUI();
 
   const btn =
@@ -94,19 +94,19 @@ export function MarketplaceHeader({
           </button>
 
           {/* JIKA USER SUDAH LOGIN */}
-          {session?.user ? (
+          {isAuthenticated && user ? (
             <button
               type="button"
-              onClick={() => onOpenModal("settings")}
+              onClick={() => onOpenModal("topup")}
               className="focus-visible:ring-brand-500/40 flex items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-3 text-sm font-semibold shadow-sm transition hover:bg-slate-100 focus-visible:ring-2 active:bg-slate-200"
-              aria-label="Buka pengaturan pengguna dan lihat kredit"
+              aria-label="Lihat kredit dan top up"
             >
               {/* Avatar Pengguna */}
               <div className="relative h-7 w-7 overflow-hidden rounded-full bg-slate-100">
-                {session.user.image ? (
+                {user.image ? (
                   <Image
-                    src={session.user.image}
-                    alt={session.user.name ?? "User avatar"}
+                    src={user.image}
+                    alt={user.name ?? "User avatar"}
                     fill
                     sizes="28px"
                     className="object-cover"
@@ -119,13 +119,13 @@ export function MarketplaceHeader({
               <div className="flex items-center gap-2">
                 {/* User Initials */}
                 <span className="text-xs font-semibold text-slate-700">
-                  {session.user.name
+                  {user.name
                     ?.split(" ")
-                    .map((n) => n[0])
+                    .map((n: string) => n[0])
                     .join("")
                     .toUpperCase() ?? "U"}
                 </span>
-                
+
                 {/* Kredit */}
                 {credits !== null && (
                   <>

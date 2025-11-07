@@ -175,7 +175,7 @@ export function TopUpModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="mx-4 max-h-[95vh] w-full max-w-md overflow-y-auto rounded-xl p-0 shadow-xl sm:mx-0">
+      <DialogContent className="mx-4 w-full max-w-md rounded-xl p-0 shadow-xl sm:mx-0">
         {/* 1. Header Baru (Sesuai Gambar 3) */}
         <DialogHeader className="sticky top-0 z-10 flex flex-row items-center justify-between space-y-0 border-b bg-background p-4">
           <DialogTitle className="text-sm font-medium text-foreground">
@@ -197,11 +197,11 @@ export function TopUpModal({
 
         <div className="flex flex-col p-4 pt-0 sm:p-6 sm:pt-0">
           {/* 2. Saldo Token (Sesuai Gambar 3) */}
-          <div className="border-b py-4">
+          <div className="border-b py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Coins className="h-6 w-6 text-yellow-500" />
-                <span className="text-2xl font-bold text-foreground">
+                <Coins className="h-5 w-5 text-yellow-500" />
+                <span className="text-xl font-bold text-foreground">
                   {formatTranslation(t.balance, { count: credits ?? 0 })}
                 </span>
               </div>
@@ -215,15 +215,15 @@ export function TopUpModal({
           </div>
 
           {/* 3. Judul & Toggle Mata Uang */}
-          <div className="mt-4 space-y-3 text-center">
-            <h3 className="text-lg font-bold text-foreground">🔥 {t.title}</h3>
-            <p className="text-sm text-muted-foreground">{t.description}</p>
-            <div className="flex justify-center pt-2">
+          <div className="mt-3 space-y-2 text-center">
+            <h3 className="text-base font-bold text-foreground">🔥 {t.title}</h3>
+            <p className="text-xs text-muted-foreground">{t.description}</p>
+            <div className="flex justify-center pt-1">
               <div className="flex rounded-lg border bg-muted p-1">
                 <button
                   onClick={() => setCurrency("IDR")}
                   className={cn(
-                    "rounded-md px-4 py-1 text-sm font-medium transition-colors",
+                    "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                     currency === "IDR"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground",
@@ -234,7 +234,7 @@ export function TopUpModal({
                 <button
                   onClick={() => setCurrency("USD")}
                   className={cn(
-                    "rounded-md px-4 py-1 text-sm font-medium transition-colors",
+                    "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                     currency === "USD"
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground",
@@ -247,7 +247,7 @@ export function TopUpModal({
           </div>
 
           {/* 4. Kartu Produk (Sesuai Gambar 3) */}
-          <div className="mt-6 grid grid-cols-1 gap-4">
+          <div className="mt-4 grid grid-cols-1 gap-3">
             {products.map((product) => {
               // Determine if this product has a badge variant
               const hasBadgeVariant = 'badgeVariant' in product;
@@ -257,7 +257,7 @@ export function TopUpModal({
                 <div
                   key={product.id}
                   className={cn(
-                    "relative rounded-xl border-2 p-4 pt-6 text-center transition-all",
+                    "relative rounded-lg border-2 p-3 pt-5 text-center transition-all",
                     badgeVariant === "popular"
                       ? "border-green-500 bg-green-500/5"
                       : "border-border bg-background",
@@ -267,19 +267,19 @@ export function TopUpModal({
                   <p className="text-xs text-muted-foreground line-through">
                     {formatCurrency(product.originalAmount, currency)}
                   </p>
-                  <p className="mb-2 text-2xl font-bold text-foreground">
+                  <p className="mb-1 text-lg font-bold text-foreground">
                     {formatCurrency(product.amount, currency)}
                   </p>
-                  <div className="mb-3 flex items-center justify-center gap-1">
-                    <Coins className="h-5 w-5 text-yellow-500" />
-                    <p className="text-lg font-semibold text-foreground">
+                  <div className="mb-2 flex items-center justify-center gap-1">
+                    <Coins className="h-4 w-4 text-yellow-500" />
+                    <p className="text-md font-semibold text-foreground">
                       {product.credits}{" "}
                       <span className="text-green-600">
                         + {product.bonusCredits ?? 0}
                       </span>
                     </p>
                   </div>
-                  <p className="mb-4 text-xs font-medium text-green-600">
+                  <p className="mb-3 text-xs font-medium text-green-600">
                     {product.bonusCredits ?? 0} {t.creditsSuffix}
                   </p>
 
@@ -287,14 +287,14 @@ export function TopUpModal({
                     onClick={() => handlePurchase(product.id)}
                     disabled={isProcessing === product.id}
                     className={cn(
-                      "w-full font-semibold",
+                      "w-full font-semibold text-sm",
                       badgeVariant === "popular"
                         ? "bg-green-600 text-white hover:bg-green-700"
                         : "bg-primary text-primary-foreground hover:bg-primary/90",
                     )}
                   >
                     {isProcessing === product.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       t.purchaseCta
                     )}
@@ -305,7 +305,7 @@ export function TopUpModal({
           </div>
 
           {/* 5. Footer Pembayaran & Logout */}
-          <div className="mt-6 space-y-3 text-center">
+          <div className="mt-3 space-y-2 text-center">
             <p className="text-xs text-muted-foreground">
               {formatTranslation(t.paymentFooter, {
                 providers: "(QRIS, Gopay, ShopeePay)",
@@ -326,7 +326,7 @@ export function TopUpModal({
               className="text-muted-foreground hover:text-destructive text-xs"
             >
               {isLoggingOut ? (
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                <Loader2 className="mr-1 h-2 w-2 animate-spin" />
               ) : null}
               {isLoggingOut ? "Logging out..." : "Logout"}
             </Button>

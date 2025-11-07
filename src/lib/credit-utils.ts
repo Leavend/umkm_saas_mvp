@@ -1,8 +1,8 @@
-import { CREDITS_MAP } from "~/lib/constants";
+import { PRODUCT_UTILS } from "~/lib/constants";
 import { db } from "~/server/db";
 
 export async function applyCreditPurchase(userId: string, productId: string) {
-  const creditsToAdd = CREDITS_MAP[productId as keyof typeof CREDITS_MAP] ?? 0;
+  const creditsToAdd = PRODUCT_UTILS.getCreditsById(productId);
 
   if (!creditsToAdd) {
     console.warn(

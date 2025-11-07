@@ -2,6 +2,7 @@
 
 /**
  * Product configuration constants
+ * Central source of truth for all product-related data
  */
 export const PRODUCT_CONFIG = {
   SMALL: {
@@ -28,37 +29,32 @@ export const PRODUCT_CONFIG = {
 } as const;
 
 /**
- * Legacy exports for backward compatibility
- * @deprecated Use PRODUCT_CONFIG instead
+ * Product utilities for easy access to specific data
  */
-export const PRODUCT_IDS = {
-  SMALL: PRODUCT_CONFIG.SMALL.id,
-  MEDIUM: PRODUCT_CONFIG.MEDIUM.id,
-  LARGE: PRODUCT_CONFIG.LARGE.id,
-} as const;
+export const PRODUCT_UTILS = {
+  /**
+   * Get all product IDs as an array
+   */
+  getAllIds: (): string[] => Object.values(PRODUCT_CONFIG).map((p) => p.id),
 
-export const CREDITS_MAP = {
-  [PRODUCT_IDS.SMALL]: PRODUCT_CONFIG.SMALL.credits,
-  [PRODUCT_IDS.MEDIUM]: PRODUCT_CONFIG.MEDIUM.credits,
-  [PRODUCT_IDS.LARGE]: PRODUCT_CONFIG.LARGE.credits,
-} as const;
+  /**
+   * Get product by ID
+   */
+  getById: (id: string) =>
+    Object.values(PRODUCT_CONFIG).find((p) => p.id === id),
 
-export const PRODUCT_AMOUNTS = {
-  [PRODUCT_IDS.SMALL]: PRODUCT_CONFIG.SMALL.amount,
-  [PRODUCT_IDS.MEDIUM]: PRODUCT_CONFIG.MEDIUM.amount,
-  [PRODUCT_IDS.LARGE]: PRODUCT_CONFIG.LARGE.amount,
-} as const;
+  /**
+   * Get credits amount by product ID
+   */
+  getCreditsById: (id: string): number | null => {
+    const product = PRODUCT_UTILS.getById(id);
+    return product?.credits ?? null;
+  },
 
-export const PRODUCT_AMOUNTS_USD = {
-  [PRODUCT_IDS.SMALL]: PRODUCT_CONFIG.SMALL.usdAmount,
-  [PRODUCT_IDS.MEDIUM]: PRODUCT_CONFIG.MEDIUM.usdAmount,
-  [PRODUCT_IDS.LARGE]: PRODUCT_CONFIG.LARGE.usdAmount,
-} as const;
-
-export const PRODUCT_NAMES = {
-  [PRODUCT_IDS.SMALL]: PRODUCT_CONFIG.SMALL.name,
-  [PRODUCT_IDS.MEDIUM]: PRODUCT_CONFIG.MEDIUM.name,
-  [PRODUCT_IDS.LARGE]: PRODUCT_CONFIG.LARGE.name,
+  /**
+   * Get all products as array
+   */
+  getAll: () => Object.values(PRODUCT_CONFIG),
 } as const;
 
 /**

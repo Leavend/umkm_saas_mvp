@@ -58,7 +58,7 @@ function AuthUIWithLocale({ children }: { children: ReactNode }) {
           if (session.data?.user && typeof window !== "undefined") {
             const currentPath = window.location.pathname;
             if (AUTH_PATH_REGEX.test(currentPath)) {
-              router.push(toLocalePath("/dashboard"));
+              router.push(toLocalePath("/"));
             }
           }
         } catch (error) {

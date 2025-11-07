@@ -15,7 +15,6 @@ import { StickyActionsRail } from "~/components/sticky-actions-rail";
 import { Footer } from "~/components/footer";
 import { AuthModal } from "~/components/auth-modal";
 import { TopUpModal } from "~/components/top-up-modal";
-import { SettingsModal } from "~/components/settings-modal";
 import { MobileFabDock } from "~/components/mobile-fab-dock";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
@@ -37,7 +36,7 @@ export function MarketplacePage({
 }: MarketplacePageProps) {
   const { mode, setMode, setMobileViewMode } = useMarketUI();
   const isMobile = useIsMobile();
-  const { data: session, isPending: sessionLoading } = useSession();
+  const { data: session } = useSession();
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const router = useRouter();
@@ -244,7 +243,6 @@ export function MarketplacePage({
         lang={lang}
         onCreditsUpdate={refreshCredits}
       />
-      <SettingsModal isOpen={activeModal === "settings"} onClose={closeModal} />
 
       {/* Prompt Detail Modal */}
       <PromptDetailModal

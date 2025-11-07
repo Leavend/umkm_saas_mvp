@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { XenditSdkError } from "xendit-node";
 
-import {
-  PRODUCT_AMOUNTS,
-  PRODUCT_AMOUNTS_USD,
-  PRODUCT_NAMES,
-} from "~/lib/constants";
+import { PRODUCT_UTILS } from "~/lib/constants";
 import { env } from "~/env";
 import { xenditInvoiceClient } from "~/lib/xendit";
 import { UnauthorizedError } from "~/lib/errors";
@@ -37,21 +33,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
     }
 
-    const amount =
-      currency === "USD"
-        ? PRODUCT_AMOUNTS_USD[productId as keyof typeof PRODUCT_AMOUNTS_USD]
-        : PRODUCT_AMOUNTS[productId as keyof typeof PRODUCT_AMOUNTS];
+    // Get product configuration by ID
+    const product = PRODUCT_UTILS.getById(productId);
 
-    if (!amount) {
+    if (!product) {
       return NextResponse.json({ error: "Unknown productId" }, { status: 400 });
     }
 
-    const productName =
-      PRODUCT_NAMES[productId as keyof typeof PRODUCT_NAMES] ?? "Credit Top-up";
+    const amount = currency === "USD" ? product.usdAmount : product.amount;
+    const productName = product.name;
 
     const origin = request.headers.get("origin") ?? env.BETTER_AUTH_URL;
 
-    const successUrl = new URL("/dashboard", origin).toString();
+    const successUrl = new URL("/", origin).toString();
 
     const externalId = `${userId}-${productId}-${Date.now()}`;
 

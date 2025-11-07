@@ -41,12 +41,14 @@ export function PromptListItem({
       const result = await copyPrompt(prompt.id);
 
       if (!result.success) {
-        const errorMessage =
-          typeof result.error === "string"
+        const errorMessage = result.error
+          ? typeof result.error === "string"
             ? result.error
-            : result.error.message;
+            : result.error.message
+          : "An error occurred";
         toast.error(errorMessage);
         if (
+          result.error &&
           typeof result.error === "string" &&
           result.error.includes("Insufficient credits") &&
           onShowAuthModal
@@ -56,15 +58,15 @@ export function PromptListItem({
         return;
       }
 
-      await navigator.clipboard.writeText(result.prompt.text);
+      await navigator.clipboard.writeText(result.data?.prompt.text ?? "");
 
-      if (onCreditsUpdate) {
-        onCreditsUpdate(result.remainingCredits);
+      if (onCreditsUpdate && result.data?.remainingCredits) {
+        onCreditsUpdate(result.data.remainingCredits);
       }
 
       setIsCopied(true);
       toast.success(translations.promptCard.copiedToClipboard, {
-        description: `${result.remainingCredits} ${translations.promptCard.creditsRemaining}`,
+        description: `${result.data?.remainingCredits ?? 0} ${translations.promptCard.creditsRemaining}`,
       });
 
       setTimeout(() => {

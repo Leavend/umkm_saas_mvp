@@ -7,24 +7,32 @@
 export const PRODUCT_CONFIG = {
   SMALL: {
     id: "b1683342-0ae2-472d-938c-0dbb305da157",
-    credits: 10,
-    amount: 10000, // in cents/IDR
-    usdAmount: 1,
-    name: "Starter Pack (10 credits)",
+    credits: 11,
+    bonusCredits: 2,
+    amount: 19000, // Rp 19.000
+    usdAmount: 2, // $2
+    name: "Starter Pack",
+    badge: null,
   },
   MEDIUM: {
     id: "4c253826-afe9-40d1-918e-28aef0447f27",
-    credits: 30,
-    amount: 30000,
-    usdAmount: 3,
-    name: "Growth Pack (30 credits)",
+    credits: 24,
+    bonusCredits: 11,
+    amount: 39000, // Rp 39.000
+    usdAmount: 4, // $4
+    name: "Growth Pack",
+    badge: "Hemat 24%",
+    badgeVariant: "popular",
   },
   LARGE: {
     id: "3d8c0664-2fa3-4f82-a8d8-e9e56158aa22",
-    credits: 100,
-    amount: 100000,
-    usdAmount: 10,
-    name: "Pro Pack (100 credits)",
+    credits: 59,
+    bonusCredits: 36,
+    amount: 89000, // Rp 89.000
+    usdAmount: 9, // $9
+    name: "Pro Pack",
+    badge: "7x Lebih Banyak", // atau "Paling Untung"
+    badgeVariant: "best-value",
   },
 } as const;
 
@@ -48,7 +56,8 @@ export const PRODUCT_UTILS = {
    */
   getCreditsById: (id: string): number | null => {
     const product = PRODUCT_UTILS.getById(id);
-    return product?.credits ?? null;
+    if (!product) return null;
+    return product.credits + (product.bonusCredits ?? 0);
   },
 
   /**

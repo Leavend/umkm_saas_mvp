@@ -43,7 +43,7 @@ export function AuthClientView({
       return;
     }
 
-    router.replace(toLocalePath("/dashboard"));
+    router.replace(toLocalePath("/"));
   }, [router, toLocalePath, shouldRedirectToDashboard]);
 
   if (!path || isPending) {

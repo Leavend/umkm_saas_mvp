@@ -85,6 +85,7 @@ export const TRANSLATIONS = {
         customerPortal: "Customer Portal",
         save: "Save",
         upload: "Upload",
+        close: "Close", // Key baru untuk "Tutup"
       },
       states: {
         loading: "Loading...",
@@ -372,14 +373,24 @@ export const TRANSLATIONS = {
         emptySecondary: "Start creating amazing images with AI tools",
       },
       topUp: {
-        title: "Top up credits",
-        description:
-          "Choose the credit pack that fits your workflow and complete payment securely via Xendit.",
+        title: "Top-up Token", // Diubah
+        description: "Top-up Tokens, Starting from Rp19.000!", // Diubah
         benefit:
-          "Unlock more AI transformations instantly with prepaid credits. Credits never expire.",
-        purchaseCta: "Purchase",
+          "Get more AI transformations instantly with prepaid tokens. Tokens never expire.", // Diubah
+        purchaseCta: "Start Generating", // Diubah
         processing: "Processing...",
-        creditsSuffix: "credits",
+        creditsSuffix: "Tokens", // Diubah
+        header: "Hi, {email}",
+        close: "Close",
+        balance: "{count} Token",
+        balanceDetails: "{regular} Regular, {daily} Daily",
+        badgePopular: "Most Popular",
+        badgeSave: "Save {percent}%",
+        badgeBestValue: "Best Value",
+        badgeMore: "7x More",
+        paymentFooter: "Secure payment via {providers}",
+        terms: "By purchasing, you agree to our {terms}.",
+        termsLink: "terms and conditions",
       },
     },
     projects: {
@@ -802,6 +813,7 @@ export const TRANSLATIONS = {
         customerPortal: "Portal Pelanggan",
         save: "Simpan",
         upload: "Unggah",
+        close: "Tutup", // Key baru
       },
       states: {
         loading: "Memuat...",
@@ -1088,14 +1100,24 @@ export const TRANSLATIONS = {
         emptySecondary: "Mulai buat gambar menakjubkan dengan alat AI",
       },
       topUp: {
-        title: "Isi ulang kredit",
-        description:
-          "Pilih paket kredit yang sesuai dengan kebutuhan Anda dan selesaikan pembayaran secara aman melalui Xendit.",
+        title: "Top-up Token", // Diubah
+        description: "Top-up Token, Mulai dari Rp19.000!", // Diubah
         benefit:
-          "Dapatkan lebih banyak transformasi AI secara instan dengan kredit prabayar. Kredit tidak akan kedaluwarsa.",
-        purchaseCta: "Beli",
+          "Dapatkan lebih banyak transformasi AI secara instan dengan token prabayar. Token tidak akan kedaluwarsa.", // Diubah
+        purchaseCta: "Mulai Generate", // Diubah
         processing: "Memproses...",
-        creditsSuffix: "kredit",
+        creditsSuffix: "Token GRATIS", // Diubah
+        header: "Hi, {email}",
+        close: "Tutup",
+        balance: "{count} Token",
+        balanceDetails: "{regular} Reguler, {daily} Harian",
+        badgePopular: "Paling Laris",
+        badgeSave: "Hemat {percent}%",
+        badgeBestValue: "Paling Untung",
+        badgeMore: "7x Lebih Banyak",
+        paymentFooter: "Pembayaran aman lewat {providers}",
+        terms: "Dengan membeli kamu setuju dengan {terms}.",
+        termsLink: "syarat dan ketentuan",
       },
     },
     projects: {

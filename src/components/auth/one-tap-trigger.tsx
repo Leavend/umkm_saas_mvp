@@ -3,7 +3,6 @@
 
 // React import removed as useEffect is not used directly
 import { useGoogleOneTap } from "~/hooks/use-google-one-tap";
-import { exchangeGoogleIdToken } from "~/lib/google-auth";
 import { toast } from "sonner";
 
 interface OneTapTriggerProps {
@@ -25,15 +24,27 @@ export function OneTapTrigger({ path }: OneTapTriggerProps) {
             id: "google-onetap",
           });
 
-          // Exchange the credential for a session
-          await exchangeGoogleIdToken(credential, "/dashboard");
-
-          toast.success("Login berhasil dengan Google One Tap! 🎉", {
-            id: "google-onetap",
+          // For One Tap, we'll use a direct approach since the credential is an ID token
+          const response = await fetch('/api/auth/google-one-tap', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              credential,
+              callbackURL: "/" 
+            }),
           });
 
-          // Redirect to dashboard or refresh page
-          window.location.href = "/dashboard";
+          if (response.ok) {
+            toast.success("Login berhasil dengan Google One Tap! 🎉", {
+              id: "google-onetap",
+            });
+            // Redirect to home page or refresh page
+            window.location.href = "/";
+          } else {
+            throw new Error("Authentication failed");
+          }
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Login gagal";

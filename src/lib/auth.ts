@@ -21,6 +21,19 @@ export const auth = betterAuth({
       ...AUTH_CONFIG.google,
     },
   },
+  // Explicit session configuration
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    },
+  },
+  // Cookie configuration untuk proper client-server sync
+  cookies: {
+    domain: process.env.NODE_ENV === "development" ? "localhost" : undefined,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  },
   plugins: [
     // Disable One Tap to avoid conflicts with popup social auth
     // oneTap({

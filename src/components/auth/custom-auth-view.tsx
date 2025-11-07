@@ -2,11 +2,14 @@
 
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { DEFAULT_LOCALE, normalizeLocale } from "~/lib/i18n";
 import { useSignOut } from "~/hooks/use-sign-out";
-import { useEffect } from "react";
+import { authClient } from "~/lib/auth-client";
+import { Button } from "~/components/ui/button";
+import { GoogleIcon } from "~/components/icons/google-icon";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface CustomAuthViewProps {
   path: string;
@@ -20,10 +23,10 @@ export function CustomAuthView({
   localization,
 }: CustomAuthViewProps) {
   const params = useParams<{ lang?: string }>();
-  const router = useRouter();
   const lang = normalizeLocale(params?.lang, DEFAULT_LOCALE);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const redirectToPath = `/${lang}/dashboard`;
+  const redirectToPath = `/${lang}`;
   const signOutRedirectPath = `/${lang}/auth/sign-in`;
   const normalizedPath = path?.split("?")[0] ?? "";
   const isSignOutView = normalizedPath === "sign-out";
@@ -33,44 +36,22 @@ export function CustomAuthView({
     isSignOutView,
   });
 
-  useEffect(() => {
-    // Define global callback for Google Identity Services
-    const handleCredentialResponse = async (response: {
-      credential: string;
-    }) => {
-      try {
-        const res = await fetch("/api/auth/google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ credential: response.credential }),
-        });
-        if (res.ok) {
-          router.push(redirectToPath);
-        } else {
-          console.error("Google sign-in failed");
-        }
-      } catch (error) {
-        console.error("Error during Google sign-in:", error);
-      }
-    };
-
-    (window as any).handleCredentialResponse = handleCredentialResponse;
-
-    // Initialize Google Sign-In
-    if ((window as any).google?.accounts?.id) {
-      (window as any).google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-        callback: handleCredentialResponse,
+  const handleGoogleSignIn = async () => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      // Use better-auth's signIn function for Google OAuth
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: redirectToPath,
       });
+    } catch (error) {
+      console.error("Error during Google sign-in:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    return () => {
-      // Cleanup
-      delete (window as any).handleCredentialResponse;
-    };
-  }, [router, redirectToPath]);
+  };
 
   if (!path || isSignOutView) {
     return (
@@ -85,22 +66,27 @@ export function CustomAuthView({
       <h2 className="text-center text-lg font-semibold">
         {localization.SIGN_IN ?? "Sign In"}
       </h2>
-      {/* Google Identity Services Sign In */}
-      <div
-        id="g_id_onload"
-        data-client_id={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-        data-callback="handleCredentialResponse"
-        data-auto_prompt="false"
-      ></div>
-      <div
-        className="g_id_signin"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="continue_with"
-        data-shape="rectangular"
-        data-logo_alignment="left"
-      ></div>
+      
+      {/* Better-auth Google Sign In Button */}
+      <Button
+        onClick={handleGoogleSignIn}
+        variant="default"
+        className="flex w-full items-center justify-center gap-3 text-base font-medium transition-all hover:shadow-lg"
+        size="lg"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Signing in...</span>
+          </>
+        ) : (
+          <>
+            <GoogleIcon className="h-5 w-5" />
+            <span>Continue with Google</span>
+          </>
+        )}
+      </Button>
     </div>
   );
 }

@@ -1,106 +1,65 @@
-// src/hooks/use-google-auth.ts (enhanced)
-"use client";
-
-import { useRef, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { initiateGoogleSignIn, exchangeGoogleIdToken } from "~/lib/google-auth";
-import { useGoogleOneTap } from "~/hooks/use-google-one-tap";
+import { useLocalePath } from "~/components/language-provider";
+import { authClient } from "~/lib/auth-client";
+import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
+import { toError } from "~/lib/errors";
 
-interface UseGoogleAuthOptions {
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
-  redirectPath?: string;
-  /** If true, enable One Tap + official button in parallel */
-  enableGsi?: boolean;
-}
-
-export function useGoogleAuth(options: UseGoogleAuthOptions = {}) {
+/**
+ * Custom hook for Google authentication with popup flow
+ * Integrates with better-auth for session management
+ */
+export function useGoogleAuth(
+  options: UseGoogleAuthOptions = {},
+): UseGoogleAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const gsiDivRef = useRef<HTMLDivElement | null>(null);
-
-  // GIS (One Tap + official button) — optional
-  useGoogleOneTap({
-    renderTarget: options.enableGsi ? gsiDivRef.current : null,
-    autoPrompt: options.enableGsi !== false,
-    onCredential: (credential) => {
-      void (async () => {
-        try {
-          setIsLoading(true);
-          const fallbackRedirectPath =
-            options.redirectPath ??
-            (typeof window !== "undefined"
-              ? window.location.pathname + window.location.search
-              : "/");
-          await exchangeGoogleIdToken(credential, fallbackRedirectPath);
-
-          // Show success message
-          toast.success("Login berhasil! Sedang memuat...");
-
-          // Call onSuccess callback
-          options.onSuccess?.();
-
-          // Refresh the page to update authentication state
-          if (typeof window !== "undefined") {
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
-          }
-        } catch (error: unknown) {
-          const errorMessage =
-            error instanceof Error ? error.message : "Google One Tap failed";
-          toast.error(errorMessage);
-          options.onError?.(
-            error instanceof Error ? error : new Error("Unknown error"),
-          );
-        } finally {
-          setIsLoading(false);
-        }
-      })();
-    },
-    onError: (err) => {
-      // Soft-error: GIS might be blocked, continue to show popup fallback
-      console.warn("GIS error", err);
-    },
-  });
+  const toLocalePath = useLocalePath();
 
   const signInWithGoogle = useCallback(async () => {
+    if (isLoading) return; // Prevent multiple simultaneous auth attempts
+
     setIsLoading(true);
     try {
-      const fallbackRedirectPath =
-        options.redirectPath ??
-        (typeof window !== "undefined"
-          ? window.location.pathname + window.location.search
-          : "/");
+      // Use better-auth's signIn function for Google OAuth
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: options.redirectPath ?? toLocalePath("/"),
+        // Use popup flow as configured in auth-client
+      });
 
-      await initiateGoogleSignIn({ redirectTo: fallbackRedirectPath });
-
-      // Show success message
-      toast.success("Login berhasil! Sedang memuat...");
-
-      // Call onSuccess callback
+      // Success callback
       options.onSuccess?.();
-
-      // Refresh the page to update authentication state
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      }
+      toast.success("Login berhasil!");
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Google sign-in failed";
-      toast.error(errorMessage);
-      options.onError?.(
-        error instanceof Error ? error : new Error("Unknown error"),
-      );
+      const err = toError(error);
+
+      console.error("Google auth error:", err);
+
+      // Handle specific error cases
+      const errorMessage = err.message.toLowerCase();
+
+      if (errorMessage.includes("popup") && errorMessage.includes("diblokir")) {
+        toast.error("Popup diblokir. Izinkan popup untuk situs ini.");
+      } else if (errorMessage.includes("ditutup oleh pengguna")) {
+        console.warn("Popup ditutup oleh pengguna.");
+        // Jangan tampilkan error untuk user yang menutup popup
+      } else if (errorMessage.includes("timeout")) {
+        toast.error("Autentikasi timeout. Silakan coba lagi.");
+      } else if (errorMessage.includes("network")) {
+        toast.error("Koneksi internet bermasalah. Silakan coba lagi.");
+      } else {
+        toast.error("Autentikasi Google gagal. Silakan coba lagi.");
+      }
+
+      // Call error callback
+      options.onError?.(err);
     } finally {
       setIsLoading(false);
     }
-  }, [options]);
+  }, [options, toLocalePath, isLoading]);
 
   return {
     isLoading,
     signInWithGoogle,
-    gsiDivRef,
   };
 }

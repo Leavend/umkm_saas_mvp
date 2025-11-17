@@ -1,16 +1,8 @@
 import { useTranslations } from "~/components/language-provider";
 import { useGoogleAuth } from "~/hooks/use-google-auth";
-import { Loader2, X } from "lucide-react";
-import { GoogleIcon } from "~/components/icons/google-icon";
-import { useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "~/components/ui/dialog";
+import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
+import { GoogleIcon } from "~/components/icons/google-icon";
 import type { BaseComponentProps } from "~/lib/types";
 
 interface AuthModalProps extends BaseComponentProps {
@@ -20,82 +12,50 @@ interface AuthModalProps extends BaseComponentProps {
 
 /**
  * Authentication modal with Google OAuth integration
- * Provides a clean, accessible login experience
+ * Desktop: Opens popup window
+ * Mobile: Redirects to new tab
  */
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const translations = useTranslations();
 
-  // Google auth hook with proper error handling
+  // Google auth hook - opens popup window
   const { signInWithGoogle, isLoading } = useGoogleAuth({
     onSuccess: useCallback(() => {
       onClose();
     }, [onClose]),
-    onError: useCallback((error: Error) => {
-      console.error("Auth error in modal:", error);
+    onError: useCallback(() => {
       // Error handling is done in the hook via toast
     }, []),
   });
 
-  // Accessibility: Prevent modal close during loading
-  useEffect(() => {
-    const body = document.body;
-    if (isLoading) {
-      body.setAttribute("aria-busy", "true");
-    } else {
-      body.removeAttribute("aria-busy");
-    }
-    return () => body.removeAttribute("aria-busy");
-  }, [isLoading]);
-
   // Handle Google sign in with loading protection
-  const handleGoogleSignIn = useCallback(() => {
+  const handleGoogleSignIn = useCallback((): void => {
     if (!isLoading) {
       void signInWithGoogle();
     }
   }, [signInWithGoogle, isLoading]);
 
-  // Handle modal close with loading protection
-  const handleClose = useCallback(() => {
+  // Handle modal close
+  const handleClose = useCallback((): void => {
     if (!isLoading) {
       onClose();
     }
   }, [onClose, isLoading]);
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="rounded-lg p-6 shadow-xl sm:max-w-md">
-        {/* Custom close button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-4 right-4 h-8 w-8 rounded-full p-0"
-          onClick={handleClose}
-          disabled={isLoading}
-          aria-label="Close modal"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-xl font-semibold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">
             {translations.auth.modal.title}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-gray-600">
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
             {translations.auth.modal.description}
-          </DialogDescription>
-        </DialogHeader>
+          </p>
+        </div>
 
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="flex items-center justify-center space-x-2 rounded-lg bg-blue-50 p-4">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-            <span className="text-sm text-blue-700">
-              Membuka jendela autentikasi Google...
-            </span>
-          </div>
-        )}
-
-        {/* Auth actions */}
         <div className="space-y-4">
           <Button
             onClick={handleGoogleSignIn}
@@ -103,19 +63,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             className="flex w-full items-center justify-center gap-3 text-base font-medium transition-all hover:shadow-lg"
             size="lg"
             disabled={isLoading}
-            aria-busy={isLoading}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Membuka tab baru...</span>
-              </>
-            ) : (
-              <>
-                <GoogleIcon className="h-5 w-5" />
-                <span>Lanjutkan dengan Google</span>
-              </>
-            )}
+            <GoogleIcon className="h-5 w-5" />
+            <span>Lanjutkan dengan Google</span>
           </Button>
 
           {/* Terms and privacy */}
@@ -141,7 +91,27 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             kami.
           </p>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+          disabled={isLoading}
+        >
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }

@@ -38,7 +38,7 @@ export function CustomAuthView({
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       // Use better-auth's signIn function for Google OAuth
@@ -66,7 +66,7 @@ export function CustomAuthView({
       <h2 className="text-center text-lg font-semibold">
         {localization.SIGN_IN ?? "Sign In"}
       </h2>
-      
+
       {/* Better-auth Google Sign In Button */}
       <Button
         onClick={handleGoogleSignIn}

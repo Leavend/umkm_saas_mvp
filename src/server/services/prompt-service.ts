@@ -3,7 +3,7 @@
  * Handles prompt operations with credit validation and deduction
  */
 
-import { Prisma, type Prompt } from "@prisma/client";
+import type { Prompt } from "@prisma/client";
 import { db } from "~/server/db";
 import {
   InsufficientCreditsError,
@@ -13,12 +13,6 @@ import {
 
 // Credit cost per prompt copy
 const PROMPT_COPY_COST = 1;
-
-interface PromptCopyResult {
-  prompt: Prompt;
-  remainingCredits: number;
-  creditDeducted: number;
-}
 
 interface UserCredits {
   credits: number;
@@ -147,7 +141,9 @@ export async function getAllPrompts(): Promise<Prompt[]> {
 /**
  * Get prompts by category
  */
-export async function getPromptsByCategory(category: string): Promise<Prompt[]> {
+export async function getPromptsByCategory(
+  category: string,
+): Promise<Prompt[]> {
   if (!category?.trim()) {
     throw new ValidationError("Category is required");
   }

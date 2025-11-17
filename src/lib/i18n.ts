@@ -379,11 +379,10 @@ export const TRANSLATIONS = {
           "Get more AI transformations instantly with prepaid tokens. Tokens never expire.", // Diubah
         purchaseCta: "Start Generating", // Diubah
         processing: "Processing...",
-        creditsSuffix: "Tokens", // Diubah
-        header: "Hi, {email}",
+        creditsSuffix: "FREE Tokens", // Added
+        header: "Hi, {name}",
         close: "Close",
         balance: "{count} Token",
-        balanceDetails: "{regular} Regular, {daily} Daily",
         badgePopular: "Most Popular",
         badgeSave: "Save {percent}%",
         badgeBestValue: "Best Value",
@@ -1107,10 +1106,9 @@ export const TRANSLATIONS = {
         purchaseCta: "Mulai Generate", // Diubah
         processing: "Memproses...",
         creditsSuffix: "Token GRATIS", // Diubah
-        header: "Hi, {email}",
+        header: "Hi, {name}",
         close: "Tutup",
         balance: "{count} Token",
-        balanceDetails: "{regular} Reguler, {daily} Harian",
         badgePopular: "Paling Laris",
         badgeSave: "Hemat {percent}%",
         badgeBestValue: "Paling Untung",
@@ -1524,7 +1522,7 @@ export function formatTranslation(
     return template;
   }
 
-  return template.replace(/{{\s*(\w+)\s*}}/g, (match, key) => {
+  return template.replace(/{(\w+)}/g, (match, key) => {
     const replacement = replacements[key as keyof typeof replacements];
     return replacement !== undefined ? String(replacement) : match;
   });

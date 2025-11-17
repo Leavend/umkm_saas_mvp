@@ -1,22 +1,21 @@
-// src/components/prompt-card.tsx
-
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-// Impor ikon baru
-import { Copy, Loader2, Check, Share2, Bookmark, Send } from "lucide-react";
+import { Share2, Bookmark, Send } from "lucide-react";
 import { toast } from "sonner";
+import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
-// Impor Separator
 import { Separator } from "~/components/ui/separator";
 import { Card } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-import { copyPrompt } from "~/actions/prompts";
+import { CopyButton } from "~/components/ui/copy-button";
 import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
+import { UI_CONSTANTS } from "~/lib/constants/ui";
 import type { Prompt } from "@prisma/client";
+
+type CardViewMode = "default" | "image-only" | "full-description";
 
 interface PromptCardProps {
   prompt: Prompt;
@@ -24,7 +23,147 @@ interface PromptCardProps {
   onShowAuthModal?: () => void;
   onClick?: (prompt: Prompt) => void;
   reviewSafeImage?: boolean;
-  cardViewMode?: "default" | "image-only" | "full-description";
+  cardViewMode?: CardViewMode;
+}
+
+/**
+ * Extract overlay buttons into a separate component
+ */
+interface OverlayButtonsProps {
+  onClick: (e: React.MouseEvent) => void;
+}
+
+function OverlayButtons({ onClick }: OverlayButtonsProps) {
+  return (
+    <div className="absolute top-2 right-2 flex gap-1.5">
+      <Button
+        variant="outline"
+        size="icon"
+        className={UI_CONSTANTS.component.button.icon}
+        onClick={onClick}
+        aria-label="Share prompt"
+      >
+        <Share2 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        className={UI_CONSTANTS.component.button.icon}
+        onClick={onClick}
+        aria-label="Save prompt"
+      >
+        <Bookmark className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Extract category badge into a separate component
+ */
+interface CategoryBadgeProps {
+  category: string;
+}
+
+function CategoryBadge({ category }: CategoryBadgeProps) {
+  return (
+    <div className="mb-2 flex flex-wrap gap-1">
+      <Badge
+        variant="secondary"
+        className={cn(
+          UI_CONSTANTS.colors.brand[100],
+          UI_CONSTANTS.colors.brand[800],
+          UI_CONSTANTS.component.badge.size,
+        )}
+      >
+        {category}
+      </Badge>
+    </div>
+  );
+}
+
+/**
+ * Extract image section into a separate component
+ */
+interface PromptImageSectionProps {
+  prompt: Prompt;
+  reviewSafeImage?: boolean;
+  onOverlayClick: (e: React.MouseEvent) => void;
+}
+
+function PromptImageSection({
+  prompt,
+  reviewSafeImage,
+  onOverlayClick,
+}: PromptImageSectionProps) {
+  const imageClasses = cn(
+    "transition-transform group-hover:scale-105",
+    reviewSafeImage ? "object-contain" : "object-cover",
+  );
+
+  return (
+    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
+      <Image
+        src={prompt.imageUrl}
+        alt={prompt.title}
+        fill
+        className={imageClasses}
+        loading="lazy"
+        placeholder="blur"
+        blurDataURL={UI_CONSTANTS.image.blurPlaceholder}
+        sizes={UI_CONSTANTS.image.sizes.thumbnail}
+      />
+      <OverlayButtons onClick={onOverlayClick} />
+    </div>
+  );
+}
+
+/**
+ * Extract action buttons into a separate component
+ */
+interface ActionButtonsProps {
+  onClick?: (prompt: Prompt) => void;
+  prompt: Prompt;
+  onShowAuthModal?: () => void;
+  onCreditsUpdate?: (credits: number) => void;
+  translations: { common: { actions: { goToGenerate: string } } };
+}
+
+function ActionButtons({
+  onClick,
+  prompt,
+  onShowAuthModal,
+  onCreditsUpdate,
+  translations,
+}: ActionButtonsProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 p-2.5">
+      <Button
+        size="sm"
+        variant="outline"
+        className={cn(
+          UI_CONSTANTS.component.button.sm,
+          "flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs",
+        )}
+        onClick={() => onClick?.(prompt)}
+      >
+        <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+        {translations.common.actions.goToGenerate}
+      </Button>
+
+      <CopyButton
+        prompt={prompt}
+        onCreditsUpdate={onCreditsUpdate}
+        onShowAuthModal={onShowAuthModal}
+        size="sm"
+        className={cn(
+          UI_CONSTANTS.component.button.sm,
+          "flex-1 text-[10px] sm:w-auto sm:flex-none sm:text-xs",
+        )}
+        showText={false}
+      />
+    </div>
+  );
 }
 
 export function PromptCard({
@@ -37,64 +176,23 @@ export function PromptCard({
 }: PromptCardProps) {
   const translations = useTranslations();
   const { cardViewMode: globalCardViewMode } = useMarketUI();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
 
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Hentikan event agar tidak trigger onClick card
-    try {
-      setIsLoading(true);
-      const result = await copyPrompt(prompt.id);
-      if (!result.success) {
-        const errorMessage = result.error
-          ? typeof result.error === "string"
-            ? result.error
-            : result.error.message
-          : "An error occurred";
-        toast.error(errorMessage);
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          result.error.includes("Insufficient credits") &&
-          onShowAuthModal
-        ) {
-          onShowAuthModal();
-        }
-        return;
-      }
-      await navigator.clipboard.writeText(result.data?.prompt.text ?? "");
-      if (onCreditsUpdate && result.data?.remainingCredits) {
-        onCreditsUpdate(result.data.remainingCredits);
-      }
-      setIsCopied(true);
-      toast.success(translations.promptCard.copiedToClipboard, {
-        description: `${result.data?.remainingCredits ?? 0} ${translations.promptCard.creditsRemaining}`,
-      });
-      setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to copy prompt:", error);
-      toast.error(translations.promptCard.copyFailed);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Tombol overlay (dummy, belum ada fungsi)
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Hentikan event agar tidak trigger onClick card
+  // Handle overlay button clicks (development features)
+  const handleOverlayClick = useCallback((e: React.MouseEvent): void => {
+    e.stopPropagation();
     toast.info("Fitur ini sedang dalam pengembangan.");
-  };
+  }, []);
 
-  // Menjaga fungsionalitas mode image-only
+  // Image-only mode
   if (currentCardViewMode === "image-only") {
-    // ... (kode untuk mode image-only tetap sama)
     return (
       <Card
-        className="group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden border border-slate-200 bg-white transition-all hover:shadow-lg focus-visible:ring-2"
+        className={cn(
+          "group focus-visible:ring-brand-500/50 relative flex aspect-square h-full cursor-pointer overflow-hidden transition-all hover:shadow-lg focus-visible:ring-2",
+          UI_CONSTANTS.colors.slate[200],
+          "bg-white",
+        )}
         onClick={() => onClick?.(prompt)}
         tabIndex={0}
         role="button"
@@ -105,13 +203,21 @@ export function PromptCard({
             src={prompt.imageUrl}
             alt={prompt.title}
             fill
-            className={`${reviewSafeImage ? "object-contain" : "object-cover"} object-center transition-transform group-hover:scale-105`}
+            className={cn(
+              reviewSafeImage ? "object-contain" : "object-cover",
+              "object-center transition-transform group-hover:scale-105",
+            )}
             loading="lazy"
             placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            blurDataURL={UI_CONSTANTS.image.blurPlaceholder}
+            sizes={UI_CONSTANTS.image.sizes.card}
           />
-          <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
+          <Badge
+            className={cn(
+              "absolute top-2 right-2 text-xs text-slate-900 sm:text-sm",
+              UI_CONSTANTS.colors.brand[500],
+            )}
+          >
             {prompt.category}
           </Badge>
         </div>
@@ -119,124 +225,60 @@ export function PromptCard({
     );
   }
 
-  // --- DESAIN KARTU BARU ---
+  // Full card mode
   return (
     <Card
-      // Hapus padding 'py-6' dari Card
-      className="focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2"
+      className={cn(
+        "focus-visible:ring-brand-500/50 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2",
+      )}
       tabIndex={0}
       role="group"
       aria-label={`Prompt card for ${prompt.title}`}
     >
-      {/* Gambar Review Full */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-slate-100">
-        <Image
-          src={prompt.imageUrl}
-          alt={prompt.title}
-          fill
-          className={`${reviewSafeImage ? "object-contain" : "object-cover"} object-center`}
-          loading="lazy"
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-        />
-        <div className="absolute top-2 right-2 flex gap-1.5">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white"
-            onClick={handleOverlayClick}
-            aria-label="Share prompt"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white"
-            onClick={handleOverlayClick}
-            aria-label="Save prompt"
-          >
-            <Bookmark className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Image Section */}
+      <PromptImageSection
+        prompt={prompt}
+        reviewSafeImage={reviewSafeImage}
+        onOverlayClick={handleOverlayClick}
+      />
 
-      {/* Konten di bawah gambar */}
-      <div className="flex flex-1 flex-col p-3 pt-1.5 sm:p-4 sm:pt-2">
-        {/* Kategori */}
-        <div className="mb-2 flex flex-wrap gap-1">
-          <Badge
-            variant="secondary"
-            className="bg-brand-100 text-brand-800 text-xs"
-          >
-            {prompt.category}
-          </Badge>
-        </div>
+      {/* Content Section */}
+      <div
+        className={cn(
+          "flex flex-1 flex-col",
+          UI_CONSTANTS.layout.spacing.xs,
+          "pt-1.5 sm:pt-2",
+        )}
+      >
+        {/* Category Badge */}
+        <CategoryBadge category={prompt.category} />
 
-        {/* ===== PERUBAHAN DI SINI ===== */}
-        {/* 1. Container Bergaris untuk Deskripsi DAN Tombol */}
+        {/* Description Container */}
         <div
           className={cn(
-            "flex flex-1 flex-col rounded-lg border border-slate-300 bg-slate-50/50", // Desain container
-            "overflow-hidden", // Pastikan konten internal tidak keluar dari border
+            "flex flex-1 flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-50/50",
           )}
         >
-          {/* 2. Container Teks Scrollable */}
+          {/* Scrollable Text */}
           <div
             className={cn(
-              "h-24 overflow-y-auto p-2.5", // Padding HANYA untuk teks
-              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400", // Scrollbar
+              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 h-24 overflow-y-auto p-2.5",
             )}
           >
-            {/* 3. Font Rubik */}
             <p className="font-rubik text-sm text-slate-800">{prompt.text}</p>
           </div>
 
-          {/* 4. Separator (Di dalam container) */}
           <Separator className="my-0 bg-slate-300" />
 
-          {/* 5. Tombol Bawah (Di dalam container) */}
-          <div className="flex flex-wrap items-center gap-2 p-2.5">
-            {/* Tombol Generate (Menghapus w-full, menggunakan flex-1) */}
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs"
-              onClick={() => onClick?.(prompt)}
-            >
-              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-              {translations.common.actions.goToGenerate}
-            </Button>
-
-            {/* Tombol Copy (Menghapus w-full, menggunakan flex-1) */}
-            <Button
-              size="sm"
-              className={cn(
-                "h-7 flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs",
-                isCopied
-                  ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                  : "bg-brand-500 hover:bg-brand-600 text-slate-900",
-              )}
-              disabled={isLoading || isCopied}
-              onClick={handleCopy}
-            >
-              {isLoading ? (
-                <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
-              ) : isCopied ? (
-                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-              ) : (
-                <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-              )}
-              {isLoading
-                ? translations.promptCard.copying
-                : isCopied
-                  ? translations.promptCard.copied
-                  : translations.promptCard.copyPrompt}
-            </Button>
-          </div>
+          {/* Action Buttons */}
+          <ActionButtons
+            onClick={onClick}
+            prompt={prompt}
+            onShowAuthModal={onShowAuthModal}
+            onCreditsUpdate={onCreditsUpdate}
+            translations={translations}
+          />
         </div>
-        {/* ===== BATAS PERUBAHAN ===== */}
       </div>
     </Card>
   );

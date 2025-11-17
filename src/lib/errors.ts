@@ -1,26 +1,152 @@
 // src/lib/errors.ts
 
+/**
+ * Enhanced error handling system with specific error types and context
+ */
+
+export interface ErrorContext {
+  operation?: string;
+  component?: string;
+  userId?: string;
+  requestId?: string;
+  timestamp?: Date;
+  additionalInfo?: Record<string, unknown>;
+}
+
 export class AppError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+  public readonly context: ErrorContext;
+
+  constructor(message: string, context: ErrorContext = {}) {
+    super(message);
     this.name = new.target.name;
+    this.context = {
+      timestamp: new Date(),
+      ...context,
+    };
+  }
+
+  /**
+   * Convert error to a structured format for logging/monitoring
+   */
+  toLoggableObject() {
+    return {
+      name: this.name,
+      message: this.message,
+      stack: this.stack,
+      context: this.context,
+      timestamp: this.context.timestamp?.toISOString(),
+    };
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = "Unauthorized") {
-    super(message);
+  constructor(
+    message = "You need to be logged in to perform this action",
+    context: ErrorContext = {},
+  ) {
+    super(message, { operation: "unauthorized_access", ...context });
   }
 }
 
-export class ValidationError extends AppError {}
+export class ValidationError extends AppError {
+  public readonly field?: string;
+  public readonly value?: unknown;
 
-export class NotFoundError extends AppError {}
+  constructor(
+    message: string,
+    field?: string,
+    value?: unknown,
+    context: ErrorContext = {},
+  ) {
+    super(message, { operation: "validation", ...context });
+    this.field = field;
+    this.value = value;
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(
+    message = "The requested resource was not found",
+    resource?: string,
+    id?: string,
+    context: ErrorContext = {},
+  ) {
+    const fullMessage =
+      resource && id ? `${resource} with id '${id}' was not found` : message;
+    super(fullMessage, { operation: "not_found", ...context });
+    this.resource = resource;
+    this.id = id;
+  }
+
+  public readonly resource?: string;
+  public readonly id?: string;
+}
 
 export class InsufficientCreditsError extends AppError {
-  constructor(message = "Insufficient credits") {
-    super(message);
+  constructor(
+    message = "Insufficient credits to perform this action",
+    required?: number,
+    available?: number,
+    context: ErrorContext = {},
+  ) {
+    const fullMessage =
+      required && available
+        ? `Requires ${required} credits, but only ${available} available`
+        : message;
+    super(fullMessage, { operation: "insufficient_credits", ...context });
+    this.required = required;
+    this.available = available;
   }
+
+  public readonly required?: number;
+  public readonly available?: number;
+}
+
+export class NetworkError extends AppError {
+  constructor(
+    message = "Network request failed",
+    status?: number,
+    url?: string,
+    context: ErrorContext = {},
+  ) {
+    const fullMessage =
+      status && url ? `Network error: ${status} for ${url}` : message;
+    super(fullMessage, { operation: "network_request", ...context });
+    this.status = status;
+    this.url = url;
+  }
+
+  public readonly status?: number;
+  public readonly url?: string;
+}
+
+export class RateLimitError extends AppError {
+  constructor(
+    message = "Too many requests. Please try again later",
+    resetTime?: Date,
+    context: ErrorContext = {},
+  ) {
+    super(message, { operation: "rate_limit", ...context });
+    this.resetTime = resetTime;
+  }
+
+  public readonly resetTime?: Date;
+}
+
+export class ConfigurationError extends AppError {
+  constructor(
+    message = "Configuration error",
+    configKey?: string,
+    context: ErrorContext = {},
+  ) {
+    const fullMessage = configKey
+      ? `Configuration error: ${configKey} is missing or invalid`
+      : message;
+    super(fullMessage, { operation: "configuration", ...context });
+    this.configKey = configKey;
+  }
+
+  public readonly configKey?: string;
 }
 
 export const toError = (value: unknown): Error => {

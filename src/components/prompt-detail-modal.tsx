@@ -6,12 +6,7 @@ import { X, Copy, Check, Clock, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useTranslations } from "~/components/language-provider";
 import { copyPrompt } from "~/actions/prompts";
 import type { Prompt } from "@prisma/client";
@@ -89,41 +84,42 @@ export function PromptDetailModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="mx-4 max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0 sm:mx-0">
-        <DialogHeader className="p-4 pb-0 sm:p-6">
+        <div className="p-4 pb-0 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <DialogTitle className="pr-8 text-xl font-bold break-words text-slate-900 sm:text-2xl">
+              <h2 className="pr-8 text-xl font-bold break-words text-slate-900 sm:text-2xl">
                 {prompt.title}
-              </DialogTitle>
-              <div className="mt-2 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
-                <div className="flex items-center gap-1">
-                  <Tag className="h-4 w-4 flex-shrink-0" />
-                  <Badge
-                    variant="secondary"
-                    className="bg-brand-100 text-brand-800 text-xs sm:text-sm"
-                  >
-                    {prompt.category}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">
-                    {new Date(prompt.updatedAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
+              </h2>
             </div>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
+              className="h-8 w-8 flex-shrink-0 rounded-full p-0"
               onClick={onClose}
-              className="h-8 w-8 flex-shrink-0 rounded-full hover:bg-slate-100"
+              disabled={isLoading}
               aria-label="Close modal"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
-        </DialogHeader>
+          <div className="mt-2 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex items-center gap-1">
+              <Tag className="h-4 w-4 flex-shrink-0" />
+              <Badge
+                variant="secondary"
+                className="bg-brand-100 text-brand-800 text-xs sm:text-sm"
+              >
+                {prompt.category}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">
+                {new Date(prompt.updatedAt).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </div>
 
         <div className="px-4 pb-4 sm:px-6 sm:pb-6">
           {/* Image */}

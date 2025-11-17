@@ -25,14 +25,14 @@ export function OneTapTrigger({ path }: OneTapTriggerProps) {
           });
 
           // For One Tap, we'll use a direct approach since the credential is an ID token
-          const response = await fetch('/api/auth/google-one-tap', {
-            method: 'POST',
+          const response = await fetch("/api/auth/google-one-tap", {
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               credential,
-              callbackURL: "/" 
+              callbackURL: "/",
             }),
           });
 

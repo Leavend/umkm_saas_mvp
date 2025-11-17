@@ -53,7 +53,7 @@ export function ModalHeader({
       {/* Title */}
       <DialogTitlePrimitive
         className={cn(
-          "text-xl font-semibold text-gray-900 pr-10", // Add right padding for close button
+          "pr-10 text-xl font-semibold text-gray-900", // Add right padding for close button
           titleClassName,
         )}
       >
@@ -63,7 +63,7 @@ export function ModalHeader({
       {/* Optional description */}
       {description && (
         <DialogDescriptionPrimitive
-          className={cn("text-sm text-gray-600 mt-1", descriptionClassName)}
+          className={cn("mt-1 text-sm text-gray-600", descriptionClassName)}
         >
           {description}
         </DialogDescriptionPrimitive>
@@ -99,11 +99,11 @@ export function CompactModalHeader({
   className,
 }: CompactModalHeaderProps) {
   return (
-    <div className={cn("flex justify-between items-center mb-4", className)}>
+    <div className={cn("mb-4 flex items-center justify-between", className)}>
       <div className="min-w-0 flex-1">
         <h2
           className={cn(
-            "text-sm font-medium text-foreground truncate",
+            "text-foreground truncate text-sm font-medium",
             titleClassName,
           )}
         >
@@ -112,7 +112,7 @@ export function CompactModalHeader({
         {subtitle && (
           <p
             className={cn(
-              "text-xs text-muted-foreground mt-0.5 truncate",
+              "text-muted-foreground mt-0.5 truncate text-xs",
               subtitleClassName,
             )}
           >
@@ -125,7 +125,7 @@ export function CompactModalHeader({
         <Button
           variant="ghost"
           size="sm"
-          className="h-auto rounded-md px-3 py-1.5 text-xs flex-shrink-0 ml-2"
+          className="ml-2 h-auto flex-shrink-0 rounded-md px-3 py-1.5 text-xs"
           onClick={onClose}
           disabled={closeDisabled}
           aria-label={closeButtonLabel}

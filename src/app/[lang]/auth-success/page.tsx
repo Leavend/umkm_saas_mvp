@@ -5,27 +5,41 @@ import { Loader2, Check } from "lucide-react";
 
 /**
  * Auth Success Page
- * This page is opened in a popup window after successful Google OAuth
- * It sends a message to the parent window and then closes itself
+ * This page is shown after successful Google OAuth
+ * It sends a message to the parent window (either opener or parent frame)
+ * and then redirects or closes accordingly
  */
 export default function AuthSuccessPage() {
   useEffect(() => {
-    // Send success message to parent window (opener)
-    if (window.opener) {
-      window.opener.postMessage(
+    // Try to communicate with parent window
+    // Support both popup and iframe flows
+    const targetWindow = (window.opener ?? window.parent) as Window | null;
+
+    if (targetWindow && targetWindow !== window) {
+      // Send success message to parent window
+      targetWindow.postMessage(
         {
           type: "google-auth-success",
           timestamp: Date.now(),
         },
-        window.location.origin
+        window.location.origin,
       );
 
-      // Close popup after a short delay to show success message
-      setTimeout(() => {
-        window.close();
-      }, 1500);
+      // If this was a popup, close it
+      if (window.opener) {
+        setTimeout(() => {
+          window.close();
+        }, 1500);
+      } else {
+        // If this was an iframe, just show success briefly
+        // Parent will close the modal
+        setTimeout(() => {
+          // Fallback redirect if modal doesn't close
+          window.location.href = "/";
+        }, 3000);
+      }
     } else {
-      // If no opener, redirect to home
+      // If no parent, redirect to home
       setTimeout(() => {
         window.location.href = "/";
       }, 2000);
@@ -40,7 +54,7 @@ export default function AuthSuccessPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
               <Check className="h-10 w-10 text-green-600" />
             </div>
-            <div className="absolute -bottom-1 -right-1">
+            <div className="absolute -right-1 -bottom-1">
               <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
           </div>
@@ -55,9 +69,7 @@ export default function AuthSuccessPage() {
           </div>
 
           <div className="w-full rounded-lg bg-green-50 p-4">
-            <p className="text-xs text-green-700">
-              Jendela ini akan ditutup secara otomatis
-            </p>
+            <p className="text-xs text-green-700">Mohon tunggu sebentar</p>
           </div>
         </div>
       </div>

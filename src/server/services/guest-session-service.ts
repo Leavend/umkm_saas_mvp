@@ -19,17 +19,18 @@ const FINGERPRINT_BYTES = 16;
 
 export const GUEST_SESSION_MAX_AGE_SECONDS = Math.floor(SESSION_TTL_MS / 1000);
 
-const generateHex = (bytes: number) => randomBytes(bytes).toString("hex");
-const generateAccessToken = () => generateHex(ACCESS_TOKEN_BYTES);
-const generateSessionSecret = () => generateHex(SESSION_SECRET_BYTES);
-const generateFingerprint = () => generateHex(FINGERPRINT_BYTES);
+const generateHex = (bytes: number): string =>
+  randomBytes(bytes).toString("hex");
+const generateAccessToken = (): string => generateHex(ACCESS_TOKEN_BYTES);
+const generateSessionSecret = (): string => generateHex(SESSION_SECRET_BYTES);
+const generateFingerprint = (): string => generateHex(FINGERPRINT_BYTES);
 
-const getStartOfUtcDay = (date: Date) =>
+const getStartOfUtcDay = (date: Date): Date =>
   new Date(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
   );
 
-const computeExpiry = () => new Date(Date.now() + SESSION_TTL_MS);
+const computeExpiry = (): Date => new Date(Date.now() + SESSION_TTL_MS);
 
 type CreateGuestSessionInput = {
   ipAddress?: string;
@@ -211,20 +212,20 @@ export const validateGuestSessionCredentials = async (
   });
 };
 
-type CreditSnapshot = {
-  credits: number;
-  lastDailyCreditAt: Date | null;
-};
-
 type GuestCreditResult = {
   credits: number;
   granted: boolean;
   lastDailyCreditAt: Date | null;
 };
 
+type GuestCreditSnapshot = {
+  credits: number;
+  lastDailyCreditAt: Date | null;
+};
+
 const isGuestCreditSnapshot = (
   value: unknown,
-): value is { credits: number; lastDailyCreditAt: Date | null } => {
+): value is GuestCreditSnapshot => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return false;
   }
@@ -243,7 +244,7 @@ export const ensureDailyCreditForGuest = async (guestSessionId: string) => {
   const nextExpiry = computeExpiry();
 
   return db.$transaction<GuestCreditResult>(async (tx) => {
-    const updatedRows = await tx.$queryRaw<CreditSnapshot[]>(
+    const updatedRows = await tx.$queryRaw<GuestCreditSnapshot[]>(
       Prisma.sql`
         UPDATE "guest_session"
         SET "credits" = LEAST("credits" + ${DAILY_CREDIT_AMOUNT}, ${DAILY_CREDIT_CAP}),

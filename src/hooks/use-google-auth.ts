@@ -1,76 +1,29 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useLocalePath } from "~/components/language-provider";
 import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
 import { toError } from "~/lib/errors";
-import { env } from "~/env.js";
 import { authClient } from "~/lib/auth-client";
 
 /**
- * Custom hook for Google authentication with custom popup modal
- * Provides manual control over popup window and OAuth flow
+ * Custom hook for Google authentication with redirect flow
+ * Uses direct redirect to Google OAuth (most reliable method)
  *
  * @param options - Authentication options and callbacks
- * @returns Google authentication state and actions including popup modal state
+ * @returns Google authentication state and actions
  */
 export function useGoogleAuth(
   options: UseGoogleAuthOptions = {},
 ): UseGoogleAuthReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const [authUrl, setAuthUrl] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toLocalePath = useLocalePath();
 
-  // Listen for authentication success via message events
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      // Verify origin for security
-      const allowedOrigins = [
-        env.NEXT_PUBLIC_BETTER_AUTH_URL,
-        "http://localhost:3000",
-        window.location.origin,
-      ];
-
-      if (!allowedOrigins.includes(event.origin)) {
-        return;
-      }
-
-      // Handle successful authentication
-      if (event.data?.type === "google-auth-success") {
-        setIsModalOpen(false);
-        setIsLoading(false);
-        setAuthUrl(null);
-        options.onSuccess?.();
-        toast.success("Login berhasil!");
-
-        // Refresh page to update session
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      }
-
-      // Handle authentication error
-      if (event.data?.type === "google-auth-error") {
-        setIsModalOpen(false);
-        setIsLoading(false);
-        setAuthUrl(null);
-        const errorMsg = event.data.error || "Autentikasi gagal";
-        setError(errorMsg);
-        toast.error(errorMsg);
-        options.onError?.(new Error(errorMsg));
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [options]);
-
   /**
-   * Initiate Google OAuth using authClient
+   * Initiate Google OAuth flow with redirect
    */
   const signInWithGoogle = useCallback(async () => {
-    if (isLoading) return; // Prevent multiple simultaneous auth attempts
+    if (isLoading) return;
 
     setIsLoading(true);
     setError(null);
@@ -78,28 +31,45 @@ export function useGoogleAuth(
     try {
       const callbackURL = options.redirectPath ?? toLocalePath("/");
 
-      // Use authClient to generate OAuth URL
-      // This will internally call better-auth's API to get the correct OAuth URL
-      const response = await authClient.$fetch("/sign-in/social", {
-        method: "POST",
-        body: {
+      console.log("[useGoogleAuth] Starting Google OAuth flow...");
+      console.log("[useGoogleAuth] Callback URL:", callbackURL);
+
+      // Use authClient.signIn.social which will redirect the page
+      await authClient.signIn.social(
+        {
           provider: "google",
           callbackURL,
         },
-      });
+        {
+          onRequest: () => {
+            console.log("[useGoogleAuth] Sending OAuth request...");
+          },
+          onSuccess: () => {
+            console.log("[useGoogleAuth] OAuth redirect initiated");
+          },
+          onError: (ctx) => {
+            console.error("[useGoogleAuth] OAuth error:", ctx.error);
+            throw ctx.error;
+          },
+        },
+      );
 
-      // Handle response based on better-auth return type
-      const data = response as { url?: string; error?: unknown };
-
-      if (!data.url) {
-        throw new Error("No OAuth URL returned");
-      }
-
-      setAuthUrl(data.url);
-      setIsModalOpen(true);
+      // Note: code below won't execute as page redirects
     } catch (error: unknown) {
       const err = toError(error);
-      const errorMessage = "Gagal memulai autentikasi. Silakan coba lagi.";
+      console.error("[useGoogleAuth] Error:", err);
+
+      // More specific error messages
+      let errorMessage = "Gagal memulai autentikasi. Silakan coba lagi.";
+
+      if (
+        err.message?.includes("fetch failed") ||
+        err.message?.includes("network")
+      ) {
+        errorMessage = "Koneksi gagal. Periksa internet Anda dan coba lagi.";
+      } else if (err.message?.includes("timeout")) {
+        errorMessage = "Request timeout. Silakan coba lagi.";
+      }
 
       setError(errorMessage);
       setIsLoading(false);
@@ -108,12 +78,7 @@ export function useGoogleAuth(
     }
   }, [options, toLocalePath, isLoading]);
 
-  /**
-   * Close modal and cleanup
-   */
   const closeModal = useCallback(() => {
-    setIsModalOpen(false);
-    setAuthUrl(null);
     setError(null);
     setIsLoading(false);
   }, []);
@@ -121,8 +86,8 @@ export function useGoogleAuth(
   return {
     isLoading,
     signInWithGoogle,
-    authUrl,
-    isModalOpen,
+    authUrl: null,
+    isModalOpen: false,
     closeModal,
     error,
   };

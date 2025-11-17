@@ -40,8 +40,9 @@ export async function initiateGoogleSignIn({
       }
     }, 1000);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Google authentication failed";
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Google authentication failed";
+
     if (errorMessage.includes("popup") && errorMessage.includes("diblokir")) {
       throw new Error("Popup diblokir. Silakan izinkan popup untuk situs ini.");
     } else if (errorMessage.includes("ditutup oleh pengguna")) {

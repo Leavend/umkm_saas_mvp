@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { Copy, Loader2, Check } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
-import { useTranslations } from "~/components/language-provider";
 import { Badge } from "~/components/ui/badge";
-import { copyPrompt } from "~/actions/prompts";
+import { CopyButton } from "~/components/ui/copy-button";
 import { useMarketUI } from "~/stores/use-market-ui";
 import type { Prompt } from "@prisma/client";
 
@@ -26,59 +21,8 @@ export function PromptListItem({
   onClick,
   cardViewMode,
 }: PromptListItemProps) {
-  const translations = useTranslations();
   const { cardViewMode: globalCardViewMode } = useMarketUI();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
-
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      setIsLoading(true);
-
-      const result = await copyPrompt(prompt.id);
-
-      if (!result.success) {
-        const errorMessage = result.error
-          ? typeof result.error === "string"
-            ? result.error
-            : result.error.message
-          : "An error occurred";
-        toast.error(errorMessage);
-        if (
-          result.error &&
-          typeof result.error === "string" &&
-          result.error.includes("Insufficient credits") &&
-          onShowAuthModal
-        ) {
-          onShowAuthModal();
-        }
-        return;
-      }
-
-      await navigator.clipboard.writeText(result.data?.prompt.text ?? "");
-
-      if (onCreditsUpdate && result.data?.remainingCredits) {
-        onCreditsUpdate(result.data.remainingCredits);
-      }
-
-      setIsCopied(true);
-      toast.success(translations.promptCard.copiedToClipboard, {
-        description: `${result.data?.remainingCredits ?? 0} ${translations.promptCard.creditsRemaining}`,
-      });
-
-      setTimeout(() => {
-        setIsCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to copy prompt:", error);
-      toast.error(translations.promptCard.copyFailed);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div
@@ -116,7 +60,9 @@ export function PromptListItem({
 
       {/* Content */}
       <div
-        className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "w-full" : ""}`}
+        className={`min-w-0 flex-1 ${
+          currentCardViewMode === "full-description" ? "w-full" : ""
+        }`}
       >
         <div
           className={`flex items-start justify-between gap-2 ${
@@ -124,7 +70,9 @@ export function PromptListItem({
           }`}
         >
           <div
-            className={`min-w-0 flex-1 ${currentCardViewMode === "full-description" ? "text-center" : ""}`}
+            className={`min-w-0 flex-1 ${
+              currentCardViewMode === "full-description" ? "text-center" : ""
+            }`}
           >
             <h3
               className={`line-clamp-1 font-semibold text-slate-900 ${
@@ -153,27 +101,15 @@ export function PromptListItem({
         </div>
       </div>
 
-      {/* Action */}
-      <Button
-        className={`focus-visible:ring-brand-500/50 flex-shrink-0 gap-2 rounded-md px-2 py-2 text-xs focus-visible:ring-2 sm:px-3 sm:py-2 sm:text-sm ${
-          isCopied
-            ? "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-slate-900"
-            : "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
-        }`}
-        disabled={isLoading || isCopied}
-        onClick={handleCopy}
-      >
-        {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
-        ) : isCopied ? (
-          <Check className="h-3 w-3 sm:h-4 sm:w-4" />
-        ) : (
-          <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
-        )}
-        <span className="ml-1 hidden sm:inline">
-          {translations.promptCard.copyPrompt}
-        </span>
-      </Button>
+      {/* Action Button */}
+      <CopyButton
+        prompt={prompt}
+        onCreditsUpdate={onCreditsUpdate}
+        onShowAuthModal={onShowAuthModal}
+        variant="outline"
+        className="flex-shrink-0 rounded-md px-2 py-2 text-xs sm:px-3 sm:py-2 sm:text-sm"
+        showText={false}
+      />
     </div>
   );
 }

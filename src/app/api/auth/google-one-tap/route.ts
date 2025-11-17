@@ -6,14 +6,14 @@ import { db } from "~/server/db";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json() as { credential: string; callbackURL?: string };
+    const body = (await req.json()) as {
+      credential: string;
+      callbackURL?: string;
+    };
     const { credential: idToken, callbackURL = "/" } = body;
 
     if (!idToken) {
-      return NextResponse.json(
-        { error: "Missing ID token" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing ID token" }, { status: 400 });
     }
 
     // Verify the ID token with Google
@@ -22,18 +22,18 @@ export async function POST(req: Request) {
       idToken,
       audience: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     });
-    
+
     const payload = ticket.getPayload();
     if (!payload?.email) {
       return NextResponse.json(
         { error: "Invalid Google ID token" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     // Create or update user in database using Prisma
     let user = await db.user.findUnique({
-      where: { email: payload.email }
+      where: { email: payload.email },
     });
 
     if (!user) {
@@ -79,12 +79,9 @@ export async function POST(req: Request) {
     // Set session cookie and redirect
     const baseUrl = new URL(req.url).origin;
     const redirectUrl = new URL(callbackURL, baseUrl);
-    
-    const response = NextResponse.redirect(
-      redirectUrl,
-      { status: 302 }
-    );
-    
+
+    const response = NextResponse.redirect(redirectUrl, { status: 302 });
+
     response.cookies.set("better-auth.session_token", sessionToken, {
       path: "/",
       httpOnly: true,
@@ -98,7 +95,7 @@ export async function POST(req: Request) {
     console.error("Google One Tap error:", error);
     return NextResponse.json(
       { error: "Authentication failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

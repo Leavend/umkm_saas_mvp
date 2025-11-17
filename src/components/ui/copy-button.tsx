@@ -8,7 +8,13 @@ interface CopyButtonProps {
   prompt: Prompt;
   onCreditsUpdate?: (credits: number) => void;
   onShowAuthModal?: () => void;
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
+  variant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "destructive";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   showText?: boolean;

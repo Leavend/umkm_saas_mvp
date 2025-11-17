@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Copy, Loader2, Check } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "~/components/ui/button";
-import { useTranslations } from "~/components/language-provider";
 import { Badge } from "~/components/ui/badge";
-import { copyPrompt } from "~/actions/prompts";
+import { CopyButton } from "~/components/ui/copy-button";
 import { useMarketUI } from "~/stores/use-market-ui";
 import type { Prompt } from "@prisma/client";
 
@@ -26,68 +21,8 @@ export function PromptPhotoCard({
   onClick,
   cardViewMode,
 }: PromptPhotoCardProps) {
-  const translations = useTranslations();
   const { cardViewMode: globalCardViewMode } = useMarketUI();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
-
-  useEffect(() => {
-    if (!isCopied) return;
-
-    const timer = setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [isCopied]);
-
-  const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      setIsLoading(true);
-
-      const result = await copyPrompt(prompt.id);
-
-      if (!result.success) {
-        const errorMessage = result.error
-          ? typeof result.error === "string"
-            ? result.error
-            : result.error.message
-          : "An error occurred";
-        toast.error(errorMessage);
-
-        const isInsufficientCredits =
-          result.error &&
-          ((typeof result.error !== "string" &&
-            result.error.code === "INSUFFICIENT_CREDITS") ||
-            (typeof result.error === "string" &&
-              result.error.includes("Insufficient credits")));
-
-        if (isInsufficientCredits && onShowAuthModal) {
-          onShowAuthModal();
-        }
-        return;
-      }
-
-      await navigator.clipboard.writeText(result.data?.prompt.text ?? "");
-
-      if (onCreditsUpdate && result.data?.remainingCredits) {
-        onCreditsUpdate(result.data.remainingCredits);
-      }
-
-      setIsCopied(true);
-      toast.success(translations.promptCard.copiedToClipboard, {
-        description: `${result.data?.remainingCredits ?? 0} ${translations.promptCard.creditsRemaining}`,
-      });
-    } catch (error) {
-      console.error("Failed to copy prompt:", error);
-      toast.error(translations.promptCard.copyFailed);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -109,7 +44,11 @@ export function PromptPhotoCard({
     >
       {/* Image Container */}
       <div
-        className={`relative ${currentCardViewMode === "full-description" ? "aspect-[4/3]" : "aspect-square"} overflow-hidden`}
+        className={`relative ${
+          currentCardViewMode === "full-description"
+            ? "aspect-[4/3]"
+            : "aspect-square"
+        } overflow-hidden`}
       >
         <Image
           src={prompt.imageUrl}
@@ -122,8 +61,30 @@ export function PromptPhotoCard({
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
         />
 
-        {/* Overlay with copy button - Hidden for full-description mode */}
-        {currentCardViewMode !== "full-description" && (
+        {/* Category Badge */}
+        <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
+          {prompt.category}
+        </Badge>
+
+        {/* Full Description Content */}
+        {currentCardViewMode === "full-description" ? (
+          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4">
+            <h3 className="mb-2 line-clamp-1 text-base font-semibold text-white">
+              {prompt.title}
+            </h3>
+            <p className="mb-3 line-clamp-3 text-sm text-white/90">
+              {prompt.text}
+            </p>
+            <CopyButton
+              prompt={prompt}
+              onCreditsUpdate={onCreditsUpdate}
+              onShowAuthModal={onShowAuthModal}
+              className="w-full"
+              showText
+            />
+          </div>
+        ) : (
+          /* Overlay with copy button */
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100">
             <div className="absolute right-0 bottom-0 left-0 p-3">
               <div className="flex items-center justify-between">
@@ -135,70 +96,17 @@ export function PromptPhotoCard({
                     {prompt.text}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  className={`focus-visible:ring-brand-500/50 ml-2 h-8 w-8 rounded-full p-0 focus-visible:ring-2 ${
-                    isCopied
-                      ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                      : "bg-white/90 text-slate-900 hover:bg-white"
-                  }`}
-                  disabled={isLoading || isCopied}
-                  onClick={handleCopy}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : isCopied ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
+                <CopyButton
+                  prompt={prompt}
+                  onCreditsUpdate={onCreditsUpdate}
+                  onShowAuthModal={onShowAuthModal}
+                  variant="outline"
+                  size="icon"
+                  className="ml-2 h-8 w-8 rounded-full bg-white/90 p-0 text-slate-900 hover:bg-white"
+                  showText={false}
+                />
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Category Badge */}
-        <Badge className="bg-brand-500 absolute top-2 right-2 text-xs text-slate-900 sm:text-sm">
-          {prompt.category}
-        </Badge>
-
-        {/* Full Description Content */}
-        {currentCardViewMode === "full-description" && (
-          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4">
-            <h3 className="mb-2 line-clamp-1 text-base font-semibold text-white">
-              {prompt.title}
-            </h3>
-            <p className="mb-3 line-clamp-3 text-sm text-white/90">
-              {prompt.text}
-            </p>
-            <Button
-              size="sm"
-              className={`focus-visible:ring-brand-500/50 w-full focus-visible:ring-2 ${
-                isCopied
-                  ? "bg-brand-500 hover:bg-brand-600 text-slate-900"
-                  : "bg-white/90 text-slate-900 hover:bg-white"
-              }`}
-              disabled={isLoading || isCopied}
-              onClick={handleCopy}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {translations.promptCard.copying}
-                </>
-              ) : isCopied ? (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  {translations.promptCard.copied}
-                </>
-              ) : (
-                <>
-                  <Copy className="mr-2 h-4 w-4" />
-                  {translations.promptCard.copyPrompt}
-                </>
-              )}
-            </Button>
           </div>
         )}
       </div>

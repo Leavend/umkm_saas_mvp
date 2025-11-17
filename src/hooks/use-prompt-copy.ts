@@ -32,7 +32,7 @@ export function usePromptCopy({
   const handleCopy = useCallback(
     async (prompt: Prompt, event?: React.MouseEvent) => {
       event?.stopPropagation();
-      
+
       try {
         setIsLoading(true);
 
@@ -44,7 +44,7 @@ export function usePromptCopy({
               ? result.error
               : result.error.message
             : "An error occurred";
-          
+
           toast.error(errorMessage);
 
           // Check for insufficient credits error

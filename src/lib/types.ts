@@ -1,5 +1,3 @@
-// src/lib/types.ts
-
 /**
  * Shared type definitions across the application
  */
@@ -86,6 +84,15 @@ export interface MarketplaceFilters {
   viewMode: ViewMode;
 }
 
+/**
+ * Prompt copy result with credit information
+ */
+export interface PromptCopyResult {
+  prompt: Prompt;
+  remainingCredits: number;
+  creditDeducted: number;
+}
+
 // ===== COMPONENT PROP TYPES =====
 
 /**
@@ -119,7 +126,7 @@ export interface UseCreditsReturn {
   credits: number | null;
   isLoading: boolean;
   error: string | null;
-  refreshCredits: () => Promise<void>;
+  refreshCredits: () => Promise<number | null>;
 }
 
 /**
@@ -158,4 +165,8 @@ export interface UseGoogleAuthOptions {
 export interface UseGoogleAuthReturn {
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
+  authUrl: string | null;
+  isModalOpen: boolean;
+  closeModal: () => void;
+  error: string | null;
 }

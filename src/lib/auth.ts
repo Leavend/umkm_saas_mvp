@@ -1,19 +1,16 @@
-import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { env } from "~/env";
 import { AUTH_CONFIG } from "~/lib/auth-config";
-
-const prisma = new PrismaClient();
+import { db } from "~/server/db";
 
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
+  database: prismaAdapter(db, {
     provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,
   },
-  // Tambahkan social providers
   socialProviders: {
     google: {
       clientId: env.GOOGLE_CLIENT_ID,
@@ -21,29 +18,18 @@ export const auth = betterAuth({
       ...AUTH_CONFIG.google,
     },
   },
-  // Explicit session configuration
   session: {
     cookieCache: {
       enabled: true,
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },
   },
-  // Cookie configuration untuk proper client-server sync
   cookies: {
     domain: process.env.NODE_ENV === "development" ? "localhost" : undefined,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   },
-  plugins: [
-    // Disable One Tap to avoid conflicts with popup social auth
-    // oneTap({
-    //   // Server-side configuration untuk One Tap
-    //   disableSignup: false,
-    //   // Pastikan clientId sama dengan yang digunakan di client
-    //   clientId: env.GOOGLE_CLIENT_ID,
-    // }),
-  ],
-  // Tambahkan CORS configuration untuk development
+  plugins: [],
   cors: {
     origin:
       process.env.NODE_ENV === "development"

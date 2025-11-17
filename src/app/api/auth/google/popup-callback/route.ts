@@ -9,11 +9,11 @@ export async function GET(req: NextRequest) {
     return response;
   } catch (error) {
     console.error("Better-auth handler error:", error);
-    
+
     // Fallback error response
     const { searchParams } = new URL(req.url);
     const errorParam = searchParams.get("error");
-    
+
     if (errorParam) {
       return new Response(
         `<!DOCTYPE html>
@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
         {
           headers: { "Content-Type": "text/html" },
           status: 400,
-        }
+        },
       );
     }
-    
+
     return new Response(
       `<!DOCTYPE html>
       <html>
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       {
         headers: { "Content-Type": "text/html" },
         status: 500,
-      }
+      },
     );
   }
 }

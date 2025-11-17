@@ -3,11 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { CompactModalHeader } from "~/components/ui/modal-header";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -38,16 +34,21 @@ const UI_CONSTANTS = {
 } as const;
 
 // Helper functions
-const formatCurrency = (amount: number): string => 
+const formatCurrency = (amount: number): string =>
   `Rp ${amount.toLocaleString("id-ID")}`;
 
-const calculateDiscountPercentage = (original: number, current: number): number =>
-  Math.round(((original - current) / original) * 100);
+const calculateDiscountPercentage = (
+  original: number,
+  current: number,
+): number => Math.round(((original - current) / original) * 100);
 
 // Product configuration with UI enhancements
 const createProductConfig = (
-  baseProduct: typeof PRODUCT_CONFIG.SMALL | typeof PRODUCT_CONFIG.MEDIUM | typeof PRODUCT_CONFIG.LARGE,
-  originalAmount: number
+  baseProduct:
+    | typeof PRODUCT_CONFIG.SMALL
+    | typeof PRODUCT_CONFIG.MEDIUM
+    | typeof PRODUCT_CONFIG.LARGE,
+  originalAmount: number,
 ) => ({
   ...baseProduct,
   originalAmount,
@@ -124,22 +125,24 @@ export function TopUpModal({
   };
 
   const renderBadge = (product: (typeof products)[number]) => {
-    if (!('badge' in product) || !product.badge) return null;
+    if (!("badge" in product) || !product.badge) return null;
 
     const badgeVariants = {
       popular: {
-        className: "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300 shadow-sm",
+        className:
+          "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-300 shadow-sm",
       },
-      'best-value': {
-        className: "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border-orange-300 shadow-sm",
+      "best-value": {
+        className:
+          "bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border-orange-300 shadow-sm",
       },
     } as const;
 
-    const variant = 'badgeVariant' in product ? product.badgeVariant : null;
+    const variant = "badgeVariant" in product ? product.badgeVariant : null;
     if (!variant || !(variant in badgeVariants)) return null;
 
     const badgeConfig = badgeVariants[variant];
-    const discountText = product.badge.includes("Hemat") 
+    const discountText = product.badge.includes("Hemat")
       ? formatTranslation(t.badgeSave, { percent: product.discount })
       : t.badgePopular;
 
@@ -151,7 +154,7 @@ export function TopUpModal({
           badgeConfig.className,
         )}
       >
-        {variant === 'best-value' ? t.badgeBestValue : discountText}
+        {variant === "best-value" ? t.badgeBestValue : discountText}
       </Badge>
     );
   };
@@ -162,11 +165,11 @@ export function TopUpModal({
         <DialogTitle className="sr-only">{t.title}</DialogTitle>
 
         {/* Premium Header with Gradient - Compact */}
-        <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 px-6 py-5 border-b">
+        <div className="relative border-b bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 px-6 py-5">
           {/* Decorative background elements */}
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 right-4 w-24 h-24 bg-blue-400 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-4 left-4 w-32 h-32 bg-indigo-400 rounded-full blur-3xl"></div>
+            <div className="absolute top-4 right-4 h-24 w-24 rounded-full bg-blue-400 blur-3xl"></div>
+            <div className="absolute bottom-4 left-4 h-32 w-32 rounded-full bg-indigo-400 blur-3xl"></div>
           </div>
 
           <div className="relative z-10">
@@ -183,21 +186,23 @@ export function TopUpModal({
             />
 
             {/* Current Balance Display - Compact */}
-            <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-xl px-4 py-3 border border-white/20 shadow-xl">
+            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 px-4 py-3 shadow-xl backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg shadow-lg">
+                <div className="rounded-lg bg-gradient-to-br from-yellow-400 to-amber-500 p-2 shadow-lg">
                   <Coins className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-blue-200">Saldo Tersedia</p>
+                  <p className="text-xs font-medium text-blue-200">
+                    Saldo Tersedia
+                  </p>
                   <p className="text-2xl font-bold text-white">
                     {formatTranslation(t.balance, { count: credits ?? 0 })}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs text-blue-200 mb-1">Bonus Reguler</p>
-                <Badge className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 text-xs font-semibold px-2 py-0.5">
+                <p className="mb-1 text-xs text-blue-200">Bonus Reguler</p>
+                <Badge className="border-0 bg-gradient-to-r from-green-400 to-emerald-500 px-2 py-0.5 text-xs font-semibold text-white">
                   +1 setiap hari
                 </Badge>
               </div>
@@ -206,25 +211,26 @@ export function TopUpModal({
         </div>
 
         {/* Main Content - Compact */}
-        <div className="p-6 space-y-5">
+        <div className="space-y-5 p-6">
           {/* Section Header - Compact */}
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <div className="flex items-center justify-center gap-2">
-              <div className="h-1 w-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+              <div className="h-1 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+              <h2 className="bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-xl font-bold text-transparent">
                 {t.title}
               </h2>
-              <div className="h-1 w-8 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"></div>
+              <div className="h-1 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500"></div>
             </div>
-            <p className="text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="mx-auto max-w-2xl text-sm leading-relaxed text-slate-600">
               {t.description}
             </p>
           </div>
 
           {/* Product Cards Grid - Compact */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {products.map((product, index) => {
-              const badgeVariant = 'badgeVariant' in product ? product.badgeVariant : undefined;
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {products.map((product, _index) => {
+              const badgeVariant =
+                "badgeVariant" in product ? product.badgeVariant : undefined;
               const isPopular = badgeVariant === "popular";
               const isBestValue = badgeVariant === "best-value";
 
@@ -232,31 +238,39 @@ export function TopUpModal({
                 <div
                   key={product.id}
                   className={cn(
-                    "relative group rounded-3xl overflow-hidden transition-all duration-300",
-                    "hover:shadow-2xl hover:-translate-y-2",
+                    "group relative overflow-hidden rounded-3xl transition-all duration-300",
+                    "hover:-translate-y-2 hover:shadow-2xl",
                     isPopular
-                      ? "ring-2 ring-green-500 bg-gradient-to-br from-white to-green-50 shadow-xl"
+                      ? "bg-gradient-to-br from-white to-green-50 shadow-xl ring-2 ring-green-500"
                       : isBestValue
-                      ? "ring-2 ring-orange-500 bg-gradient-to-br from-white to-orange-50 shadow-xl transform md:scale-105"
-                      : "border border-slate-200 bg-white shadow-lg hover:border-slate-300"
+                        ? "transform bg-gradient-to-br from-white to-orange-50 shadow-xl ring-2 ring-orange-500 md:scale-105"
+                        : "border border-slate-200 bg-white shadow-lg hover:border-slate-300",
                   )}
                 >
                   {/* Glow effect on hover */}
-                  <div className={cn(
-                    "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                    isPopular && "bg-green-500/5",
-                    isBestValue && "bg-orange-500/5"
-                  )}></div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100",
+                      isPopular && "bg-green-500/5",
+                      isBestValue && "bg-orange-500/5",
+                    )}
+                  ></div>
 
-                  <div className="relative p-5 space-y-4">
+                  <div className="relative space-y-4 p-5">
                     {renderBadge(product)}
 
                     {/* Package Name */}
                     <div>
-                      <p className={cn(
-                        "text-xs font-semibold tracking-wider uppercase",
-                        isPopular ? "text-green-600" : isBestValue ? "text-orange-600" : "text-slate-500"
-                      )}>
+                      <p
+                        className={cn(
+                          "text-xs font-semibold tracking-wider uppercase",
+                          isPopular
+                            ? "text-green-600"
+                            : isBestValue
+                              ? "text-orange-600"
+                              : "text-slate-500",
+                        )}
+                      >
                         {product.name}
                       </p>
                     </div>
@@ -265,7 +279,7 @@ export function TopUpModal({
                     <div className="space-y-1">
                       <div className="flex items-baseline gap-2">
                         <p className="text-3xl font-bold text-slate-900">
-                          {formatCurrency(product.amount).split('.')[0]}
+                          {formatCurrency(product.amount).split(".")[0]}
                         </p>
                         <p className="text-xs text-slate-500 line-through">
                           {formatCurrency(product.originalAmount)}
@@ -277,8 +291,10 @@ export function TopUpModal({
                     </div>
 
                     {/* Credits - Simplified */}
-                    <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg px-3 py-2.5 border border-blue-100">
-                      <span className="text-sm font-semibold text-slate-900">Total Kredit</span>
+                    <div className="flex items-center justify-between rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-2.5">
+                      <span className="text-sm font-semibold text-slate-900">
+                        Total Kredit
+                      </span>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-blue-600">
                           {product.credits + product.bonusCredits}
@@ -294,13 +310,13 @@ export function TopUpModal({
                       onClick={() => handlePurchase(product.id)}
                       disabled={isProcessing === product.id}
                       className={cn(
-                        "w-full py-3 font-bold text-sm transition-all duration-200 rounded-xl",
+                        "w-full rounded-xl py-3 text-sm font-bold transition-all duration-200",
                         "transform hover:scale-[1.02] active:scale-95",
                         isPopular
-                          ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50"
+                          ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg hover:from-green-700 hover:to-emerald-700 hover:shadow-green-500/50"
                           : isBestValue
-                          ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 shadow-lg hover:shadow-orange-500/50"
-                          : "bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg"
+                            ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg hover:from-orange-700 hover:to-amber-700 hover:shadow-orange-500/50"
+                            : "bg-slate-900 text-white shadow-md hover:bg-slate-800 hover:shadow-lg",
                       )}
                     >
                       {isProcessing === product.id ? (
@@ -315,11 +331,13 @@ export function TopUpModal({
 
                     {/* Value Indicator - Compact */}
                     {isPopular || isBestValue ? (
-                      <div className={cn(
-                        "text-xs text-center font-semibold py-1.5 px-3 rounded-lg",
-                        isPopular && "bg-green-100 text-green-700",
-                        isBestValue && "bg-orange-100 text-orange-700"
-                      )}>
+                      <div
+                        className={cn(
+                          "rounded-lg px-3 py-1.5 text-center text-xs font-semibold",
+                          isPopular && "bg-green-100 text-green-700",
+                          isBestValue && "bg-orange-100 text-orange-700",
+                        )}
+                      >
                         {isPopular && "🌟 Pilihan Populer"}
                         {isBestValue && "🚀 Nilai Terbaik"}
                       </div>
@@ -331,38 +349,48 @@ export function TopUpModal({
           </div>
 
           {/* Info Section - Compact */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 py-4 border-y border-slate-200">
-            <div className="text-center space-y-1">
-              <div className="w-10 h-10 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-blue-600" />
+          <div className="grid grid-cols-1 gap-3 border-y border-slate-200 py-4 md:grid-cols-3">
+            <div className="space-y-1 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                <Sparkles className="h-5 w-5 text-blue-600" />
               </div>
-              <p className="text-xs font-semibold text-slate-900">Proses Instan</p>
+              <p className="text-xs font-semibold text-slate-900">
+                Proses Instan
+              </p>
               <p className="text-xs text-slate-600">Kredit langsung masuk</p>
             </div>
-            <div className="text-center space-y-1">
-              <div className="w-10 h-10 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-                <Coins className="w-5 h-5 text-green-600" />
+            <div className="space-y-1 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                <Coins className="h-5 w-5 text-green-600" />
               </div>
-              <p className="text-xs font-semibold text-slate-900">Bonus Setiap Hari</p>
-              <p className="text-xs text-slate-600">+1 kredit gratis tiap hari</p>
+              <p className="text-xs font-semibold text-slate-900">
+                Bonus Setiap Hari
+              </p>
+              <p className="text-xs text-slate-600">
+                +1 kredit gratis tiap hari
+              </p>
             </div>
-            <div className="text-center space-y-1">
-              <div className="w-10 h-10 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
+            <div className="space-y-1 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
                 <span className="text-base font-bold text-purple-600">✓</span>
               </div>
-              <p className="text-xs font-semibold text-slate-900">Aman & Terpercaya</p>
-              <p className="text-xs text-slate-600">Pembayaran tersertifikasi</p>
+              <p className="text-xs font-semibold text-slate-900">
+                Aman & Terpercaya
+              </p>
+              <p className="text-xs text-slate-600">
+                Pembayaran tersertifikasi
+              </p>
             </div>
           </div>
 
           {/* Terms and Security - Compact */}
-          <div className="text-center space-y-2">
+          <div className="space-y-2 text-center">
             <p
-              className="text-xs text-slate-600 leading-relaxed"
+              className="text-xs leading-relaxed text-slate-600"
               dangerouslySetInnerHTML={{
                 __html: formatTranslation(t.terms, {
                   terms: `<a href="/terms" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:text-blue-800 underline transition-colors">${t.termsLink}</a>`,
-                })
+                }),
               }}
             />
             <p className="text-xs text-slate-500">
@@ -371,13 +399,13 @@ export function TopUpModal({
           </div>
 
           {/* Logout Button - Compact */}
-          <div className="flex justify-center pt-2 border-t border-slate-200">
+          <div className="flex justify-center border-t border-slate-200 pt-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}
               disabled={!!isProcessing}
-              className="text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors rounded-lg"
+              className="rounded-lg text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
             >
               Logout
             </Button>

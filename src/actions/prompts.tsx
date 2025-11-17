@@ -1,9 +1,21 @@
 "use server";
 
-import type { Prompt } from "@prisma/client";
-import { db } from "~/server/db";
 import type { ApiResponse } from "~/lib/types";
-import { getErrorMessage, NotFoundError } from "~/lib/errors";
+import {
+  InsufficientCreditsError,
+  NotFoundError,
+  ValidationError,
+} from "~/lib/errors";
+import { auth } from "~/lib/auth";
+import {
+  getAllPrompts as getAllPromptsService,
+  getPromptsByCategory as getPromptsByCategoryService,
+  getPromptById,
+  deductCreditsFromUser,
+  deductCreditsFromGuest,
+} from "~/server/services/prompt-service";
+import type { Prompt } from "@prisma/client";
+import { headers } from "next/headers";
 
 // ===== RESPONSE TYPES =====
 
@@ -11,6 +23,7 @@ type PromptsListResponse = ApiResponse<{ prompts: Prompt[] }>;
 type CopyPromptResponse = ApiResponse<{
   prompt: Prompt;
   remainingCredits: number;
+  creditDeducted: number;
 }>;
 
 // ===== PROMPT QUERIES =====
@@ -20,21 +33,14 @@ type CopyPromptResponse = ApiResponse<{
  */
 export async function getAllPrompts(): Promise<PromptsListResponse> {
   try {
-    const prompts = await db.prompt.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const prompts = await getAllPromptsService();
 
     return {
       success: true,
       data: { prompts },
       message: `Found ${prompts.length} prompts`,
     };
-  } catch (error: unknown) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Failed to fetch prompts:", errorMessage);
-
+  } catch {
     return {
       success: false,
       error: "Failed to fetch prompts. Please try again.",
@@ -48,31 +54,21 @@ export async function getAllPrompts(): Promise<PromptsListResponse> {
 export async function getPromptsByCategory(
   category: string,
 ): Promise<PromptsListResponse> {
-  if (!category?.trim()) {
-    return {
-      success: false,
-      error: "Category is required",
-    };
-  }
-
   try {
-    const prompts = await db.prompt.findMany({
-      where: {
-        category: category.trim(),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const prompts = await getPromptsByCategoryService(category);
 
     return {
       success: true,
       data: { prompts },
       message: `Found ${prompts.length} prompts in category "${category}"`,
     };
-  } catch (error: unknown) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Failed to fetch prompts by category:", errorMessage);
+  } catch (_error: unknown) {
+    if (_error instanceof ValidationError) {
+      return {
+        success: false,
+        error: _error.message,
+      };
+    }
 
     return {
       success: false,
@@ -84,46 +80,85 @@ export async function getPromptsByCategory(
 // ===== PROMPT ACTIONS =====
 
 /**
- * Copy a prompt (simplified version without credit deduction)
- * TODO: Implement credit system when needed
+ * Copy a prompt with automatic credit deduction
+ * Supports both authenticated users and guest sessions
+ *
+ * @param promptId - ID of prompt to copy
+ * @param guestSessionId - Optional guest session ID (for unauthenticated users)
+ * @returns Prompt data with remaining credits after deduction
  */
 export async function copyPrompt(
   promptId: string,
+  guestSessionId?: string,
 ): Promise<CopyPromptResponse> {
-  if (!promptId?.trim()) {
-    return {
-      success: false,
-      error: "Prompt ID is required",
-    };
-  }
-
   try {
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId.trim() },
-    });
-
-    if (!prompt) {
-      throw new NotFoundError("Prompt not found");
+    // Validate input
+    if (!promptId?.trim()) {
+      throw new ValidationError("Prompt ID is required");
     }
 
-    // TODO: Implement credit deduction logic here
-    // For now, return success without credit validation
+    // Get prompt
+    const prompt = await getPromptById(promptId);
+
+    // Get authenticated session using server-side auth
+    const headersList = await headers();
+    const session = await auth.api.getSession({
+      headers: headersList,
+    });
+
+    // Determine credit deduction based on auth status
+    let remainingCredits: number;
+    const creditDeducted = 1;
+
+    if (session?.user?.id) {
+      // Authenticated user: deduct from user credits
+      const result = await deductCreditsFromUser(
+        session.user.id,
+        creditDeducted,
+      );
+      remainingCredits = result.credits;
+    } else if (guestSessionId?.trim()) {
+      // Guest user: deduct from guest session credits
+      const result = await deductCreditsFromGuest(
+        guestSessionId.trim(),
+        creditDeducted,
+      );
+      remainingCredits = result.credits;
+    } else {
+      throw new ValidationError(
+        "User must be authenticated or provide guest session ID",
+      );
+    }
+
     return {
       success: true,
       data: {
         prompt,
-        remainingCredits: 999, // Placeholder value
+        remainingCredits,
+        creditDeducted,
       },
       message: "Prompt copied successfully",
     };
-  } catch (error: unknown) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Failed to copy prompt:", errorMessage);
-
-    if (error instanceof NotFoundError) {
+  } catch (_error: unknown) {
+    // Handle specific error types with appropriate messages
+    if (_error instanceof InsufficientCreditsError) {
       return {
         success: false,
-        error: "Prompt not found",
+        error: "Insufficient credits. Please purchase more credits.",
+      };
+    }
+
+    if (_error instanceof NotFoundError) {
+      return {
+        success: false,
+        error: _error.message,
+      };
+    }
+
+    if (_error instanceof ValidationError) {
+      return {
+        success: false,
+        error: _error.message,
       };
     }
 

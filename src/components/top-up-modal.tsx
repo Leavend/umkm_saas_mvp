@@ -11,9 +11,9 @@ import { useTranslations } from "~/components/language-provider";
 import { formatTranslation } from "~/lib/i18n";
 import { PRODUCT_CONFIG } from "~/lib/constants";
 import { toast } from "sonner";
-import { Loader2, Coins, Clock, Check, CreditCard } from "lucide-react";
+import { Loader2, Coins, Check } from "lucide-react";
 import { cn } from "~/lib/utils";
-import { useSession } from "~/lib/auth-client";
+import { useSession, authClient } from "~/lib/auth-client";
 import { useCredits } from "~/hooks/use-credits";
 
 interface TopUpModalProps {
@@ -177,37 +177,26 @@ export function TopUpModal({
     }
   };
 
-  const handleLogout = async (): Promise<void> => {
-    try {
-      const { authClient } = await import("~/lib/auth-client");
-      await authClient.signOut();
-      toast.success("Logout berhasil");
-      onClose();
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Logout gagal. Silakan coba lagi.");
-    }
-  };
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={cn(
-        "w-full max-h-[95vh] overflow-hidden rounded-2xl md:rounded-3xl border-0 bg-white/95 shadow-2xl backdrop-blur-xl",
-        "mx-2 max-w-[calc(100vw-1rem)] md:mx-4 md:max-w-4xl lg:max-w-5xl",
+        "w-full max-h-[80vh] overflow-hidden rounded-md md:rounded-lg border-0 bg-white/95 shadow-md backdrop-blur-xl",
+        "mx-0.5 max-w-[calc(100vw-0.25rem)] md:mx-1 md:max-w-lg lg:max-w-xl",
         "p-0"
       )}>
         <DialogTitle className="sr-only">{t.title}</DialogTitle>
 
-        {/* Enhanced Responsive Header */}
+        {/* Compact Header */}
         <div className="relative overflow-hidden border-b border-slate-200/60 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
-          {/* Optimized animated background elements for mobile */}
+          {/* Minimal background elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-0 right-0 h-32 w-32 sm:h-48 sm:w-48 md:h-64 md:w-64 animate-pulse rounded-full bg-gradient-to-bl from-blue-100/50 to-transparent blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 h-24 w-24 sm:h-32 sm:w-32 md:h-48 md:w-48 animate-pulse rounded-full bg-gradient-to-tr from-indigo-100/50 to-transparent blur-3xl delay-1000"></div>
-            <div className="absolute top-1/2 left-1/2 hidden sm:block h-48 w-48 md:h-64 md:w-64 lg:h-96 lg:w-96 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-gradient-to-r from-blue-50/30 via-indigo-50/20 to-purple-50/30 blur-3xl"></div>
+            <div className="absolute top-0 right-0 h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 animate-pulse rounded-full bg-gradient-to-bl from-blue-100/50 to-transparent blur-xl"></div>
+            <div className="absolute bottom-0 left-0 h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 animate-pulse rounded-full bg-gradient-to-tr from-indigo-100/50 to-transparent blur-xl delay-1000"></div>
           </div>
 
-          <div className="relative z-10 px-4 py-4 sm:px-6 sm:py-6 md:px-8 lg:px-8">
+          <div className="relative z-10 px-2 py-2 sm:px-3 sm:py-2 md:px-3 md:py-2">
             <CompactModalHeader
               title={
                 user
@@ -217,70 +206,46 @@ export function TopUpModal({
               onClose={onClose}
               closeDisabled={!!isProcessing}
               closeButtonLabel={tCommon.close}
-              className="mb-4 sm:mb-6 text-slate-800 [&_button]:hover:bg-slate-100/80 [&_h1]:text-slate-800"
+              className="mb-1 text-slate-800 [&_button]:hover:bg-slate-100/80 [&_h1]:text-slate-800"
             />
 
-            {/* Responsive Balance Display */}
-            <div className="rounded-xl md:rounded-2xl border border-white/60 bg-white/80 p-4 sm:p-5 md:p-6 shadow-xl backdrop-blur-xl">
+            {/* Compact Balance Display */}
+            <div className="rounded-md border border-white/60 bg-white/80 p-2 sm:p-3 shadow-sm backdrop-blur-xl">
               <div className={cn(
                 "flex items-center justify-between",
-                "gap-4 md:gap-6"
+                "gap-2"
               )}>
-                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 opacity-60 blur-md"></div>
-                    <div className="relative rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-2.5 sm:p-3 shadow-lg">
+                    <div className="absolute inset-0 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 opacity-60 blur-sm"></div>
+                    <div className="relative rounded-md bg-gradient-to-br from-amber-400 to-orange-500 p-1.5 shadow-sm">
                       <Coins className={cn(
                         "text-white",
-                        "h-5 w-5 sm:h-6 sm:w-6"
+                        "h-3 w-3"
                       )} />
                     </div>
                   </div>
                   <div className="min-w-0">
                     <p className={cn(
-                      "mb-1 font-semibold text-slate-600",
-                      "text-xs sm:text-sm"
+                      "mb-0 font-semibold text-slate-600",
+                      "text-xs"
                     )}>
-                      Saldo Tersedia
-                    </p>
-                    <p className={cn(
-                      "font-bold text-slate-800 truncate",
-                      "text-xl sm:text-2xl md:text-3xl"
-                    )}>
-                      {formatTranslation(t.balance, { count: credits ?? 0 })}
-                    </p>
-                    <p className={cn(
-                      "text-slate-500",
-                      "text-xs sm:text-xs"
-                    )}>
-                      Kredit siap digunakan
+                      Saldo: {formatTranslation(t.balance, { count: credits ?? 0 })}
                     </p>
                   </div>
                 </div>
                 
-                <div className={cn(
-                  "space-y-2 sm:space-y-3 text-right flex-shrink-0",
-                  "text-xs sm:text-sm"
-                )}>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Check className={cn(
-                      "text-green-500",
-                      "h-3 w-3 sm:h-4 sm:w-4"
-                    )} />
-                    <span className="font-medium hidden sm:inline">Paket terbaik</span>
-                    <span className="font-medium sm:hidden">Terbaik</span>
-                  </div>
+                <div className="text-right flex-shrink-0">
                   <Badge className={cn(
-                    "border-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg transition-all hover:from-green-600 hover:to-emerald-600",
-                    "px-2 py-1 sm:px-3 sm:py-1.5",
-                    "text-xs sm:text-sm font-semibold"
+                    "border-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm transition-all hover:from-green-600 hover:to-emerald-600",
+                    "px-1.5 py-0.5",
+                    "text-xs font-semibold"
                   )}>
                     <Coins className={cn(
                       "text-white",
-                      "mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3"
+                      "mr-1 h-2 w-2"
                     )} />
-                    <span className="hidden sm:inline">Hemat hingga 70%</span>
-                    <span className="sm:hidden">70% OFF</span>
+                    70% OFF
                   </Badge>
                 </div>
               </div>
@@ -288,50 +253,16 @@ export function TopUpModal({
           </div>
         </div>
 
-        {/* Responsive Main Content */}
+        {/* Compact Main Content */}
         <div className={cn(
-          "space-y-6 sm:space-y-8",
-          "px-4 py-4 sm:px-6 sm:py-6 lg:px-8",
-          "overflow-y-auto max-h-[calc(95vh-200px)] sm:max-h-[calc(95vh-240px)]"
+          "space-y-2 sm:space-y-3",
+          "px-3 py-3 sm:p-4"
         )}>
-          {/* Enhanced Responsive Section Header */}
-          <div className="space-y-3 sm:space-y-4 text-center">
-            <div className="flex items-center justify-center gap-2 sm:gap-3">
-              <div className={cn(
-                "h-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500",
-                "w-8 sm:w-12"
-              )}></div>
-              <div className={cn(
-                "rounded-full bg-gradient-to-br from-blue-100 to-indigo-100",
-                "p-1.5 sm:p-2"
-              )}>
-                <CreditCard className={cn(
-                  "text-blue-600",
-                  "h-4 w-4 sm:h-5 sm:w-5"
-                )} />
-              </div>
-              <div className={cn(
-                "h-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500",
-                "w-8 sm:w-12"
-              )}></div>
-            </div>
-            <h2 className={cn(
-              "bg-gradient-to-r from-slate-800 via-blue-800 to-slate-800 bg-clip-text font-bold text-transparent",
-              "text-lg sm:text-xl md:text-2xl"
-            )}>
-              {t.title}
-            </h2>
-            <p className={cn(
-              "mx-auto leading-relaxed text-slate-600",
-              "text-sm sm:text-base max-w-2xl"
-            )}>
-              {t.description}
-            </p>
-          </div>
+          
 
-          {/* Enhanced Responsive Product Cards Grid */}
+          {/* Compact Product Cards Grid */}
           <div className={cn(
-            "grid gap-4 sm:gap-5 md:gap-6",
+            "grid gap-2",
             "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
           )}>
             {products.map((product, _index) => {
@@ -344,14 +275,14 @@ export function TopUpModal({
                 <div
                   key={product.id}
                   className={cn(
-                    "group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300",
-                    "border hover:-translate-y-0.5 sm:hover:-translate-y-1 hover:shadow-xl sm:hover:shadow-2xl",
-                    "touch-manipulation", // Better touch response on mobile
+                    "group relative overflow-hidden rounded-md sm:rounded-lg transition-all duration-200",
+                    "border hover:-translate-y-0.5 hover:shadow-md",
+                    "touch-manipulation",
                     isPopular
-                      ? "bg-gradient-to-br from-white to-green-50/50 shadow-lg sm:shadow-xl ring-1 sm:ring-2 ring-green-200 hover:ring-green-300"
+                      ? "bg-gradient-to-br from-white to-green-50/50 shadow-sm sm:shadow-md ring-1 ring-green-200 hover:ring-green-300"
                       : isBestValue
-                        ? "transform bg-gradient-to-br from-white to-orange-50/50 shadow-xl sm:shadow-2xl ring-1 sm:ring-2 ring-orange-200 hover:ring-orange-300 md:scale-[1.02] hover:scale-[1.01] sm:hover:scale-[1.02]"
-                        : "border-slate-200 bg-white shadow-md sm:shadow-lg hover:border-slate-300 hover:shadow-xl",
+                        ? "transform bg-gradient-to-br from-white to-orange-50/50 shadow-md sm:shadow-lg ring-1 ring-orange-200 hover:ring-orange-300 md:scale-[1.01] hover:scale-[1.005]"
+                        : "border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:shadow-sm",
                   )}
                 >
                   {/* Enhanced background effects */}
@@ -377,27 +308,27 @@ export function TopUpModal({
                   ></div>
 
                   <div className={cn(
-                    "relative space-y-4 sm:space-y-5 md:space-y-6",
-                    "p-4 sm:p-5 md:p-6"
+                    "relative space-y-1",
+                    "p-1.5 sm:p-2"
                   )}>
                     {/* Enhanced Responsive Badge */}
                     {isPopular || isBestValue ? (
                       <div className="flex justify-center">
                         <Badge
                           className={cn(
-                            "relative rounded-full border-0 text-white shadow-lg",
+                            "relative rounded-full border-0 text-white shadow-sm",
                             "transform transition-all duration-200 hover:scale-105",
-                            "px-3 py-1.5 sm:px-4 sm:py-2",
-                            "text-xs sm:text-sm font-bold",
+                            "px-1.5 py-0.5 sm:px-2 sm:py-1",
+                            "text-xs font-bold",
                             isPopular
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/50"
-                              : "bg-gradient-to-r from-orange-500 to-amber-500 shadow-orange-500/50",
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/20"
+                              : "bg-gradient-to-r from-orange-500 to-amber-500 shadow-orange-500/20",
                           )}
                         >
                           <Coins className={cn(
                             "text-white",
-                            "mr-1 sm:mr-2",
-                            "h-2.5 w-2.5 sm:h-3 sm:w-3"
+                            "mr-0.5 sm:mr-1",
+                            "h-1.5 w-1.5 sm:h-2 sm:w-2"
                           )} />
                           <span className="hidden sm:inline">
                             {isPopular ? "🌟 Terlaris" : "🚀 Terbaik"}
@@ -409,14 +340,14 @@ export function TopUpModal({
                       </div>
                     ) : null}
 
-                    {/* Responsive Product Header */}
+                    {/* Ultra Short Product Header */}
                     <div className={cn(
-                      "space-y-2 sm:space-y-3 text-center"
+                      "space-y-1 text-center"
                     )}>
                       <div className="flex justify-center">
                         <div
                           className={cn(
-                            "rounded-xl sm:rounded-2xl p-2.5 sm:p-3 shadow-lg",
+                            "rounded-md p-1.5 shadow-sm",
                             isPopular &&
                               "bg-gradient-to-br from-green-400 to-emerald-500",
                             isBestValue &&
@@ -428,14 +359,14 @@ export function TopUpModal({
                         >
                           <Coins className={cn(
                             "text-white",
-                            "h-4 w-4 sm:h-5 sm:w-5"
+                            "h-2 w-2 sm:h-2.5 sm:w-2.5"
                           )} />
                         </div>
                       </div>
                       <h3
                         className={cn(
-                          "font-bold tracking-tight",
-                          "text-sm sm:text-base md:text-lg",
+                          "font-bold",
+                          "text-xs",
                           isPopular && "text-green-700",
                           isBestValue && "text-orange-700",
                           !isPopular && !isBestValue && "text-slate-700",
@@ -445,79 +376,63 @@ export function TopUpModal({
                       </h3>
                     </div>
 
-                    {/* Responsive Pricing */}
+                    {/* Ultra Short Pricing */}
                     <div className={cn(
-                      "space-y-1 sm:space-y-2 text-center"
+                      "text-center"
                     )}>
-                      <div className="flex items-baseline justify-center gap-1 sm:gap-2">
+                      <div className="flex items-baseline justify-center gap-0.5">
                         <span className={cn(
                           "font-bold text-slate-800",
-                          "text-2xl sm:text-3xl md:text-4xl"
+                          "text-xs sm:text-sm"
                         )}>
                           {formatCurrency(product.amount).split(".")[0]}
                         </span>
                         <span className={cn(
                           "text-slate-500 line-through",
-                          "text-xs sm:text-sm"
+                          "text-xs"
                         )}>
                           {formatCurrency(product.originalAmount)}
                         </span>
                       </div>
-                      <div className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
-                        <Check className="h-3 w-3" />
+                      <div className="inline-flex items-center gap-1 rounded-full bg-green-100 px-1 py-0.5 text-xs font-semibold text-green-800 mt-1">
+                        <Check className="h-1.5 w-1.5" />
                         Hemat {product.discount}%
                       </div>
                     </div>
 
-                                        {/* Responsive Credits Display */}
+                                        {/* Ultra Short Credits Display */}
                     <div className={cn(
-                      "bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-xl sm:rounded-2xl",
+                      "bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-md",
                       "border border-slate-200/60",
-                      "p-3 sm:p-4"
+                      "p-1"
                     )}>
-                      <div className={cn(
-                        "text-center space-y-1 sm:space-y-2"
-                      )}>
+                      <div className="text-center">
                         <p className={cn(
-                          "font-semibold text-slate-700",
+                          "font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent",
                           "text-xs sm:text-sm"
                         )}>
-                          Total Kredit
+                          {product.credits + product.bonusCredits} kredit
                         </p>
-                        <div className="space-y-1">
-                          <p className={cn(
-                            "font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent",
-                            "text-xl sm:text-2xl md:text-3xl"
-                          )}>
-                            {product.credits + product.bonusCredits}
-                          </p>
-                          <p className={cn(
-                            "text-slate-600",
-                            "text-xs sm:text-xs"
-                          )}>
-                            {product.credits} + {product.bonusCredits} bonus
-                          </p>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Enhanced CTA Button */}
+                    {/* Ultra Short CTA Button */}
                     <Button
                       onClick={() => handlePurchase(product.id)}
                       disabled={isProcessing === product.id}
                       className={cn(
-                        "w-full rounded-xl py-4 text-base font-bold transition-all duration-200",
-                        "transform shadow-lg hover:scale-[1.02] hover:shadow-xl active:scale-95",
+                        "w-full rounded-md py-1.5 text-xs font-bold transition-all duration-200",
+                        "transform shadow-sm hover:scale-[1.02] active:scale-95",
                         isPopular
-                          ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 hover:from-green-700 hover:to-emerald-700"
+                          ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/20 hover:from-green-700 hover:to-emerald-700"
                           : isBestValue
-                            ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-orange-500/30 hover:from-orange-700 hover:to-amber-700"
-                            : "bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-slate-500/30 hover:from-slate-800 hover:to-slate-900",
+                            ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-orange-500/20 hover:from-orange-700 hover:to-amber-700"
+                            : "bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-slate-500/20 hover:from-slate-800 hover:to-slate-900",
                       )}
                     >
                       {isProcessing === product.id ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                        <div className="flex items-center justify-center gap-1">
+                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
                           <span>Memproses...</span>
                         </div>
                       ) : (
@@ -530,219 +445,54 @@ export function TopUpModal({
             })}
           </div>
 
-          {/* Enhanced Responsive Trust Indicators */}
-          <div className={cn(
-            "grid gap-4 sm:gap-5 md:gap-6",
-            "grid-cols-1 sm:grid-cols-3 py-4 sm:py-5 md:py-6"
-          )}>
-            <div className={cn(
-              "group space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl",
-              "border border-blue-100/60 bg-gradient-to-br from-blue-50/80 to-indigo-50/40",
-              "p-4 sm:p-5 md:p-6 text-center transition-all duration-200",
-              "hover:border-blue-200/80 touch-manipulation"
-            )}>
-              <div className="relative mx-auto w-fit">
-                <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 opacity-60 blur-md"></div>
-                <div className={cn(
-                  "relative flex items-center justify-center rounded-xl sm:rounded-2xl",
-                  "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg",
-                  "h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14"
-                )}>
-                  <Clock className={cn(
-                    "text-white",
-                    "h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7"
-                  )} />
-                </div>
-              </div>
-              <div className={cn(
-                "space-y-1 sm:space-y-2"
-              )}>
-                <h4 className={cn(
-                  "font-bold text-slate-800",
-                  "text-xs sm:text-sm md:text-base"
-                )}>
-                  Proses Instan
-                </h4>
-                <p className={cn(
-                  "text-slate-600 leading-relaxed",
-                  "text-xs sm:text-xs md:text-sm"
-                )}>
-                  Kredit langsung masuk setelah pembayaran
-                </p>
-              </div>
+          {/* Compact Trust Indicators */}
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center gap-1">
+              <Check className="h-2 w-2 text-green-500" />
+              <span className="text-xs">Instan</span>
             </div>
-
-            <div className={cn(
-              "group space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl",
-              "border border-green-100/60 bg-gradient-to-br from-green-50/80 to-emerald-50/40",
-              "p-4 sm:p-5 md:p-6 text-center transition-all duration-200",
-              "hover:border-green-200/80 touch-manipulation"
-            )}>
-              <div className="relative mx-auto w-fit">
-                <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 opacity-60 blur-md"></div>
-                <div className={cn(
-                  "relative flex items-center justify-center rounded-xl sm:rounded-2xl",
-                  "bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg",
-                  "h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14"
-                )}>
-                  <Check className={cn(
-                    "text-white",
-                    "h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7"
-                  )} />
-                </div>
-              </div>
-              <div className={cn(
-                "space-y-1 sm:space-y-2"
-              )}>
-                <h4 className={cn(
-                  "font-bold text-slate-800",
-                  "text-xs sm:text-sm md:text-base"
-                )}>
-                  Bonus Harian
-                </h4>
-                <p className={cn(
-                  "text-slate-600 leading-relaxed",
-                  "text-xs sm:text-xs md:text-sm"
-                )}>
-                  +1 kredit gratis setiap hari
-                </p>
-              </div>
+            <div className="flex items-center gap-1">
+              <Check className="h-2 w-2 text-green-500" />
+              <span className="text-xs">Bonus</span>
             </div>
-
-            <div className={cn(
-              "group space-y-3 sm:space-y-4 rounded-xl sm:rounded-2xl",
-              "border border-purple-100/60 bg-gradient-to-br from-purple-50/80 to-violet-50/40",
-              "p-4 sm:p-5 md:p-6 text-center transition-all duration-200",
-              "hover:border-purple-200/80 touch-manipulation"
-            )}>
-              <div className="relative mx-auto w-fit">
-                <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-400 to-violet-500 opacity-60 blur-md"></div>
-                <div className={cn(
-                  "relative flex items-center justify-center rounded-xl sm:rounded-2xl",
-                  "bg-gradient-to-br from-purple-500 to-violet-600 shadow-lg",
-                  "h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14"
-                )}>
-                  <Check className={cn(
-                    "text-white",
-                    "h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7"
-                  )} />
-                </div>
-              </div>
-              <div className={cn(
-                "space-y-1 sm:space-y-2"
-              )}>
-                <h4 className={cn(
-                  "font-bold text-slate-800",
-                  "text-xs sm:text-sm md:text-base"
-                )}>
-                  100% Aman
-                </h4>
-                <p className={cn(
-                  "text-slate-600 leading-relaxed",
-                  "text-xs sm:text-xs md:text-sm"
-                )}>
-                  Pembayaran tersertifikasi & terlindungi
-                </p>
-              </div>
+            <div className="flex items-center gap-1">
+              <Check className="h-2 w-2 text-green-500" />
+              <span className="text-xs">Aman</span>
             </div>
           </div>
 
-          {/* Enhanced Responsive Security & Terms */}
-          <div className={cn(
-            "rounded-xl sm:rounded-2xl border border-slate-200/60",
-            "bg-gradient-to-r from-slate-50 to-blue-50/30",
-            "p-4 sm:p-5 md:p-6"
-          )}>
-            <div className={cn(
-              "space-y-3 sm:space-y-4 text-center"
-            )}>
-              <div className={cn(
-                "flex items-center justify-center gap-2 text-slate-600",
-                "px-2"
-              )}>
-                <Check className={cn(
-                  "text-green-500",
-                  "h-4 w-4 sm:h-5 sm:w-5"
-                )} />
-                <span className={cn(
-                  "font-semibold",
-                  "text-sm sm:text-base"
-                )}>
-                  Transaksi Terlindungi
-                </span>
-              </div>
-              <p
-                className={cn(
-                  "leading-relaxed text-slate-600",
-                  "text-xs sm:text-sm md:text-base",
-                  "px-2 sm:px-4"
-                )}
-                dangerouslySetInnerHTML={{
-                  __html: formatTranslation(t.terms, {
-                    terms: `<a href="/terms" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-semibold hover:text-blue-800 underline transition-colors touch-manipulation">${t.termsLink}</a>`,
-                  }),
-                }}
-              />
-              <div className={cn(
-                "flex items-center justify-center gap-2 sm:gap-4",
-                "pt-2 sm:pt-3 text-xs sm:text-sm text-slate-500"
-              )}>
-                <div className="flex items-center gap-1 min-w-0">
-                  <Check className={cn(
-                    "text-green-500 flex-shrink-0",
-                    "h-3 w-3 sm:h-4 sm:w-4"
-                  )} />
-                  <span className="truncate">SSL Encrypted</span>
-                </div>
-                <div className="flex items-center gap-1 min-w-0">
-                  <Check className={cn(
-                    "text-green-500 flex-shrink-0",
-                    "h-3 w-3 sm:h-4 sm:w-4"
-                  )} />
-                  <span className="truncate">Bank Grade Security</span>
-                </div>
-              </div>
-            </div>
+          {/* Compact Security */}
+          <div className="text-center py-2">
+            <p className="text-xs text-slate-600">
+              <Check className="inline h-2 w-2 text-green-500 mr-1" />
+              Transaksi aman dengan SSL & Bank Grade
+            </p>
           </div>
 
-          {/* Enhanced Responsive Footer Actions */}
-          <div className={cn(
-            "flex justify-center border-t border-slate-200/60",
-            "pt-4 sm:pt-5 md:pt-6"
-          )}>
+          {/* Logout Function */}
+          <div className="text-center pt-2">
             <Button
-              variant="ghost"
-              size={isProcessing ? "sm" : "default"}
-              onClick={handleLogout}
-              disabled={!!isProcessing}
+              onClick={async () => {
+                try {
+                  await authClient.signOut();
+                  toast.success("Berhasil keluar");
+                  onClose();
+                } catch (error) {
+                  console.error("Logout error:", error);
+                  toast.error("Gagal keluar");
+                }
+              }}
+              variant="outline"
               className={cn(
-                "rounded-xl transition-all duration-200",
-                "hover:bg-red-50 hover:text-red-600 active:bg-red-100",
-                "text-slate-600 hover:text-red-600 touch-manipulation",
-                isProcessing
-                  ? "px-4 py-2 text-sm"
-                  : "px-6 py-3 sm:px-8 sm:py-3",
-                "min-h-[44px] sm:min-h-[40px] min-w-[120px] sm:min-w-[140px]"
+                "text-xs px-3 py-1.5 border-slate-300 text-slate-600 hover:bg-slate-50",
+                "transition-colors duration-200"
               )}
             >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className={cn(
-                    "animate-spin",
-                    "h-4 w-4 sm:h-4 sm:w-4"
-                  )} />
-                  <span className="text-sm">Memproses...</span>
-                </div>
-              ) : (
-                <span className={cn(
-                  "font-medium",
-                  "text-sm sm:text-base"
-                )}>
-                  Keluar dari Akun
-                </span>
-              )}
+              Keluar dari Akun
             </Button>
           </div>
+
+          
         </div>
       </DialogContent>
     </Dialog>

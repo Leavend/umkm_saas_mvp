@@ -5,12 +5,23 @@ import { twMerge } from "tailwind-merge";
 import { BUSINESS_CONSTANTS } from "~/lib/constants/business";
 import { ValidationError } from "~/lib/errors";
 
+// ===========================
+// STYLING UTILITIES
+// ===========================
+
 /**
  * Merge Tailwind CSS classes with proper conflict resolution
+ * Uses clsx for conditional class names and tailwind-merge to resolve conflicts
+ * @param inputs - Class values to merge
+ * @returns Merged class string with conflicts resolved
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// ===========================
+// VALIDATION UTILITIES
+// ===========================
 
 /**
  * Validate email format

@@ -93,7 +93,7 @@ function useModalState(
     (modal: ModalType) => {
       // Only open auth modal if user is not authenticated
       if (modal === "auth" && session?.user) {
-        console.log("User already authenticated:", session.user);
+        // User already authenticated
         return;
       }
       setActiveModal(modal);

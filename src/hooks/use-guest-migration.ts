@@ -26,12 +26,10 @@ export function useGuestMigration() {
             });
 
             if (response.ok) {
-              const result = (await response.json()) as { migrated?: boolean };
-              if (result.migrated) {
-                console.log("Guest session migrated successfully:", result);
-                // Optionally show a success message to the user
-              }
+              // Guest session migrated successfully
+              await response.json();
             } else {
+
               console.error("Guest migration failed");
             }
           }

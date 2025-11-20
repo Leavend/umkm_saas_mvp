@@ -25,18 +25,6 @@ export function GoogleAuthPopup({
 }: GoogleAuthPopupProps) {
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  // Debug log
-  useEffect(() => {
-    console.log(
-      "[GoogleAuthPopup] isOpen:",
-      isOpen,
-      "authUrl:",
-      authUrl,
-      "error:",
-      error,
-    );
-  }, [isOpen, authUrl, error]);
-
   // Reset iframe state when modal closes
   useEffect(() => {
     if (!isOpen) {

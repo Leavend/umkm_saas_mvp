@@ -57,16 +57,18 @@ function useMessageListener() {
       return;
     }
 
-    const data = event.data as { type: string };
+    const data = event.data as { type: string; timestamp?: number };
 
     switch (data.type) {
-      case "GOOGLE_AUTH_SUCCESS":
+      case "google-auth-success":
         if (!sessionRefreshRequested.current) {
-          console.log(
-            "Auth success message received, session will refresh automatically",
-          );
+          // Auth success message received from popup/tab
           sessionRefreshRequested.current = true;
-          // Better-auth handles session refresh automatically
+
+          // Trigger session refresh to get new user data
+          window.location.reload();
+
+          // Reset flag after delay
           setTimeout(() => {
             sessionRefreshRequested.current = false;
           }, 2000);

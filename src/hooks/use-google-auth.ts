@@ -1,13 +1,22 @@
-import { useState, useCallback } from "react";
+// src/hooks/use-google-auth.ts
+
+import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { useLocalePath } from "~/components/language-provider";
+import { useIsMobile } from "~/hooks/use-mobile";
 import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
 import { toError } from "~/lib/errors";
 import { authClient } from "~/lib/auth-client";
+import { openAuthPopup, isPopupBlocked, focusPopup } from "~/lib/auth-popup";
 
 /**
- * Custom hook for Google authentication with redirect flow
- * Uses direct redirect to Google OAuth (most reliable method)
+ * Custom hook for Google authentication with popup window flow
+ * - Desktop: Opens centered popup window (600x700px)
+ * - Mobile: Opens new tab (native behavior)
+ * - Auto-closes popup/tab after successful auth
+ * - Parent window automatically refreshes session
+ *
+ * Uses better-auth client with custom window opening
  *
  * @param options - Authentication options and callbacks
  * @returns Google authentication state and actions
@@ -18,12 +27,37 @@ export function useGoogleAuth(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const toLocalePath = useLocalePath();
+  const isMobile = useIsMobile();
+  const popupRef = useRef<Window | null>(null);
+  const originalWindowOpen = useRef<typeof window.open | null>(null);
 
   /**
-   * Initiate Google OAuth flow with redirect
+   * Cleanup popup on unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (popupRef.current && !popupRef.current.closed) {
+        popupRef.current.close();
+      }
+      // Restore original window.open if we modified it
+      if (originalWindowOpen.current) {
+        window.open = originalWindowOpen.current;
+      }
+    };
+  }, []);
+
+  /**
+   * Initiate Google OAuth with popup window
+   * Intercepts better-auth's redirect and opens in popup instead
    */
   const signInWithGoogle = useCallback(async () => {
     if (isLoading) return;
+
+    // If popup already exists and not closed, focus it
+    if (popupRef.current && !popupRef.current.closed) {
+      focusPopup(popupRef.current);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -31,56 +65,97 @@ export function useGoogleAuth(
     try {
       const callbackURL = options.redirectPath ?? toLocalePath("/");
 
-      console.log("[useGoogleAuth] Starting Google OAuth flow...");
-      console.log("[useGoogleAuth] Callback URL:", callbackURL);
+      // Intercept window.open to control popup creation
+      originalWindowOpen.current = window.open;
 
-      // Use authClient.signIn.social which will redirect the page
-      await authClient.signIn.social(
-        {
-          provider: "google",
-          callbackURL,
-        },
-        {
-          onRequest: () => {
-            console.log("[useGoogleAuth] Sending OAuth request...");
-          },
-          onSuccess: () => {
-            console.log("[useGoogleAuth] OAuth redirect initiated");
-          },
-          onError: (ctx) => {
-            console.error("[useGoogleAuth] OAuth error:", ctx.error);
-            throw ctx.error;
-          },
-        },
-      );
+      window.open = function (url?: string | URL, target?: string, features?: string) {
+        // Restore original immediately
+        if (originalWindowOpen.current) {
+          window.open = originalWindowOpen.current;
+        }
 
-      // Note: code below won't execute as page redirects
+        if (url) {
+          // Open with our custom popup function
+          const popup = openAuthPopup(url.toString(), isMobile);
+
+          if (isPopupBlocked(popup)) {
+            throw new Error("popup_blocked");
+          }
+
+          popupRef.current = popup;
+
+          // Monitor popup closure
+          const checkClosed = setInterval(() => {
+            if (popup?.closed) {
+              clearInterval(checkClosed);
+              setIsLoading(false);
+              popupRef.current = null;
+            }
+          }, 500);
+
+          // Cleanup after 5 minutes
+          setTimeout(() => clearInterval(checkClosed), 5 * 60 * 1000);
+
+          return popup;
+        }
+
+        return null;
+      } as typeof window.open;
+
+      // Use authClient.signIn.social - it will call window.open which we intercepted
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL,
+      });
+
     } catch (error: unknown) {
       const err = toError(error);
+
+      // Restore original window.open on error
+      if (originalWindowOpen.current) {
+        window.open = originalWindowOpen.current;
+      }
+
       console.error("[useGoogleAuth] Error:", err);
 
-      // More specific error messages
-      let errorMessage = "Gagal memulai autentikasi. Silakan coba lagi.";
-
-      if (
+      // Handle popup blocker specifically
+      if (err.message?.includes("popup_blocked")) {
+        const errorMessage =
+          "Popup diblokir. Mohon izinkan popup untuk login dengan Google.";
+        setError(errorMessage);
+        toast.error(errorMessage, {
+          description: "Cek pengaturan browser Anda",
+          duration: 5000,
+        });
+      } else if (
         err.message?.includes("fetch failed") ||
         err.message?.includes("network")
       ) {
-        errorMessage = "Koneksi gagal. Periksa internet Anda dan coba lagi.";
+        const errorMessage = "Koneksi gagal. Periksa internet Anda dan coba lagi.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } else if (err.message?.includes("timeout")) {
-        errorMessage = "Request timeout. Silakan coba lagi.";
+        const errorMessage = "Request timeout. Silakan coba lagi.";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        const errorMessage = "Gagal memulai autentikasi. Silakan coba lagi.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
 
-      setError(errorMessage);
       setIsLoading(false);
-      toast.error(errorMessage);
       options.onError?.(err);
     }
-  }, [options, toLocalePath, isLoading]);
+  }, [options, toLocalePath, isLoading, isMobile]);
 
   const closeModal = useCallback(() => {
     setError(null);
     setIsLoading(false);
+    if (popupRef.current && !popupRef.current.closed) {
+      popupRef.current.close();
+      popupRef.current = null;
+    }
   }, []);
 
   return {

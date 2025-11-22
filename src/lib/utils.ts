@@ -177,6 +177,44 @@ export function formatDate(date: Date, locale = "en-US"): string {
 }
 
 /**
+ * Format date in short format for display
+ * @param date - Date to format
+ * @param locale - Locale for formatting (default: "en-US")
+ * @returns Formatted date string (e.g., "Nov 21, 2025")
+ * @example
+ * formatDateShort(new Date("2025-11-21")) // "Nov 21, 2025"
+ */
+export function formatDateShort(date: Date, locale = "en-US"): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+/**
+ * Format currency for display
+ * @param amount - Amount to format
+ * @param locale - Locale for formatting (default: "id-ID")
+ * @param currency - Currency code (default: "IDR")
+ * @example
+ * formatCurrency(29000) // "Rp 29.000"
+ * formatCurrency(29000, "en-US", "USD") // "$29,000.00"
+ */
+export function formatCurrency(
+  amount: number,
+  locale = "id-ID",
+  currency = "IDR",
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
  * Get time ago in human readable format
  */
 export function getTimeAgo(date: Date): string {

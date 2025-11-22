@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Loader2, Check } from "lucide-react";
 
 /**
  * Auth Success Page
  * Displayed after successful Google OAuth authentication
- * 
+ *
  * Flow:
  * 1. User completes Google auth
  * 2. Redirected here from /api/auth/callback
@@ -15,6 +16,12 @@ import { Loader2, Check } from "lucide-react";
  * 5. Parent window refreshes session
  */
 export default function AuthSuccessPage() {
+  const pathname = usePathname();
+
+  // Extract locale from pathname (e.g., /en/auth-success -> en)
+  const locale = pathname.split("/")[1] ?? "en";
+  const homeUrl = `/${locale}`;
+
   useEffect(() => {
     // Get target window (popup opener or iframe parent)
     const targetWindow = (window.opener ?? window.parent) as Window | null;
@@ -24,7 +31,7 @@ export default function AuthSuccessPage() {
         // Send success message to parent window
         targetWindow.postMessage(
           {
-            type: "google-auth-success",
+            type: "GOOGLE_AUTH_SUCCESS",
             timestamp: Date.now(),
           },
           window.location.origin,
@@ -38,23 +45,23 @@ export default function AuthSuccessPage() {
         } else {
           // If this was an iframe, wait longer then fallback redirect
           setTimeout(() => {
-            window.location.href = "/";
+            window.location.href = homeUrl;
           }, 2000);
         }
       } catch (error) {
         // If postMessage fails (cross-origin), fallback to redirect
         console.error("Failed to send auth success message:", error);
         setTimeout(() => {
-          window.location.href = "/";
+          window.location.href = homeUrl;
         }, 1500);
       }
     } else {
       // No parent window found, redirect to home
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = homeUrl;
       }, 1500);
     }
-  }, []);
+  }, [homeUrl]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -82,9 +89,7 @@ export default function AuthSuccessPage() {
 
           {/* Loading Indicator */}
           <div className="w-full rounded-lg bg-green-50 p-4">
-            <p className="text-xs text-green-700">
-              Mohon tunggu sebentar
-            </p>
+            <p className="text-xs text-green-700">Mohon tunggu sebentar</p>
           </div>
         </div>
       </div>

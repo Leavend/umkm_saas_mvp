@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { authClient } from "~/lib/auth-client";
+import { useSession } from "next-auth/react";
 
 export function useGuestMigration() {
+  const { data: session } = useSession();
+
   useEffect(() => {
     const handleGuestMigration = async () => {
       try {
         // Check if user just signed up and has a guest session
-        const session = await authClient.getSession();
-
-        if (session?.data?.user) {
+        if (session?.user) {
           // Check if guest session cookie exists
           const hasGuestSession = document.cookie
             .split("; ")
@@ -29,7 +29,6 @@ export function useGuestMigration() {
               // Guest session migrated successfully
               await response.json();
             } else {
-
               console.error("Guest migration failed");
             }
           }
@@ -39,7 +38,7 @@ export function useGuestMigration() {
       }
     };
 
-    // Run migration check when component mounts
+    // Run migration check when component mounts or session changes
     void handleGuestMigration();
-  }, []);
+  }, [session]);
 }

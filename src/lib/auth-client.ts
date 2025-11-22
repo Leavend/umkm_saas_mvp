@@ -1,29 +1,19 @@
 // src/lib/auth-client.ts
 "use client";
 
-import { createAuthClient } from "better-auth/react";
-import { env } from "~/env.js";
-
 /**
- * Centralized authentication client configuration
- * Provides consistent auth behavior across the application
+ * NextAuth client utilities
+ * This file is kept for backward compatibility but now uses NextAuth
  */
-export const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
-  // Use redirect flow - will be handled differently for mobile vs desktop
-  // Desktop: popup window with custom modal
-  // Mobile: direct redirect (new tab)
-  socialAuthFlow: "redirect",
-  plugins: [],
-});
 
-// Export hooks for type-safe usage in components
-export const { signIn, signUp, signOut, useSession, getSession } = authClient;
+export { useSession, signIn, signOut } from "next-auth/react";
 
 /**
  * Feature flag for Google One Tap integration
  */
-export const isGoogleOneTapEnabled = Boolean(env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+export const isGoogleOneTapEnabled = Boolean(
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+);
 
 /**
  * Detect if user is on mobile device

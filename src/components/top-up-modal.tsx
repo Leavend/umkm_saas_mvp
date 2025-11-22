@@ -11,8 +11,8 @@ import { formatTranslation } from "~/lib/i18n";
 import { PRODUCT_CONFIG } from "~/lib/constants";
 import { toast } from "sonner";
 import { Loader2, Coins, Check, X } from "lucide-react";
-import { cn } from "~/lib/utils";
-import { useSession, authClient } from "~/lib/auth-client";
+import { cn, formatCurrency } from "~/lib/utils";
+import { useSession, signOut } from "next-auth/react";
 import { useCredits } from "~/hooks/use-credits";
 
 interface TopUpModalProps {
@@ -23,9 +23,6 @@ interface TopUpModalProps {
 }
 
 // Helper functions
-const formatCurrency = (amount: number): string =>
-  `Rp ${amount.toLocaleString("id-ID")}`;
-
 const calculateDiscountPercentage = (
   original: number,
   current: number,
@@ -168,7 +165,7 @@ export function TopUpModal({
                 >
                   {/* Badge */}
                   {(isBestValue || isPopular) && (
-                    <div className="absolute -right-6 top-2 rotate-45 bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-0.5 text-[9px] font-bold text-white shadow-sm">
+                    <div className="absolute top-2 -right-6 rotate-45 bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-0.5 text-[9px] font-bold text-white shadow-sm">
                       {isBestValue ? "TERBAIK" : "POPULER"}
                     </div>
                   )}
@@ -234,12 +231,12 @@ export function TopUpModal({
                       className={cn(
                         "w-full rounded-md py-3 text-xs font-bold transition-all",
                         isBestValue &&
-                        "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700",
+                          "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700",
                         isPopular &&
-                        "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700",
+                          "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700",
                         !isBestValue &&
-                        !isPopular &&
-                        "bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900",
+                          !isPopular &&
+                          "bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900",
                       )}
                     >
                       {isProcessing === product.id ? (
@@ -277,7 +274,7 @@ export function TopUpModal({
             <Button
               onClick={async () => {
                 try {
-                  await authClient.signOut();
+                  await signOut({ redirect: false });
                   toast.success("Berhasil keluar");
                   onClose();
                 } catch (error) {

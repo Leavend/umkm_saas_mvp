@@ -18,6 +18,9 @@ const STATIC_PATH_PREFIXES = [
   "/_next/static/",
   "/_next/image/",
   "/.well-known/",
+  "/auth-trigger",
+  "/auth-success",
+  "/auth-error",
 ];
 const STATIC_FILE_EXTENSIONS = [
   ".ico",

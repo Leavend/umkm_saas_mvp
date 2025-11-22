@@ -1,22 +1,30 @@
 // src/server/auth/session.ts
 
-import { headers } from "next/headers";
-
 import { auth } from "~/lib/auth";
 import { UnauthorizedError } from "~/lib/errors";
 
+/**
+ * Get the current session from NextAuth
+ * Returns null if not authenticated
+ */
 export async function getServerSession() {
-  return auth.api.getSession({
-    headers: await headers(),
-  });
+  return await auth();
 }
 
+/**
+ * Get the current user ID from session
+ * Returns null if not authenticated
+ */
 export async function getCurrentUserId() {
   const session = await getServerSession();
 
   return session?.user?.id ?? null;
 }
 
+/**
+ * Require authentication and return user ID
+ * Throws UnauthorizedError if not authenticated
+ */
 export async function requireCurrentUserId() {
   const userId = await getCurrentUserId();
 

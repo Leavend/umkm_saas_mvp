@@ -1,5 +1,5 @@
 import { useTranslations } from "~/components/language-provider";
-import { useGoogleAuth } from "~/hooks/use-google-auth";
+import { useGooglePopupAuth } from "~/hooks/use-google-popup-auth";
 import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { GoogleIcon } from "~/components/icons/google-icon";
@@ -19,7 +19,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const translations = useTranslations();
 
   // Google auth hook - opens popup window
-  const { signInWithGoogle, isLoading } = useGoogleAuth({
+  const { signInWithGoogle, isLoading } = useGooglePopupAuth({
     onSuccess: useCallback(() => {
       onClose();
     }, [onClose]),

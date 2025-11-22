@@ -22,16 +22,11 @@ import {
 export async function POST(request: NextRequest) {
   try {
     // Get the current session (user just signed up)
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    const session = await auth();
 
-    const userId =
-      session && typeof session === "object" && "user" in session
-        ? (session.user as { id?: unknown })?.id
-        : undefined;
+    const userId = session?.user?.id;
 
-    if (typeof userId !== "string" || !userId) {
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: "No authenticated user found" },
         { status: 401 },

@@ -1,40 +1,47 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { env } from "~/env";
-import { AUTH_CONFIG } from "~/lib/auth-config";
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "~/server/db";
+import { env } from "~/env";
 
-export const auth = betterAuth({
-  database: prismaAdapter(db, {
-    provider: "postgresql",
-  }),
-  emailAndPassword: {
-    enabled: true,
-  },
-  socialProviders: {
-    google: {
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(db),
+  providers: [
+    Google({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
-      ...AUTH_CONFIG.google,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
+  ],
+  pages: {
+    signIn: "/en", // Redirect to home if not authenticated
+    error: "/en/auth-error", // Error page
+  },
+  callbacks: {
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
+        // Add any additional user data from database
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
     },
   },
   session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    },
+    strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  cookies: {
-    domain: process.env.NODE_ENV === "development" ? "localhost" : undefined,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  },
-  plugins: [],
-  cors: {
-    origin:
-      process.env.NODE_ENV === "development"
-        ? ["http://localhost:3000", "https://*.ngrok-free.app"]
-        : [env.BETTER_AUTH_URL],
-    credentials: true,
-  },
+  secret: env.NEXTAUTH_SECRET,
+  trustHost: true, // Required for NextAuth v5 to work with different hosts
 });

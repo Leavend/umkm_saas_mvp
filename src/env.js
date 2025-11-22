@@ -8,8 +8,8 @@ export const env = createEnv({
    */
   server: {
     DATABASE_URL: z.string().url(),
-    BETTER_AUTH_SECRET: z.string(),
-    BETTER_AUTH_URL: z.string().url(),
+    NEXTAUTH_SECRET: z.string(),
+    NEXTAUTH_URL: z.string().url().optional(),
     XENDIT_SECRET_KEY: z.string(),
     XENDIT_CALLBACK_TOKEN: z.string(),
     IMAGEKIT_PRIVATE_KEY: z.string(),
@@ -30,7 +30,6 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT: z.string().url(),
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string(),
-    NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url(),
     NEXT_PUBLIC_GOOGLE_ONE_TAP_ALLOWED_ORIGINS: z.string().optional(),
   },
 
@@ -41,9 +40,8 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
-    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
-    NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     XENDIT_SECRET_KEY: process.env.XENDIT_SECRET_KEY,
     XENDIT_CALLBACK_TOKEN: process.env.XENDIT_CALLBACK_TOKEN,
     IMAGEKIT_PUBLIC_KEY: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,

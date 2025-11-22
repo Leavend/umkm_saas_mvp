@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, authClient } from "~/lib/auth-client";
+import { useSession, signOut } from "next-auth/react";
 import { logError } from "~/lib/errors";
 
 interface UseSignOutOptions {
@@ -13,7 +13,8 @@ export function useSignOut({
   isSignOutView,
 }: UseSignOutOptions) {
   const router = useRouter();
-  const { data: sessionData, isPending: sessionPending } = useSession();
+  const { data: sessionData, status } = useSession();
+  const sessionPending = status === "loading";
   const signOutTriggeredRef = useRef(false);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function useSignOut({
     const performSignOut = async () => {
       try {
         if (sessionData?.user) {
-          await authClient.signOut();
+          await signOut({ redirect: false });
         }
       } catch (error) {
         logError("Sign out failed", error);

@@ -1,4 +1,6 @@
 // src/components/footer.tsx
+import { formatDate } from "~/lib/utils";
+
 interface FooterProps {
   lastUpdated?: string;
   productName?: string;
@@ -14,15 +16,7 @@ export function Footer({
 }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
-  // Format last updated date in Indonesian locale
-  const formattedLastUpdated = new Date(lastUpdated).toLocaleDateString(
-    "id-ID",
-    {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    },
-  );
+  const formattedLastUpdated = formatDate(new Date(lastUpdated), "id-ID");
 
   return (
     <footer

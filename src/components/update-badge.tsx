@@ -1,5 +1,6 @@
 import { Clock } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
+import { formatDateShort } from "~/lib/utils";
 
 interface UpdateBadgeProps {
   lastUpdated: Date;
@@ -7,13 +8,7 @@ interface UpdateBadgeProps {
 }
 
 export function UpdateBadge({ lastUpdated, className }: UpdateBadgeProps) {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(date);
-  };
+  const formattedDate = formatDateShort(lastUpdated);
 
   return (
     <Badge
@@ -21,7 +16,7 @@ export function UpdateBadge({ lastUpdated, className }: UpdateBadgeProps) {
       className={`inline-flex items-center gap-1.5 border-slate-200 bg-white text-slate-600 ${className}`}
     >
       <Clock className="h-3 w-3" />
-      <span className="text-xs">Last updated: {formatDate(lastUpdated)}</span>
+      <span className="text-xs">Last updated: {formattedDate}</span>
     </Badge>
   );
 }

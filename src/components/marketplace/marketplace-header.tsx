@@ -3,7 +3,6 @@
 import { Suspense } from "react";
 import { Sparkles, Coins, User, Search } from "lucide-react";
 import Image from "next/image";
-// import { Button } from "~/components/ui/button";
 import { Container } from "~/components/container";
 import { LanguageToggle } from "~/components/language-toggle";
 import { useTranslations } from "~/components/language-provider";

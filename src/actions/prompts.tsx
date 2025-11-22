@@ -15,7 +15,7 @@ import {
   deductCreditsFromGuest,
 } from "~/server/services/prompt-service";
 import type { Prompt } from "@prisma/client";
-import { headers } from "next/headers";
+
 
 // ===== RESPONSE TYPES =====
 
@@ -100,22 +100,17 @@ export async function copyPrompt(
     // Get prompt
     const prompt = await getPromptById(promptId);
 
-    // Get authenticated session using server-side auth
-    const headersList = await headers();
-    const session = await auth.api.getSession({
-      headers: headersList,
-    });
+    // Get authenticated session using NextAuth
+    const session = await auth();
 
     // Determine credit deduction based on auth status
     let remainingCredits: number;
     const creditDeducted = 1;
 
-    if (session?.user?.id) {
+    const userId = session?.user?.id;
+    if (userId) {
       // Authenticated user: deduct from user credits
-      const result = await deductCreditsFromUser(
-        session.user.id,
-        creditDeducted,
-      );
+      const result = await deductCreditsFromUser(userId, creditDeducted);
       remainingCredits = result.credits;
     } else if (guestSessionId?.trim()) {
       // Guest user: deduct from guest session credits

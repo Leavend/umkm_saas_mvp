@@ -1,115 +1,69 @@
-# 🚀 AI Image Editor SaaS with Next.js 15, Neon, Polar, Better Auth & ImageKit
+# AI Image Editor SaaS
 
-Welcome to the ultimate AI Image Editor SaaS application! This project demonstrates how to build a fully featured, production-ready SaaS platform using the latest technologies — Next.js 15, Neon (PostgreSQL), Polar payments, Better Auth authentication, and ImageKit for AI-powered image editing — all deployed on Vercel, completely free to get started.
+A modern, production‑ready SaaS platform that lets users edit images with AI‑powered tools (background removal, upscaling, smart cropping) while managing credits, payments, and projects.
 
-## 🔗 Useful Links
+## ✨ Key Features
+- **Secure Authentication** – Email/password and social logins via **NextAuth** (Google, GitHub, etc.).
+- **Credit System & Payments** – Integrated with **Polar** for subscription and credit‑pack purchases.
+- **AI Image Processing** – Powered by **ImageKit** (storage, optimization, AI transformations).
+- **Project Management** – Save, version, and share editing history.
+- **Customer Portal** – Invoices, billing details, and credit management.
+- **Responsive UI** – Built with **Next.js 15**, **Tailwind CSS**, and **shadcn/ui** components.
+- **Server‑less Deployment** – Deploys seamlessly on **Vercel**.
 
-- **Neon** → https://get.neon.com/BzsDb4L
-- **ImageKit** → https://tinyurl.com/yc4uz5t6
-- **Polar** → https://polar.sh
-- **Better Auth** → https://better-auth.com
-- **Eraser Diagram** → https://app.eraser.io/workspace/WQa2bvFxwX5kaoqG3KfN?origin=share
-
-## ✅ Key Features
-
-- **🔐 Secure Authentication**: Email, password & social logins with Better Auth
-- **💳 Payments & Credits**: Integrated payment system with Polar
-- **🤖 AI-Powered Editing**: Background removal, upscaling & smart cropping
-- **📁 Project Management**: Save and manage image editing history
-- **👤 Customer Portal**: Invoices, billing info & credit pack management
-- **📱 Responsive Design**: Modern UI that works on all devices
-- **⚡ Real-time Updates**: Live credit deduction and status updates
-- **🎨 Professional Layout**: Smooth transitions and polished SaaS interface
-- **☁️ Serverless Deployment**: Scalable hosting on Vercel
-
-## 🧠 Built With
-
-- **Frontend**: Next.js 15 (App Router + Server Actions)
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **Database**: Neon PostgreSQL + Prisma ORM
-- **Payments**: Polar payment platform
-- **Authentication**: Better Auth
-- **Image Processing**: ImageKit (storage, optimization & AI features)
-- **Deployment**: Vercel (free tier available)
+## 🛠️ Tech Stack
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 15 (App Router + Server Actions), Tailwind CSS, shadcn/ui |
+| Backend | NextAuth, Prisma ORM, Neon PostgreSQL |
+| Payments | Polar |
+| Image Processing | ImageKit |
+| Hosting | Vercel |
 
 ## 🚀 Getting Started
+```bash
+# 1. Clone the repo
+git clone https://github.com/Leavend/umkm_saas_mvp.git
+cd umkm_saas_mvp
 
-1. **Clone the repository**
+# 2. Install dependencies
+npm ci   # or `bun install` if you prefer Bun
 
-   ```bash
-   git clone https://github.com/Leavend/umkm_saas_mvp.git
-   cd ai-image-editor-saas-app
-   ```
+# 3. Set up environment variables
+cp .env.example .env.local
+# Edit .env.local and fill in values for Neon, ImageKit, Polar, and NextAuth
 
-2. **Install dependencies**
+# 4. Initialise the database
+npx prisma migrate dev --name init
 
-   ```bash
-   npm install
-   ```
+# 5. Run the development server
+npm run dev   # or `bun run dev`
+```
+Open **http://localhost:3000** in your browser.
 
-3. **Set up environment variables**
-
-   ```bash
-   cp .env.example .env.local
-   ```
-
-   Fill in your environment variables for Neon, ImageKit, Polar, and Better Auth.
-
-4. **Set up the database**
-
-   ```bash
-   npx prisma migrate dev
-   ```
-
-5. **Run the development server**
-
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
-   Navigate to `http://localhost:3000`
-
-## 📖 What You'll Learn
-
-This project is perfect for developers who want to learn:
-
-- **Modern Full-Stack Development** with Next.js 15
-- **SaaS Application Architecture** and best practices
-- **AI Image Processing Integration** with ImageKit
-- **Payment Systems Implementation** using Polar
-- **Advanced Authentication** with Better Auth
-- **Database Design and Management** with Prisma
-- **Serverless Deployment** strategies
-
-## 🎯 Perfect For
-
-- Full-stack developers looking to build SaaS applications
-- Next.js enthusiasts wanting to explore the latest features
-- Developers interested in AI integration
-- Anyone learning modern web development practices
-
-## 📊 Project Architecture
-
-Check out our detailed system architecture diagram on [Eraser](https://app.eraser.io/workspace/WQa2bvFxwX5kaoqG3KfN?origin=share).
+## 📦 Scripts
+| Script | Description |
+|--------|-------------|
+| `dev` | Starts the Next.js dev server |
+| `build` | Builds the app for production |
+| `start` | Runs the production build |
+| `lint` | Runs ESLint (deprecated in Next.js 15) |
+| `format:write` | Formats code with Prettier |
+| `format:check` | Checks Prettier formatting |
+| `check` | Runs lint + TypeScript type‑check |
 
 ## 🤝 Contributing
+Contributions are welcome! Please fork the repository, create a feature branch, and submit a pull request. Follow the existing code style (Prettier) and ensure `bun run check` passes.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
+## 📄 License
+This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
-
-- ImageKit for providing powerful image processing APIs
-- Neon for the amazing PostgreSQL hosting platform
-- Polar for the seamless payment integration
-- Better Auth for the robust authentication system
+- **ImageKit** – AI image processing APIs
+- **Neon** – Managed PostgreSQL
+- **Polar** – Payments & subscriptions
+- **NextAuth** – Authentication framework
+- **Vercel** – Server‑less hosting platform
 
 ---
-
-If you found this project helpful, please give it a ⭐ on GitHub and consider following for more amazing projects!
-
-**#nextjs #ai #saas #fullstackdevelopment #imagekit**
+If you find this project useful, please ⭐ the repository and consider following for more open‑source SaaS projects!

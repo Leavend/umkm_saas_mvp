@@ -57,7 +57,9 @@ export function getGoogleOAuthConfig() {
     throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID not configured");
   }
 
-  const baseURL = env.NEXT_PUBLIC_BETTER_AUTH_URL || window.location.origin;
+  const baseURL =
+    env.NEXTAUTH_URL ??
+    (typeof window !== "undefined" ? window.location.origin : "");
   const redirectUri = `${baseURL}/api/auth/callback/google`;
 
   return {

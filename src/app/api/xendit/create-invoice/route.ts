@@ -43,7 +43,8 @@ export async function POST(request: Request) {
     const amount = currency === "USD" ? product.usdAmount : product.amount;
     const productName = product.name;
 
-    const origin = request.headers.get("origin") ?? env.BETTER_AUTH_URL;
+    const origin =
+      request.headers.get("origin") ?? env.NEXTAUTH_URL ?? "";
 
     const successUrl = new URL("/", origin).toString();
 
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ invoiceUrl: invoice.invoiceUrl });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

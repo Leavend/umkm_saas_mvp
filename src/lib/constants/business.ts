@@ -2,16 +2,14 @@
  * Business logic constants for consistent values across the application
  */
 
-import { AUTH_CONFIG } from "~/lib/auth-config";
-
 export const BUSINESS_CONSTANTS = {
   /**
    * Credit system configuration
    */
   credits: {
-    initialGuest: AUTH_CONFIG.credits.initialGuest,
-    dailyAmount: AUTH_CONFIG.credits.dailyAmount,
-    dailyCap: AUTH_CONFIG.credits.dailyCap,
+    initialGuest: 10,
+    dailyAmount: 1,
+    dailyCap: 10,
     minAmount: 1,
     maxAmount: 1000,
   },
@@ -20,10 +18,10 @@ export const BUSINESS_CONSTANTS = {
    * Session and authentication constants
    */
   auth: {
-    sessionTTL: AUTH_CONFIG.session.ttlMs,
-    googleScope: AUTH_CONFIG.google.scope,
-    googlePrompt: AUTH_CONFIG.google.prompt,
-    googleAccessType: AUTH_CONFIG.google.accessType,
+    sessionTTL: 7 * 24 * 60 * 60 * 1000, // 7 days
+    googleScope: ["openid", "email", "profile"],
+    googlePrompt: "select_account consent" as const,
+    googleAccessType: "offline" as const,
     maxSessionAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     cookieMaxAge: 60 * 60 * 24 * 7, // 7 days in seconds
   },

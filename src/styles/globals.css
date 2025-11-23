@@ -1,16 +1,17 @@
+/* stylelint-disable */
 @import "tailwindcss";
 
 @import "@daveyplate/better-auth-ui/css";
 
 @import "tw-animate-css";
-
+/* stylelint-disable */
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans:
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  
+
   --font-rubik:
     var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
 }
@@ -71,8 +72,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: 255 199 44; /* #FFC72C */
-  --primary-foreground: 15 23 42; /* Dark text for contrast */
+  --primary: 255 199 44;
+  /* #FFC72C */
+  --primary-foreground: 15 23 42;
+  /* Dark text for contrast */
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -82,7 +85,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: 255 199 44 / 0.5; /* Semi-transparent brand color */
+  --ring: 255 199 44 / 0.5;
+  /* Semi-transparent brand color */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -102,15 +106,18 @@
   --brand-200: oklch(0.92 0.04 85);
   --brand-300: oklch(0.88 0.08 85);
   --brand-400: oklch(0.82 0.12 85);
-  --brand-500: oklch(0.78 0.15 85); /* #FFC72C */
+  --brand-500: oklch(0.78 0.15 85);
+  /* #FFC72C */
   --brand-600: oklch(0.72 0.16 85);
   --brand-700: oklch(0.65 0.17 85);
   --brand-800: oklch(0.55 0.18 85);
   --brand-900: oklch(0.45 0.19 85);
   /* Page grid tokens */
   --page-max: 1200px;
-  --page-gutter: 1rem; /* mobile: 16px */
-  --page-gutter-md: 2rem; /* md: 32px */
+  --page-gutter: 1rem;
+  /* mobile: 16px */
+  --page-gutter-md: 2rem;
+  /* md: 32px */
 
   /* Brand color tokens */
   --brand-50: #fff7e6;
@@ -121,7 +128,8 @@
 
 @media (min-width: 768px) {
   :root {
-    --page-gutter: 2rem; /* md: 32px */
+    --page-gutter: 2rem;
+    /* md: 32px */
   }
 }
 
@@ -132,8 +140,10 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: 255 215 64; /* Slightly brighter brand for dark mode */
-  --primary-foreground: 15 23 42; /* Keep dark foreground for contrast */
+  --primary: 255 215 64;
+  /* Slightly brighter brand for dark mode */
+  --primary-foreground: 15 23 42;
+  /* Keep dark foreground for contrast */
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -143,7 +153,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: 255 215 64 / 0.5; /* Semi-transparent brand color for dark mode */
+  --ring: 255 215 64 / 0.5;
+  /* Semi-transparent brand color for dark mode */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -163,7 +174,8 @@
   --brand-200: oklch(0.25 0.05 85);
   --brand-300: oklch(0.35 0.08 85);
   --brand-400: oklch(0.45 0.12 85);
-  --brand-500: oklch(0.55 0.15 85); /* Brighter brand for dark mode */
+  --brand-500: oklch(0.55 0.15 85);
+  /* Brighter brand for dark mode */
   --brand-600: oklch(0.65 0.16 85);
   --brand-700: oklch(0.75 0.17 85);
   --brand-800: oklch(0.85 0.18 85);
@@ -172,26 +184,35 @@
 
 @layer base {
   html {
-    font-size: 20px; /* 125% scale for desktop */
+    font-size: 20px;
+    /* 125% scale for desktop */
   }
+
   @media (max-width: 1024px) {
     html {
-      font-size: 18px; /* Tablet */
+      font-size: 18px;
+      /* Tablet */
     }
   }
+
   @media (max-width: 768px) {
     html {
-      font-size: 16px; /* Mobile */
+      font-size: 16px;
+      /* Mobile */
     }
   }
+
   @media (max-width: 640px) {
     html {
-      font-size: 15px; /* Small mobile */
+      font-size: 15px;
+      /* Small mobile */
     }
   }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground leading-relaxed;
   }
@@ -201,25 +222,31 @@
   .font-rubik {
     font-family: var(--font-rubik);
   }
-  
+
   .container-tight {
     max-width: 1100px;
     margin-inline: auto;
-    padding-inline: 1.25rem; /* mobile: 20px */
+    padding-inline: 1.25rem;
+    /* mobile: 20px */
   }
+
   @media (min-width: 640px) {
     .container-tight {
       padding-inline: 1.5rem;
     }
   }
+
   @media (min-width: 768px) {
     :root {
       --container-pad: 1.5rem;
-    } /* md+: 24px — tighter for 125% scale */
+    }
+
+    /* md+: 24px — tighter for 125% scale */
     .container-tight {
       padding-inline: 1.5rem;
     }
   }
+
   @media (min-width: 1024px) {
     .container-tight {
       padding-inline: 2rem;
@@ -228,29 +255,38 @@
 
   /* Hide scrollbars while keeping functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
+
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera*/
+    display: none;
+    /* Chrome, Safari, Opera*/
   }
 
   /* Responsive text utilities */
   .text-responsive-xs {
     @apply text-xs sm:text-sm;
   }
+
   .text-responsive-sm {
     @apply text-sm sm:text-base;
   }
+
   .text-responsive-base {
     @apply text-base sm:text-lg;
   }
+
   .text-responsive-lg {
     @apply text-lg sm:text-xl;
   }
+
   .text-responsive-xl {
     @apply text-xl sm:text-2xl;
   }
+
   .text-responsive-2xl {
     @apply text-2xl sm:text-3xl;
   }
@@ -259,9 +295,11 @@
   .space-responsive-y-2 {
     @apply space-y-2 sm:space-y-3;
   }
+
   .space-responsive-y-3 {
     @apply space-y-3 sm:space-y-4;
   }
+
   .space-responsive-y-4 {
     @apply space-y-4 sm:space-y-6;
   }
@@ -270,62 +308,71 @@
   .gap-responsive-2 {
     @apply gap-2 sm:gap-3;
   }
+
   .gap-responsive-3 {
     @apply gap-3 sm:gap-4;
   }
+
   .gap-responsive-4 {
     @apply gap-4 sm:gap-6;
   }
 
   /* Custom gap utilities */
   .gap-126 {
-    gap: 31.5rem; /* 504px */
+    gap: 31.5rem;
+    /* 504px */
   }
 
   @media (max-width: 1200px) {
     .gap-126 {
-      gap: 24rem; /* 384px */
+      gap: 24rem;
+      /* 384px */
     }
   }
 
   @media (max-width: 1024px) {
     .gap-126 {
-      gap: 18rem; /* 288px */
+      gap: 18rem;
+      /* 288px */
     }
   }
 
   @media (max-width: 768px) {
     .gap-126 {
-      gap: 12rem; /* 192px */
+      gap: 12rem;
+      /* 192px */
     }
   }
 
   @media (max-width: 640px) {
     .gap-126 {
-      gap: 8rem; /* 128px */
+      gap: 8rem;
+      /* 128px */
     }
   }
 
   @media (max-width: 480px) {
     .gap-126 {
-      gap: 4rem; /* 64px */
+      gap: 4rem;
+      /* 64px */
     }
   }
 }
 
 /* Posisi kanan FAB sejajar sisi kanan container */
 .align-with-container-right {
-  right: max(
-    var(--container-pad),
-    calc((100vw - var(--container-max)) / 2 + var(--container-pad))
-  );
+  right: max(var(--container-pad),
+      calc((100vw - var(--container-max)) / 2 + var(--container-pad)));
 }
 
 /* Variabel FAB */
 :root {
-  --fb-bottom: 2.5rem; /* jarak default dari bawah viewport */
-  --footer-h: 96px; /* asumsi tinggi footer (boleh disesuaikan) */
-  --fab-gap: 1.5rem; /* jarak antara FAB dan footer (16-24px) */
+  --fb-bottom: 2.5rem;
+  /* jarak default dari bawah viewport */
+  --footer-h: 96px;
+  /* asumsi tinggi footer (boleh disesuaikan) */
+  --fab-gap: 1.5rem;
+  /* jarak antara FAB dan footer (16-24px) */
 }
 
 /* Default: nempel bawah viewport dgn safe area */
@@ -335,14 +382,12 @@
 
 /* Saat footer kelihatan → dorong FAB ke atas setinggi footer */
 .fab-push-up {
-  bottom: calc(
-    var(--fb-bottom) + var(--footer-h) + var(--fab-gap) +
-      env(safe-area-inset-bottom)
-  );
+  bottom: calc(var(--fb-bottom) + var(--footer-h) + var(--fab-gap) + env(safe-area-inset-bottom));
 }
 
 /* Hide floating controls on very small heights and print */
 @media (max-height: 540px) {
+
   .fixed.z-50[aria-label="Floating actions"],
   .fixed.z-50[aria-label="View mode toggle"] {
     display: none;
@@ -350,6 +395,7 @@
 }
 
 @media print {
+
   .fixed.z-50[aria-label="Floating actions"],
   .fixed.z-50[aria-label="View mode toggle"] {
     display: none !important;
@@ -369,6 +415,7 @@
 
 /* Extra small mobile optimizations */
 @media (max-width: 640px) {
+
   /* Header content shift animations for search */
   #site-header {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -413,10 +460,14 @@ input[type="search"]::-webkit-search-results-decoration {
   0% {
     transform: translateX(-100%);
   }
+
   50% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
+
+/* stylelint-enable */

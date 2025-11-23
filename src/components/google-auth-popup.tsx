@@ -42,13 +42,18 @@ export function GoogleAuthPopup({
       <DialogContent className="overflow-hidden border-0 p-0 shadow-2xl sm:max-w-lg">
         {/* Loading State */}
         {!iframeLoaded && authUrl && !error && (
-          <div className="flex flex-col items-center justify-center space-y-3 bg-gradient-to-br from-blue-50 to-indigo-50 p-12">
-            <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+          <div className="flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-orange-50 to-amber-50 p-12">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-[#D97706] opacity-20"></div>
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#D97706]">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              </div>
+            </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-base font-semibold text-gray-900">
                 Memuat Google Sign In...
               </p>
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-sm text-gray-600">
                 Mohon tunggu sebentar
               </p>
             </div>

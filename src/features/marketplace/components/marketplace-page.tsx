@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import type { Session } from "next-auth";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
 import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
@@ -73,20 +74,11 @@ function useMarketplaceRouting(
   return { navigateToPrompt, navigateToHome, handleRouteChange };
 }
 
-interface SessionData {
-  user?: {
-    id: string;
-    name?: string;
-    email?: string;
-    image?: string | null;
-  } | null;
-}
-
 /**
  * Extract modal state management into a custom hook
  */
 function useModalState(
-  session: SessionData | null,
+  session: Session | null,
   setActiveModal: (modal: ModalType | null) => void,
 ) {
   const openModal = useCallback(

@@ -3,6 +3,7 @@ import { useSession } from "~/lib/auth-client";
 import { getUserCredits } from "~/actions/users";
 import type { UseCreditsReturn } from "~/lib/types";
 import { extractErrorMessage } from "~/lib/utils";
+import type { Session } from "next-auth";
 
 /**
  * Extract credit loading logic into a separate function
@@ -24,20 +25,13 @@ async function loadUserCredits(): Promise<number | null> {
   }
 }
 
-interface SessionData {
-  user?: {
-    id: string;
-    name?: string;
-    email?: string;
-    image?: string | null;
-  } | null;
-}
+// Removed custom SessionData interface – we now use NextAuth's Session type.
 
 /**
  * Extract session change handler
  */
 function useSessionChangeHandler(
-  session: SessionData | null,
+  session: Session | null,
   refreshCredits: () => Promise<number | null>,
   setCredits: (value: number | null) => void,
   setError: (error: string | null) => void,

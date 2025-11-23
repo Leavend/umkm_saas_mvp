@@ -16,7 +16,6 @@ import {
 } from "~/server/services/prompt-service";
 import type { Prompt } from "@prisma/client";
 
-
 // ===== RESPONSE TYPES =====
 
 type PromptsListResponse = ApiResponse<{ prompts: Prompt[] }>;

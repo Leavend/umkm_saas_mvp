@@ -43,8 +43,7 @@ export async function POST(request: Request) {
     const amount = currency === "USD" ? product.usdAmount : product.amount;
     const productName = product.name;
 
-    const origin =
-      request.headers.get("origin") ?? env.NEXTAUTH_URL ?? "";
+    const origin = request.headers.get("origin") ?? env.NEXTAUTH_URL ?? "";
 
     const successUrl = new URL("/", origin).toString();
 

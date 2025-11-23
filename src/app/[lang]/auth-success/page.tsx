@@ -64,16 +64,16 @@ export default function AuthSuccessPage() {
   }, [homeUrl]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <div className="flex flex-col items-center space-y-4 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+      <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
+        <div className="flex flex-col items-center space-y-6 text-center">
           {/* Success Icon with Loading */}
           <div className="relative">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <Check className="h-10 w-10 text-green-600" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <Check className="h-11 w-11 text-green-600" strokeWidth={3} />
             </div>
             <div className="absolute -right-1 -bottom-1">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-[#D97706]" />
             </div>
           </div>
 
@@ -82,14 +82,14 @@ export default function AuthSuccessPage() {
             <h1 className="text-2xl font-bold text-gray-900">
               Login Berhasil!
             </h1>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-base text-gray-600">
               Window akan segera ditutup...
             </p>
           </div>
 
           {/* Loading Indicator */}
-          <div className="w-full rounded-lg bg-green-50 p-4">
-            <p className="text-xs text-green-700">Mohon tunggu sebentar</p>
+          <div className="w-full rounded-xl bg-green-50 p-4">
+            <p className="text-sm font-medium text-green-700">Mohon tunggu sebentar</p>
           </div>
         </div>
       </div>

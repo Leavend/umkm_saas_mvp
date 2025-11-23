@@ -44,7 +44,7 @@ export function MarketplaceHeader({
           className={cn(
             "flex items-center gap-2 transition-all duration-300 ease-in-out",
             isSearchOpen &&
-              "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
+            "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
           )}
         >
           <div className="bg-brand-500 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg shadow-lg">
@@ -65,14 +65,14 @@ export function MarketplaceHeader({
           className={cn(
             "flex items-center gap-2 transition-all duration-300 ease-in-out",
             isSearchOpen &&
-              "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
+            "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
           )}
         >
           <div
             className={cn(
               "transition-all duration-300 ease-in-out",
               isSearchOpen &&
-                "xs:-translate-x-1 sm:-translate-x-2 md:translate-x-0",
+              "xs:-translate-x-1 sm:-translate-x-2 md:translate-x-0",
             )}
           >
             <Suspense fallback={null}>
@@ -139,11 +139,13 @@ export function MarketplaceHeader({
             <button
               type="button"
               onClick={() => onOpenModal("auth")}
-              className="focus-visible:ring-brand-500/40 inline-flex h-10 w-auto items-center justify-center gap-2 rounded-full border border-slate-200 bg-white p-0 px-3 text-sm font-medium text-slate-900 transition hover:bg-slate-100 focus-visible:ring-2 focus-visible:outline-none active:bg-slate-200"
+              className="focus-visible:ring-brand-500/40 inline-flex h-8 w-auto items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white p-0 text-sm font-semibold text-slate-900 transition hover:shadow-lg focus-visible:ring-2 focus-visible:outline-none"
               aria-label="Login"
             >
-              <User className="h-5 w-5" />
-              <span>Login</span>
+              <div className="flex h-8 w-8 items-center justify-center bg-[#D97706]">
+                <User className="h-4 w-4 text-white" />
+              </div>
+              <span className="px-3">Login</span>
             </button>
           )}
         </div>

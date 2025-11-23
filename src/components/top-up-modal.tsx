@@ -122,12 +122,9 @@ export function TopUpModal({
                   <Coins className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-xs font-semibold text-slate-700">
-                  <span className="text-slate-500">Saldo:</span> {credits ?? 0}
+                  <span className="text-slate-500">Token:</span> {credits ?? 0}
                 </span>
               </div>
-              <Badge className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                🎉 70% OFF
-              </Badge>
             </div>
           </div>
 
@@ -154,13 +151,13 @@ export function TopUpModal({
                 <div
                   key={product.id}
                   className={cn(
-                    "group relative overflow-hidden rounded-lg border-2 p-3 transition-all duration-200",
-                    "hover:shadow-md",
+                    "group relative overflow-hidden rounded-xl border border-gray-200 p-4 transition-all duration-300",
+                    "hover:shadow-lg hover:border-gray-300",
                     isBestValue
-                      ? "border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm"
+                      ? "bg-gradient-to-br from-amber-50/50 to-orange-50/50"
                       : isPopular
-                        ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-green-50"
-                        : "border-slate-200 bg-white hover:border-slate-300",
+                        ? "bg-gradient-to-br from-emerald-50/50 to-green-50/50"
+                        : "bg-white",
                   )}
                 >
                   {/* Badge */}
@@ -204,7 +201,7 @@ export function TopUpModal({
                         {product.totalCredits}
                       </div>
                       <div className="text-[10px] font-medium text-slate-500">
-                        Total Kredit
+                        Total Token
                       </div>
                     </div>
 
@@ -229,14 +226,14 @@ export function TopUpModal({
                       onClick={() => handlePurchase(product.id)}
                       disabled={!!isProcessing}
                       className={cn(
-                        "w-full rounded-md py-3 text-xs font-bold transition-all",
+                        "w-full rounded-lg py-2.5 text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
                         isBestValue &&
-                          "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700",
+                        "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
                         isPopular &&
-                          "bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700",
+                        "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
                         !isBestValue &&
-                          !isPopular &&
-                          "bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900",
+                        !isPopular &&
+                        "bg-slate-900 text-white hover:bg-slate-800",
                       )}
                     >
                       {isProcessing === product.id ? (
@@ -256,17 +253,17 @@ export function TopUpModal({
 
           {/* Compact Footer */}
           <div className="mt-3 flex items-center justify-between border-t pt-2.5">
-            <div className="flex items-center gap-3 text-[10px] text-slate-600">
+            <div className="flex items-center gap-3 text-xs text-slate-600">
               <div className="flex items-center gap-0.5">
-                <Check className="h-2.5 w-2.5 text-emerald-500" />
+                <Check className="h-3 w-3 text-emerald-500" />
                 <span>Instan</span>
               </div>
               <div className="flex items-center gap-0.5">
-                <Check className="h-2.5 w-2.5 text-emerald-500" />
+                <Check className="h-3 w-3 text-emerald-500" />
                 <span>Bonus</span>
               </div>
               <div className="flex items-center gap-0.5">
-                <Check className="h-2.5 w-2.5 text-emerald-500" />
+                <Check className="h-3 w-3 text-emerald-500" />
                 <span>Aman</span>
               </div>
             </div>
@@ -283,7 +280,7 @@ export function TopUpModal({
                 }
               }}
               variant="ghost"
-              className="h-6 px-2 text-[10px] text-slate-600 hover:text-slate-900"
+              className="h-7 px-2 text-xs text-slate-600 hover:text-slate-900"
             >
               Keluar
             </Button>

@@ -30,7 +30,7 @@ function filterPrompts(
   if (
     filters.searchQuery &&
     filters.searchQuery.trim().length >=
-      BUSINESS_CONSTANTS.content.searchMinLength
+    BUSINESS_CONSTANTS.content.searchMinLength
   ) {
     const query = filters.searchQuery.toLowerCase().trim();
 
@@ -103,14 +103,9 @@ export function useMarketplaceFilters(prompts: Prompt[]) {
 
   // Memoize search function to prevent unnecessary re-renders
   const setSearchQuery = useCallback((searchQuery: string) => {
-    if (!validateSearchQuery(searchQuery)) {
-      console.warn("Invalid search query length");
-      return;
-    }
-
     setFilters((prev) => ({
       ...prev,
-      searchQuery: searchQuery.trim(),
+      searchQuery,
     }));
   }, []);
 

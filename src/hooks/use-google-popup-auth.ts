@@ -6,6 +6,8 @@ import { useIsMobile } from "~/hooks/use-mobile";
 import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
 import { toError } from "~/lib/errors";
 
+import { openAuthPopup } from "~/lib/auth-popup";
+
 /**
  * Custom hook for Google OAuth with custom popup window
  * Desktop: Opens 600x700 centered popup
@@ -50,35 +52,9 @@ export function useGooglePopupAuth(
   /**
    * Open custom popup window (desktop) or tab (mobile)
    */
-  const openAuthPopup = useCallback(
+  const openPopup = useCallback(
     (url: string) => {
-      if (isMobile) {
-        // Mobile: open in new tab
-        return window.open(url, "_blank");
-      } else {
-        // Desktop: custom 600x700 centered popup
-        const width = 600;
-        const height = 700;
-        const left = (window.screen.width - width) / 2;
-        const top = (window.screen.height - height) / 2;
-
-        const features = [
-          `width=${width}`,
-          `height=${height}`,
-          `left=${left}`,
-          `top=${top}`,
-          "toolbar=no",
-          "location=no",
-          "directories=no",
-          "status=no",
-          "menubar=no",
-          "scrollbars=yes",
-          "resizable=yes",
-          "copyhistory=no",
-        ].join(",");
-
-        return window.open(url, "google-auth", features);
-      }
+      return openAuthPopup(url, isMobile);
     },
     [isMobile],
   );
@@ -99,7 +75,7 @@ export function useGooglePopupAuth(
       const authUrl = `/en/auth-trigger?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
       // Open custom popup
-      const popup = openAuthPopup(authUrl);
+      const popup = openPopup(authUrl);
 
       if (!popup || popup.closed || typeof popup.closed === "undefined") {
         throw new Error("popup_blocked");
@@ -147,7 +123,7 @@ export function useGooglePopupAuth(
       setIsLoading(false);
       options.onError?.(err);
     }
-  }, [options, isLoading, openAuthPopup]);
+  }, [options, isLoading, openPopup]);
 
   const closeModal = useCallback(() => {
     setError(null);

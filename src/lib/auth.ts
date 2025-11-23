@@ -1,13 +1,13 @@
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { type NextAuthOptions, getServerSession } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { db } from "~/server/db";
 import { env } from "~/env";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   providers: [
-    Google({
+    GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       authorization: {
@@ -24,24 +24,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/en/auth-error", // Error page
   },
   callbacks: {
-    async session({ session, user }) {
+    session: ({ session, user }) => {
       if (session.user) {
         session.user.id = user.id;
         // Add any additional user data from database
       }
       return session;
     },
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
-    },
-  },
-  session: {
-    strategy: "database",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: env.NEXTAUTH_SECRET,
-  trustHost: true, // Required for NextAuth v5 to work with different hosts
-});
+};
+
+/**
+ * Wrapper for getServerSession so that you don't need to import the authOptions in every file.
+ *
+ * @see https://next-auth.js.org/configuration/nextjs
+ */
+export const getServerAuthSession = () => getServerSession(authOptions);

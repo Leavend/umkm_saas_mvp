@@ -6,7 +6,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "~/lib/errors";
-import { auth } from "~/lib/auth";
+import { getServerAuthSession } from "~/lib/auth";
 import {
   getAllPrompts as getAllPromptsService,
   getPromptsByCategory as getPromptsByCategoryService,
@@ -100,7 +100,7 @@ export async function copyPrompt(
     const prompt = await getPromptById(promptId);
 
     // Get authenticated session using NextAuth
-    const session = await auth();
+    const session = await getServerAuthSession();
 
     // Determine credit deduction based on auth status
     let remainingCredits: number;

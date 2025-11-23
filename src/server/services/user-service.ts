@@ -30,17 +30,11 @@ interface DailyCreditResult {
 type CreditSnapshot = Pick<DailyCreditResult, "credits" | "lastDailyCreditAt">;
 
 /**
- * Validate user ID format
- * Note: better-auth uses a different ID format than standard UUIDs
- * So we just validate that it's a non-empty string
- */
+ * Validate user ID format */
 function validateUserId(userId: string): void {
   if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
     throw new ValidationError("User ID is required", "userId", userId);
   }
-
-  // Accept any non-empty string as user ID (better-auth compatibility)
-  // If specific format validation is needed, it should be added based on actual usage
 }
 
 /**

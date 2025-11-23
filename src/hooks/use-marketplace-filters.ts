@@ -30,7 +30,7 @@ function filterPrompts(
   if (
     filters.searchQuery &&
     filters.searchQuery.trim().length >=
-    BUSINESS_CONSTANTS.content.searchMinLength
+      BUSINESS_CONSTANTS.content.searchMinLength
   ) {
     const query = filters.searchQuery.toLowerCase().trim();
 

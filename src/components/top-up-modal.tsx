@@ -152,7 +152,7 @@ export function TopUpModal({
                   key={product.id}
                   className={cn(
                     "group relative overflow-hidden rounded-xl border border-gray-200 p-4 transition-all duration-300",
-                    "hover:shadow-lg hover:border-gray-300",
+                    "hover:border-gray-300 hover:shadow-lg",
                     isBestValue
                       ? "bg-gradient-to-br from-amber-50/50 to-orange-50/50"
                       : isPopular
@@ -228,12 +228,12 @@ export function TopUpModal({
                       className={cn(
                         "w-full rounded-lg py-2.5 text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
                         isBestValue &&
-                        "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
+                          "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
                         isPopular &&
-                        "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
+                          "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
                         !isBestValue &&
-                        !isPopular &&
-                        "bg-slate-900 text-white hover:bg-slate-800",
+                          !isPopular &&
+                          "bg-slate-900 text-white hover:bg-slate-800",
                       )}
                     >
                       {isProcessing === product.id ? (

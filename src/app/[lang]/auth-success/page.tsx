@@ -89,7 +89,9 @@ export default function AuthSuccessPage() {
 
           {/* Loading Indicator */}
           <div className="w-full rounded-xl bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-700">Mohon tunggu sebentar</p>
+            <p className="text-sm font-medium text-green-700">
+              Mohon tunggu sebentar
+            </p>
           </div>
         </div>
       </div>

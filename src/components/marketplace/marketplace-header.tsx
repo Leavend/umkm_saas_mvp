@@ -44,7 +44,7 @@ export function MarketplaceHeader({
           className={cn(
             "flex items-center gap-2 transition-all duration-300 ease-in-out",
             isSearchOpen &&
-            "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
+              "xs:translate-x-1 sm:translate-x-2 md:translate-x-0",
           )}
         >
           <div className="bg-brand-500 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg shadow-lg">
@@ -65,14 +65,14 @@ export function MarketplaceHeader({
           className={cn(
             "flex items-center gap-2 transition-all duration-300 ease-in-out",
             isSearchOpen &&
-            "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
+              "xs:-translate-x-6 sm:-translate-x-8 md:translate-x-0",
           )}
         >
           <div
             className={cn(
               "transition-all duration-300 ease-in-out",
               isSearchOpen &&
-              "xs:-translate-x-1 sm:-translate-x-2 md:translate-x-0",
+                "xs:-translate-x-1 sm:-translate-x-2 md:translate-x-0",
             )}
           >
             <Suspense fallback={null}>

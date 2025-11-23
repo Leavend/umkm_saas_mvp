@@ -1,6 +1,6 @@
 // src/server/auth/session.ts
 
-import { auth } from "~/lib/auth";
+import { getServerAuthSession } from "~/lib/auth";
 import { UnauthorizedError } from "~/lib/errors";
 
 /**
@@ -8,7 +8,7 @@ import { UnauthorizedError } from "~/lib/errors";
  * Returns null if not authenticated
  */
 export async function getServerSession() {
-  return await auth();
+  return await getServerAuthSession();
 }
 
 /**

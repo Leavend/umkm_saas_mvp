@@ -38,7 +38,7 @@ export function MarketplaceGallery({
             {translations.marketplace.galleryDescription}
           </p>
           <p className="mt-2 text-sm text-slate-500">
-            More features coming soon!
+            {translations.marketplace.comingSoon}
           </p>
         </div>
       ) : (

@@ -65,7 +65,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             className="ml-3 text-base font-medium text-gray-900 transition-colors hover:text-gray-600"
             disabled={isLoading}
           >
-            Tutup
+            {translations.common.actions.close}
           </button>
         </div>
 
@@ -98,7 +98,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               fill="#EA4335"
             />
           </svg>
-          <span>Login dengan Google</span>
+          <span>{translations.auth.modal.googleButton}</span>
         </Button>
       </div>
     </div>

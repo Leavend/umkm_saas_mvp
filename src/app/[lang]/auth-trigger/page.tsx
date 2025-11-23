@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 /**
- * OAuth Trigger Page
+ * OAuth Trigger Page Content
  * This page is opened in the popup and automatically triggers the OAuth flow
  * After successful auth, NextAuth will redirect to the callbackUrl (auth-success)
  */
-export default function AuthTriggerPage() {
+function AuthTriggerContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/en/auth-success";
 
@@ -66,5 +66,22 @@ export default function AuthTriggerPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * OAuth Trigger Page with Suspense
+ */
+export default function AuthTriggerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-slate-600">Loading...</div>
+        </div>
+      }
+    >
+      <AuthTriggerContent />
+    </Suspense>
   );
 }

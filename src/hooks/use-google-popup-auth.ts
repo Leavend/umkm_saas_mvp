@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useIsMobile } from "~/hooks/use-mobile";
 import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
@@ -17,6 +17,7 @@ export function useGooglePopupAuth(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const isAuthCompletedRef = useRef(false);
 
   /**
    * Listen for auth success messages from popup
@@ -27,11 +28,13 @@ export function useGooglePopupAuth(
       if (event.origin !== window.location.origin) return;
 
       if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
+        isAuthCompletedRef.current = true;
         setIsLoading(false);
         setError(null);
         toast.success("Login berhasil! 🎉");
         options.onSuccess?.();
       } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
+        isAuthCompletedRef.current = true;
         const errorMessage = "Autentikasi gagal";
         setError(errorMessage);
         setIsLoading(false);
@@ -88,6 +91,7 @@ export function useGooglePopupAuth(
 
     setIsLoading(true);
     setError(null);
+    isAuthCompletedRef.current = false;
 
     try {
       // Build auth trigger URL (which will initiate NextAuth OAuth flow)
@@ -106,12 +110,14 @@ export function useGooglePopupAuth(
         if (popup.closed) {
           clearInterval(checkPopupClosed);
           setTimeout(() => {
-            if (isLoading) {
+            // Only trigger error if auth was not completed
+            if (!isAuthCompletedRef.current) {
               setIsLoading(false);
               const errorMsg = "Autentikasi dibatalkan oleh pengguna.";
               setError(errorMsg);
               toast.error(errorMsg);
               options.onError?.(new Error(errorMsg));
+              options.onPopupClosed?.(); // Notify parent to close modal
             }
           }, 500);
         }

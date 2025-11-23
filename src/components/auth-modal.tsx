@@ -26,6 +26,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     onError: useCallback(() => {
       // Error handling is done in the hook via toast
     }, []),
+    onPopupClosed: useCallback(() => {
+      // Close modal when popup is closed by user
+      onClose();
+    }, [onClose]),
   });
 
   // Handle Google sign in with loading protection

@@ -156,6 +156,7 @@ export interface UseFiltersReturn {
 export interface UseGoogleAuthOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
+  onPopupClosed?: () => void;
   redirectPath?: string;
 }
 

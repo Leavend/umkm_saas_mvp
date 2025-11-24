@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "~/components/language-provider";
 
 /**
  * OAuth Trigger Page Content
@@ -12,6 +13,8 @@ import { Loader2 } from "lucide-react";
  */
 function AuthTriggerContent() {
   const searchParams = useSearchParams();
+  const translations = useTranslations();
+  const t = translations.auth.authTrigger;
   const callbackUrl = searchParams.get("callbackUrl") ?? "/en/auth-success";
 
   useEffect(() => {
@@ -50,10 +53,10 @@ function AuthTriggerContent() {
           {/* Title */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Menghubungkan dengan Google
+              {t.title}
             </h1>
             <p className="mt-2 text-base text-gray-600">
-              Mohon tunggu sebentar...
+              {t.pleaseWait}
             </p>
           </div>
 
@@ -73,11 +76,14 @@ function AuthTriggerContent() {
  * OAuth Trigger Page with Suspense
  */
 export default function AuthTriggerPage() {
+  const translations = useTranslations();
+  const t = translations.auth.authTrigger;
+
   return (
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <div className="text-slate-600">Loading...</div>
+          <div className="text-slate-600">{t.loading}</div>
         </div>
       }
     >

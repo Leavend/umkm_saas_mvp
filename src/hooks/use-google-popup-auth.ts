@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useIsMobile } from "~/hooks/use-mobile";
+import { useTranslations } from "~/components/language-provider";
 import type { UseGoogleAuthOptions, UseGoogleAuthReturn } from "~/lib/types";
 import { toError } from "~/lib/errors";
 
@@ -20,6 +21,8 @@ export function useGooglePopupAuth(
   const [error, setError] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const isAuthCompletedRef = useRef(false);
+  const translations = useTranslations();
+  const t = translations.auth.toast;
 
   /**
    * Listen for auth success messages from popup
@@ -33,11 +36,11 @@ export function useGooglePopupAuth(
         isAuthCompletedRef.current = true;
         setIsLoading(false);
         setError(null);
-        toast.success("Login berhasil! 🎉");
+        toast.success(t.loginSuccess);
         options.onSuccess?.();
       } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
         isAuthCompletedRef.current = true;
-        const errorMessage = "Autentikasi gagal";
+        const errorMessage = t.authFailed;
         setError(errorMessage);
         setIsLoading(false);
         toast.error(errorMessage);
@@ -47,7 +50,7 @@ export function useGooglePopupAuth(
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [options]);
+  }, [options, t]);
 
   /**
    * Open custom popup window (desktop) or tab (mobile)
@@ -89,7 +92,7 @@ export function useGooglePopupAuth(
             // Only trigger error if auth was not completed
             if (!isAuthCompletedRef.current) {
               setIsLoading(false);
-              const errorMsg = "Autentikasi dibatalkan oleh pengguna.";
+              const errorMsg = t.authCancelled;
               setError(errorMsg);
               toast.error(errorMsg);
               options.onError?.(new Error(errorMsg));
@@ -107,15 +110,14 @@ export function useGooglePopupAuth(
 
       // Handle specific error cases
       if (err.message === "popup_blocked") {
-        const errorMessage =
-          "Popup diblokir. Mohon izinkan popup untuk login dengan Google.";
+        const errorMessage = t.popupBlocked;
         setError(errorMessage);
         toast.error(errorMessage, {
-          description: "Cek pengaturan browser Anda",
+          description: t.popupBlockedDescription,
           duration: 5000,
         });
       } else {
-        const errorMessage = "Gagal memulai autentikasi. Silakan coba lagi.";
+        const errorMessage = t.authStartFailed;
         setError(errorMessage);
         toast.error(errorMessage);
       }
@@ -123,7 +125,7 @@ export function useGooglePopupAuth(
       setIsLoading(false);
       options.onError?.(err);
     }
-  }, [options, isLoading, openPopup]);
+  }, [options, isLoading, openPopup, t]);
 
   const closeModal = useCallback(() => {
     setError(null);

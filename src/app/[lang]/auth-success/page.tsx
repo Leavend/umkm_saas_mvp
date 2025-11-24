@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Loader2, Check } from "lucide-react";
+import { useTranslations } from "~/components/language-provider";
 
 /**
  * Auth Success Page
@@ -17,6 +18,8 @@ import { Loader2, Check } from "lucide-react";
  */
 export default function AuthSuccessPage() {
   const pathname = usePathname();
+  const translations = useTranslations();
+  const t = translations.auth.authSuccess;
 
   // Extract locale from pathname (e.g., /en/auth-success -> en)
   const locale = pathname.split("/")[1] ?? "en";
@@ -80,17 +83,17 @@ export default function AuthSuccessPage() {
           {/* Success Message */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Login Berhasil!
+              {t.title}
             </h1>
             <p className="mt-2 text-base text-gray-600">
-              Window akan segera ditutup...
+              {t.closing}
             </p>
           </div>
 
           {/* Loading Indicator */}
           <div className="w-full rounded-xl bg-green-50 p-4">
             <p className="text-sm font-medium text-green-700">
-              Mohon tunggu sebentar
+              {t.pleaseWait}
             </p>
           </div>
         </div>

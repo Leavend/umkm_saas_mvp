@@ -60,6 +60,13 @@ export function TopUpModal({
   const { credits } = useCredits();
   const user = session?.user;
 
+  // Package name mapping for i18n
+  const packageNames: Record<string, string> = {
+    [PRODUCT_CONFIG.SMALL.id]: t.packages.starterPack,
+    [PRODUCT_CONFIG.MEDIUM.id]: t.packages.growthPack,
+    [PRODUCT_CONFIG.LARGE.id]: t.packages.proPack,
+  };
+
   // Product configuration
   const products = [
     createProductConfig(PRODUCT_CONFIG.SMALL, 29000),
@@ -87,13 +94,14 @@ export function TopUpModal({
       };
 
       if (response.ok && data.invoiceUrl) {
-        window.location.href = data.invoiceUrl;
+        // Open Xendit invoice in new tab
+        window.open(data.invoiceUrl, "_blank", "noopener,noreferrer");
       } else {
-        toast.error(data.error ?? "Gagal membuat pembayaran");
+        toast.error(data.error ?? t.paymentFailed);
       }
     } catch (error) {
       console.error("Payment error:", error);
-      toast.error("Gagal memproses pembayaran");
+      toast.error(t.paymentProcessFailed);
     } finally {
       setIsProcessing(null);
     }
@@ -114,7 +122,7 @@ export function TopUpModal({
             <h1 className="text-lg font-bold text-slate-900">
               {user
                 ? formatTranslation(t.header, { name: user.name ?? "User" })
-                : "Top Up Kredit"}
+                : t.fallbackTitle}
             </h1>
             <div className="mt-0.5 flex items-center gap-3">
               <div className="flex items-center gap-1.5">
@@ -122,7 +130,7 @@ export function TopUpModal({
                   <Coins className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-xs font-semibold text-slate-700">
-                  <span className="text-slate-500">Token:</span> {credits ?? 0}
+                  <span className="text-slate-500">{t.tokenLabel}</span> {credits ?? 0}
                 </span>
               </div>
             </div>
@@ -163,7 +171,7 @@ export function TopUpModal({
                   {/* Badge */}
                   {(isBestValue || isPopular) && (
                     <div className="absolute top-2 -right-6 rotate-45 bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-0.5 text-[9px] font-bold text-white shadow-sm">
-                      {isBestValue ? "TERBAIK" : "POPULER"}
+                      {isBestValue ? t.badgeBestValueLabel : t.badgePopularLabel}
                     </div>
                   )}
 
@@ -192,7 +200,7 @@ export function TopUpModal({
 
                     {/* Package Name */}
                     <h3 className="text-sm font-bold text-slate-900">
-                      {product.name}
+                      {packageNames[product.id] || product.name}
                     </h3>
 
                     {/* Credits - Prominent */}
@@ -201,23 +209,30 @@ export function TopUpModal({
                         {product.totalCredits}
                       </div>
                       <div className="text-[10px] font-medium text-slate-500">
-                        Total Token
+                        {t.totalTokens}
                       </div>
                     </div>
 
                     {/* Price */}
                     <div className="space-y-0.5">
-                      <div className="flex items-baseline justify-center gap-1.5">
-                        <span className="text-lg font-bold text-slate-900">
-                          {formatCurrency(product.amount).split(".")[0]}
-                        </span>
-                        <span className="text-[10px] text-slate-400 line-through">
+                      {/* Original Price - Strikethrough on Top */}
+                      <div className="text-center">
+                        <span className="text-[11px] text-slate-400 line-through">
                           {formatCurrency(product.originalAmount)}
                         </span>
                       </div>
-                      <div className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                        <Check className="h-2.5 w-2.5" />
-                        Hemat {product.discount}%
+                      {/* Actual Price - Below */}
+                      <div className="text-center">
+                        <span className="text-2xl font-bold text-slate-900">
+                          {formatCurrency(product.amount)}
+                        </span>
+                      </div>
+                      {/* Savings Badge */}
+                      <div className="flex justify-center">
+                        <div className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                          <Check className="h-2.5 w-2.5" />
+                          {t.save} {product.discount}%
+                        </div>
                       </div>
                     </div>
 
@@ -228,18 +243,18 @@ export function TopUpModal({
                       className={cn(
                         "w-full rounded-lg py-2.5 text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
                         isBestValue &&
-                          "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
+                        "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
                         isPopular &&
-                          "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
+                        "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
                         !isBestValue &&
-                          !isPopular &&
-                          "bg-slate-900 text-white hover:bg-slate-800",
+                        !isPopular &&
+                        "bg-slate-900 text-white hover:bg-slate-800",
                       )}
                     >
                       {isProcessing === product.id ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span>Proses...</span>
+                          <span>{t.processing}</span>
                         </div>
                       ) : (
                         <span>{t.purchaseCta}</span>
@@ -256,15 +271,15 @@ export function TopUpModal({
             <div className="flex items-center gap-3 text-xs text-slate-600">
               <div className="flex items-center gap-0.5">
                 <Check className="h-3 w-3 text-emerald-500" />
-                <span>Instan</span>
+                <span>{t.instant}</span>
               </div>
               <div className="flex items-center gap-0.5">
                 <Check className="h-3 w-3 text-emerald-500" />
-                <span>Bonus</span>
+                <span>{t.bonus}</span>
               </div>
               <div className="flex items-center gap-0.5">
                 <Check className="h-3 w-3 text-emerald-500" />
-                <span>Aman</span>
+                <span>{t.safe}</span>
               </div>
             </div>
 
@@ -272,17 +287,17 @@ export function TopUpModal({
               onClick={async () => {
                 try {
                   await signOut({ redirect: false });
-                  toast.success("Berhasil keluar");
+                  toast.success(t.logoutSuccess);
                   onClose();
                 } catch (error) {
                   console.error("Logout error:", error);
-                  toast.error("Gagal keluar");
+                  toast.error(t.logoutFailed);
                 }
               }}
               variant="ghost"
               className="h-7 px-2 text-xs text-slate-600 hover:text-slate-900"
             >
-              Keluar
+              {t.logout}
             </Button>
           </div>
         </div>

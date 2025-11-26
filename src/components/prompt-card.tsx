@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Share2, Bookmark, Send } from "lucide-react";
+import { Share2, Bookmark, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
@@ -13,6 +13,8 @@ import { CopyButton } from "~/components/ui/copy-button";
 import { cn } from "~/lib/utils";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { UI_CONSTANTS } from "~/lib/constants/ui";
+import { useWebShare } from "~/hooks/use-web-share";
+import { useBookmark } from "~/hooks/use-bookmark";
 import type { Prompt } from "@prisma/client";
 
 type CardViewMode = "default" | "image-only" | "full-description";
@@ -30,17 +32,27 @@ interface PromptCardProps {
  * Extract overlay buttons into a separate component
  */
 interface OverlayButtonsProps {
-  onClick: (e: React.MouseEvent) => void;
+  prompt: Prompt;
+  isSaved: boolean;
+  isBookmarkLoading: boolean;
+  onShare: (e: React.MouseEvent) => void;
+  onBookmark: (e: React.MouseEvent) => void;
 }
 
-function OverlayButtons({ onClick }: OverlayButtonsProps) {
+function OverlayButtons({
+  prompt,
+  isSaved,
+  isBookmarkLoading,
+  onShare,
+  onBookmark,
+}: OverlayButtonsProps) {
   return (
     <div className="absolute top-2 right-2 flex gap-1.5">
       <Button
         variant="outline"
         size="icon"
         className={UI_CONSTANTS.component.button.icon}
-        onClick={onClick}
+        onClick={onShare}
         aria-label="Share prompt"
       >
         <Share2 className="h-4 w-4" />
@@ -48,11 +60,24 @@ function OverlayButtons({ onClick }: OverlayButtonsProps) {
       <Button
         variant="outline"
         size="icon"
-        className={UI_CONSTANTS.component.button.icon}
-        onClick={onClick}
-        aria-label="Save prompt"
+        className={cn(
+          UI_CONSTANTS.component.button.icon,
+          isSaved && "bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100",
+        )}
+        onClick={onBookmark}
+        disabled={isBookmarkLoading}
+        aria-label={isSaved ? "Unsave prompt" : "Save prompt"}
       >
-        <Bookmark className="h-4 w-4" />
+        {isBookmarkLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Bookmark
+            className={cn(
+              "h-4 w-4",
+              isSaved && "fill-current",
+            )}
+          />
+        )}
       </Button>
     </div>
   );
@@ -88,13 +113,19 @@ function CategoryBadge({ category }: CategoryBadgeProps) {
 interface PromptImageSectionProps {
   prompt: Prompt;
   reviewSafeImage?: boolean;
-  onOverlayClick: (e: React.MouseEvent) => void;
+  isSaved: boolean;
+  isBookmarkLoading: boolean;
+  onShare: (e: React.MouseEvent) => void;
+  onBookmark: (e: React.MouseEvent) => void;
 }
 
 function PromptImageSection({
   prompt,
   reviewSafeImage,
-  onOverlayClick,
+  isSaved,
+  isBookmarkLoading,
+  onShare,
+  onBookmark,
 }: PromptImageSectionProps) {
   const imageClasses = cn(
     "transition-transform group-hover:scale-105",
@@ -113,7 +144,13 @@ function PromptImageSection({
         blurDataURL={UI_CONSTANTS.image.blurPlaceholder}
         sizes={UI_CONSTANTS.image.sizes.thumbnail}
       />
-      <OverlayButtons onClick={onOverlayClick} />
+      <OverlayButtons
+        prompt={prompt}
+        isSaved={isSaved}
+        isBookmarkLoading={isBookmarkLoading}
+        onShare={onShare}
+        onBookmark={onBookmark}
+      />
     </div>
   );
 }
@@ -178,11 +215,39 @@ export function PromptCard({
   const { cardViewMode: globalCardViewMode } = useMarketUI();
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
 
-  // Handle overlay button clicks (development features)
-  const handleOverlayClick = useCallback((e: React.MouseEvent): void => {
-    e.stopPropagation();
-    toast.info("Fitur ini sedang dalam pengembangan.");
-  }, []);
+  // Hooks for Share and Bookmark functionality
+  const { share, isSharing } = useWebShare();
+  const { isSaved, isLoading: isBookmarkLoading, toggleBookmark } = useBookmark(
+    {
+      promptId: prompt.id,
+    },
+  );
+
+  // Handle share button click
+  const handleShare = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      const currentUrl =
+        typeof window !== "undefined" ? window.location.href : "";
+
+      await share({
+        title: prompt.title,
+        text: prompt.text,
+        url: currentUrl,
+      });
+    },
+    [prompt, share],
+  );
+
+  // Handle bookmark button click
+  const handleBookmark = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      await toggleBookmark();
+    },
+    [toggleBookmark],
+  );
 
   // Image-only mode
   if (currentCardViewMode === "image-only") {
@@ -239,7 +304,10 @@ export function PromptCard({
       <PromptImageSection
         prompt={prompt}
         reviewSafeImage={reviewSafeImage}
-        onOverlayClick={handleOverlayClick}
+        isSaved={isSaved}
+        isBookmarkLoading={isBookmarkLoading}
+        onShare={handleShare}
+        onBookmark={handleBookmark}
       />
 
       {/* Content Section */}

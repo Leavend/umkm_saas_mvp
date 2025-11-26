@@ -10,7 +10,8 @@ interface UpdateBadgeProps {
 
 export function UpdateBadge({ lastUpdated, className }: UpdateBadgeProps) {
   const translations = useTranslations();
-  const dateObj = typeof lastUpdated === 'string' ? new Date(lastUpdated) : lastUpdated;
+  const dateObj =
+    typeof lastUpdated === "string" ? new Date(lastUpdated) : lastUpdated;
   const formattedDate = formatDateShort(dateObj);
 
   return (
@@ -19,7 +20,9 @@ export function UpdateBadge({ lastUpdated, className }: UpdateBadgeProps) {
       className={`inline-flex items-center gap-1.5 border-slate-200 bg-white text-slate-600 ${className}`}
     >
       <Clock className="h-3 w-3" />
-      <span className="text-xs">{translations.updateBadge.lastUpdated} {formattedDate}</span>
+      <span className="text-xs">
+        {translations.updateBadge.lastUpdated} {formattedDate}
+      </span>
     </Badge>
   );
 }

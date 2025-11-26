@@ -130,7 +130,8 @@ export function TopUpModal({
                   <Coins className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-xs font-semibold text-slate-700">
-                  <span className="text-slate-500">{t.tokenLabel}</span> {credits ?? 0}
+                  <span className="text-slate-500">{t.tokenLabel}</span>{" "}
+                  {credits ?? 0}
                 </span>
               </div>
             </div>
@@ -171,7 +172,9 @@ export function TopUpModal({
                   {/* Badge */}
                   {(isBestValue || isPopular) && (
                     <div className="absolute top-2 -right-6 rotate-45 bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-0.5 text-[9px] font-bold text-white shadow-sm">
-                      {isBestValue ? t.badgeBestValueLabel : t.badgePopularLabel}
+                      {isBestValue
+                        ? t.badgeBestValueLabel
+                        : t.badgePopularLabel}
                     </div>
                   )}
 
@@ -243,12 +246,12 @@ export function TopUpModal({
                       className={cn(
                         "w-full rounded-lg py-2.5 text-sm font-bold shadow-sm transition-all hover:shadow-md active:scale-[0.98]",
                         isBestValue &&
-                        "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
+                          "bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700",
                         isPopular &&
-                        "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
+                          "bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700",
                         !isBestValue &&
-                        !isPopular &&
-                        "bg-slate-900 text-white hover:bg-slate-800",
+                          !isPopular &&
+                          "bg-slate-900 text-white hover:bg-slate-800",
                       )}
                     >
                       {isProcessing === product.id ? (

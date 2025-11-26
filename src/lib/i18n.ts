@@ -344,7 +344,8 @@ export const TRANSLATIONS = {
         loginSuccess: "Login successful! 🎉",
         authFailed: "Authentication failed",
         authCancelled: "Authentication cancelled by user.",
-        popupBlocked: "Popup blocked. Please allow popups to login with Google.",
+        popupBlocked:
+          "Popup blocked. Please allow popups to login with Google.",
         popupBlockedDescription: "Check your browser settings",
         authStartFailed: "Failed to start authentication. Please try again.",
       },
@@ -817,7 +818,8 @@ export const TRANSLATIONS = {
     guestBanner: {
       urgentTitle: "Don't lose your work!",
       normalTitle: "Save your progress",
-      urgentMessage: "You have {credits} credit{creditsPlural} left and {projects} project{projectsPlural}. Sign up to keep everything!",
+      urgentMessage:
+        "You have {credits} credit{creditsPlural} left and {projects} project{projectsPlural}. Sign up to keep everything!",
       normalMessage: "Sign up to save your projects and get more credits.",
       signUpButton: "Sign Up Free",
       noCardRequired: "No credit card required",
@@ -1128,7 +1130,8 @@ export const TRANSLATIONS = {
         loginSuccess: "Login berhasil! 🎉",
         authFailed: "Autentikasi gagal",
         authCancelled: "Autentikasi dibatalkan oleh pengguna.",
-        popupBlocked: "Popup diblokir. Mohon izinkan popup untuk login dengan Google.",
+        popupBlocked:
+          "Popup diblokir. Mohon izinkan popup untuk login dengan Google.",
         popupBlockedDescription: "Cek pengaturan browser Anda",
         authStartFailed: "Gagal memulai autentikasi. Silakan coba lagi.",
       },
@@ -1607,8 +1610,10 @@ export const TRANSLATIONS = {
     guestBanner: {
       urgentTitle: "Jangan kehilangan pekerjaan Anda!",
       normalTitle: "Simpan progres Anda",
-      urgentMessage: "Anda memiliki {credits} kredit tersisa dan {projects} proyek. Daftar untuk menyimpan semuanya!",
-      normalMessage: "Daftar untuk menyimpan proyek Anda dan dapatkan lebih banyak kredit.",
+      urgentMessage:
+        "Anda memiliki {credits} kredit tersisa dan {projects} proyek. Daftar untuk menyimpan semuanya!",
+      normalMessage:
+        "Daftar untuk menyimpan proyek Anda dan dapatkan lebih banyak kredit.",
       signUpButton: "Daftar Gratis",
       noCardRequired: "Tanpa kartu kredit",
       dismiss: "Tutup",

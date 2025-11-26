@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import type { Prompt } from "@prisma/client";
 import { Container } from "~/components/container";
 import { Button } from "~/components/ui/button";
-import { PromptForm, type PromptFormData } from "~/components/admin/prompt-form";
+import {
+  PromptForm,
+  type PromptFormData,
+} from "~/components/admin/prompt-form";
 import { PromptList } from "~/components/admin/prompt-list";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,7 +33,10 @@ export default function AdminPage() {
     if (result.success && result.data) {
       setPrompts(result.data.prompts);
     } else {
-      const errorMsg = typeof result.error === 'string' ? result.error : result.error?.message ?? 'Failed to load prompts';
+      const errorMsg =
+        typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Failed to load prompts");
       toast.error(errorMsg);
     }
     setIsLoading(false);
@@ -48,7 +54,10 @@ export default function AdminPage() {
       setViewMode("list");
       await loadPrompts();
     } else {
-      const errorMsg = typeof result.error === 'string' ? result.error : result.error?.message ?? 'Failed to create prompt';
+      const errorMsg =
+        typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Failed to create prompt");
       toast.error(errorMsg);
     }
   };
@@ -67,7 +76,10 @@ export default function AdminPage() {
       setSelectedPrompt(null);
       await loadPrompts();
     } else {
-      const errorMsg = typeof result.error === 'string' ? result.error : result.error?.message ?? 'Failed to update prompt';
+      const errorMsg =
+        typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Failed to update prompt");
       toast.error(errorMsg);
     }
   };
@@ -79,7 +91,10 @@ export default function AdminPage() {
       toast.success("Prompt deleted successfully!");
       await loadPrompts();
     } else {
-      const errorMsg = typeof result.error === 'string' ? result.error : result.error?.message ?? 'Failed to delete prompt';
+      const errorMsg =
+        typeof result.error === "string"
+          ? result.error
+          : (result.error?.message ?? "Failed to delete prompt");
       toast.error(errorMsg);
     }
   };

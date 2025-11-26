@@ -82,19 +82,13 @@ export default function AuthSuccessPage() {
 
           {/* Success Message */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t.title}
-            </h1>
-            <p className="mt-2 text-base text-gray-600">
-              {t.closing}
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <p className="mt-2 text-base text-gray-600">{t.closing}</p>
           </div>
 
           {/* Loading Indicator */}
           <div className="w-full rounded-xl bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-700">
-              {t.pleaseWait}
-            </p>
+            <p className="text-sm font-medium text-green-700">{t.pleaseWait}</p>
           </div>
         </div>
       </div>

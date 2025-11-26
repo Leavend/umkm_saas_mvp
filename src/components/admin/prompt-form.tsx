@@ -98,7 +98,7 @@ export function PromptForm({ prompt, onSubmit, onCancel }: PromptFormProps) {
             onChange={(e) =>
               setFormData({ ...formData, category: e.target.value })
             }
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 transition-colors hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
             required
           >
             {CATEGORIES.map((cat) => (
@@ -119,7 +119,7 @@ export function PromptForm({ prompt, onSubmit, onCancel }: PromptFormProps) {
             placeholder="Enter the full AI prompt text..."
             required
             rows={5}
-            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 transition-colors hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-900 transition-colors hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
           />
         </div>
 

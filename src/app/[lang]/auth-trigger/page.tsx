@@ -52,12 +52,8 @@ function AuthTriggerContent() {
 
           {/* Title */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t.title}
-            </h1>
-            <p className="mt-2 text-base text-gray-600">
-              {t.pleaseWait}
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <p className="mt-2 text-base text-gray-600">{t.pleaseWait}</p>
           </div>
 
           {/* Progress Indicator */}

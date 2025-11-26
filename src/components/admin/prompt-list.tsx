@@ -42,7 +42,9 @@ export function PromptList({ prompts, onEdit, onDelete }: PromptListProps) {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <span className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400">
+            🔍
+          </span>
           <Input
             type="text"
             value={searchQuery}
@@ -118,7 +120,7 @@ export function PromptList({ prompts, onEdit, onDelete }: PromptListProps) {
                     </div>
                   </div>
 
-                  <p className="flex-1 text-sm text-slate-600 line-clamp-2">
+                  <p className="line-clamp-2 flex-1 text-sm text-slate-600">
                     {prompt.text}
                   </p>
 

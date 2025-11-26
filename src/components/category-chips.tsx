@@ -70,10 +70,11 @@ export function CategoryChips({
                 role="tab"
                 aria-selected={isSelected}
                 tabIndex={isSelected ? 0 : -1}
-                className={`focus-visible:ring-brand-500/50 inline-flex flex-shrink-0 items-center rounded-full border px-2 py-1 text-xs capitalize transition-colors focus:outline-none focus-visible:ring-2 sm:px-3 sm:py-1.5 sm:text-sm ${isSelected
+                className={`focus-visible:ring-brand-500/50 inline-flex flex-shrink-0 items-center rounded-full border px-2 py-1 text-xs capitalize transition-colors focus:outline-none focus-visible:ring-2 sm:px-3 sm:py-1.5 sm:text-sm ${
+                  isSelected
                     ? "bg-brand-500 border-brand-300 text-slate-900"
                     : "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200"
-                  } `}
+                } `}
               >
                 {category}
                 {/* Keep the small X inside active chip if you like; remove if not needed */}

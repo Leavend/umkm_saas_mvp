@@ -3,7 +3,11 @@
 import type { Prompt } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "~/server/db";
-import { requireAdmin, ForbiddenError, UnauthorizedError } from "~/lib/admin-auth";
+import {
+  requireAdmin,
+  ForbiddenError,
+  UnauthorizedError,
+} from "~/lib/admin-auth";
 import { ValidationError } from "~/lib/errors";
 import type { ApiResponse } from "~/lib/types";
 

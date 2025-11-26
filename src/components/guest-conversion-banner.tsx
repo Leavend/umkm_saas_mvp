@@ -53,17 +53,18 @@ export function GuestConversionBanner({
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                 <h3 className="mb-1 font-semibold text-gray-900">
-                  {shouldShowUrgency
-                    ? t.urgentTitle
-                    : t.normalTitle}
+                  {shouldShowUrgency ? t.urgentTitle : t.normalTitle}
                 </h3>
                 <p className="mb-2 text-sm text-gray-600">
                   {shouldShowUrgency
                     ? t.urgentMessage
-                      .replace("{credits}", String(credits))
-                      .replace("{creditsPlural}", credits !== 1 ? "s" : "")
-                      .replace("{projects}", String(projectsCount))
-                      .replace("{projectsPlural}", projectsCount !== 1 ? "s" : "")
+                        .replace("{credits}", String(credits))
+                        .replace("{creditsPlural}", credits !== 1 ? "s" : "")
+                        .replace("{projects}", String(projectsCount))
+                        .replace(
+                          "{projectsPlural}",
+                          projectsCount !== 1 ? "s" : "",
+                        )
                     : t.normalMessage}
                 </p>
                 <div className="flex items-center gap-2">

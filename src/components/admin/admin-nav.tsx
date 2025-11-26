@@ -26,7 +26,9 @@ export function AdminNav({ userName, userEmail }: AdminNavProps) {
             <h1 className="text-xl font-bold text-slate-900">Admin CMS</h1>
             <div className="h-6 w-px bg-slate-300" />
             <div className="text-sm">
-              <p className="font-medium text-slate-900">{userName ?? "Admin"}</p>
+              <p className="font-medium text-slate-900">
+                {userName ?? "Admin"}
+              </p>
               <p className="text-slate-500">{userEmail}</p>
             </div>
           </div>

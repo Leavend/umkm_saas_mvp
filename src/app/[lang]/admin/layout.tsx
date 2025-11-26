@@ -22,7 +22,10 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
-      <AdminNav userName={session.user.name ?? undefined} userEmail={session.user.email ?? undefined} />
+      <AdminNav
+        userName={session.user.name ?? undefined}
+        userEmail={session.user.email ?? undefined}
+      />
       <main className="py-8">{children}</main>
     </div>
   );

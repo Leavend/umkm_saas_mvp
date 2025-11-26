@@ -130,10 +130,7 @@ function useUrlSync(
   }, [searchParams, setMode, setSelectedCategory]);
 }
 
-export function MarketplacePage({
-  prompts,
-  lang,
-}: MarketplacePageProps) {
+export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
   const { mode, setMode, setMobileViewMode } = useMarketUI();
   const isMobile = useIsMobile();
   const { data: session } = useSession();

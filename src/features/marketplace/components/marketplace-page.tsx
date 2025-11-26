@@ -184,25 +184,32 @@ export function MarketplacePage({
 
   // Render mode-specific content
   const renderMarketplaceContent = useCallback(() => {
-    const commonProps = {
-      prompts: [],
-      onCreditsUpdate: refreshCredits,
-      onShowAuthModal: () => openModal("auth"),
-      onPromptClick: handlePromptClick,
-    };
-
     switch (mode) {
+      case "gallery":
+        return (
+          <MarketplaceGallery
+            prompts={[]}
+            onCreditsUpdate={refreshCredits}
+            onShowAuthModal={() => openModal("auth")}
+            onPromptClick={handlePromptClick}
+          />
+        );
+      case "saved":
+        return (
+          <MarketplaceSaved
+            prompts={[]}
+            onCreditsUpdate={refreshCredits}
+            onShowAuthModal={() => openModal("auth")}
+            onPromptClick={handlePromptClick}
+          />
+        );
       case null:
       case "browse":
-      case "gallery":
-        return <MarketplaceGallery {...commonProps} />;
-      case "saved":
-        return <MarketplaceSaved {...commonProps} />;
       default:
         return (
           <MarketplacePromptContainer
             prompts={filteredPrompts}
-            mode={mode}
+            mode={mode ?? "browse"}
             onCreditsUpdate={refreshCredits}
             onShowAuthModal={() => openModal("auth")}
             onPromptClick={handlePromptClick}

@@ -24,7 +24,6 @@ import { useIsMobile } from "~/hooks/use-mobile";
 import { useSession } from "~/lib/auth-client";
 import type { ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
-import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
 
 interface MarketplacePageProps {
   prompts: Prompt[];
@@ -132,7 +131,7 @@ function useUrlSync(
 }
 
 export function MarketplacePage({
-  prompts: _prompts,
+  prompts,
   lang,
 }: MarketplacePageProps) {
   const { mode, setMode, setMobileViewMode } = useMarketUI();
@@ -150,8 +149,8 @@ export function MarketplacePage({
     }
   }, [isMobile, setMobileViewMode]);
 
-  // Use placeholder data for development
-  const allPrompts = PLACEHOLDER_PROMPTS;
+  // Use prompts from database
+  const allPrompts = prompts;
 
   // Custom hooks for cleaner state management
   const { credits, refreshCredits } = useCredits();

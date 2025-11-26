@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { SUPPORTED_LOCALES } from "~/lib/i18n";
-import { PLACEHOLDER_PROMPTS } from "~/lib/placeholder-data";
+import { db } from "~/server/db";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   // Generate URLs for each locale
@@ -15,9 +15,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]);
 
+  // Fetch prompts from database
+  const prompts = await db.prompt.findMany({
+    select: { id: true, updatedAt: true },
+  });
+
   // Generate URLs for individual prompts
   const promptUrls = SUPPORTED_LOCALES.flatMap((locale) =>
-    PLACEHOLDER_PROMPTS.map((prompt) => ({
+    prompts.map((prompt) => ({
       url: `${baseUrl}/${locale}/${prompt.id}`,
       lastModified: prompt.updatedAt,
       changeFrequency: "weekly" as const,

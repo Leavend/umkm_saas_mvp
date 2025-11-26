@@ -1,10 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import {
-    toggleSavePrompt,
-    isPromptSaved,
-} from "~/actions/saved-prompts";
-import { getGuestSessionId } from "~/server/auth/guest-session";
+import { toggleSavePrompt, isPromptSaved } from "~/actions/saved-prompts";
 
 interface UseBookmarkOptions {
     promptId: string;
@@ -20,7 +16,7 @@ interface UseBookmarkReturn {
 /**
  * Custom hook for bookmark/save prompt functionality
  * Supports both authenticated users and guest sessions
- * Automatically checks initial saved state
+ * Server actions automatically detect user type
  */
 export function useBookmark({
     promptId,
@@ -35,19 +31,8 @@ export function useBookmark({
         const checkSavedStatus = async () => {
             try {
                 setIsChecking(true);
-                // Get guest session ID if not authenticated
-                let guestSessionId: string | undefined;
-                try {
-                    const sessionId = await getGuestSessionId();
-                    guestSessionId = sessionId ?? undefined;
-                } catch {
-                    // User might be authenticated, no guest session needed
-                }
-
-                const result = await isPromptSaved(
-                    promptId,
-                    guestSessionId,
-                );
+                // Server action will auto-detect user or guest
+                const result = await isPromptSaved(promptId);
 
                 if (result.success && result.data) {
                     setIsSaved(result.data.saved);
@@ -66,19 +51,8 @@ export function useBookmark({
         setIsLoading(true);
 
         try {
-            // Get guest session ID if not authenticated
-            let guestSessionId: string | undefined;
-            try {
-                const sessionId = await getGuestSessionId();
-                guestSessionId = sessionId ?? undefined;
-            } catch {
-                // User might be authenticated
-            }
-
-            const result = await toggleSavePrompt(
-                promptId,
-                guestSessionId,
-            );
+            // Server action will auto-detect user or guest
+            const result = await toggleSavePrompt(promptId);
 
             if (result.success && result.data) {
                 const newSavedState = result.data.saved;

@@ -4,7 +4,7 @@ import type { Prompt } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { db } from "~/server/db";
 import { getServerAuthSession } from "~/lib/auth";
-import { getValidGuestSession } from "~/server/auth/guest-session";
+import { getGuestSessionId } from "~/server/auth/guest-session";
 import { ValidationError } from "~/lib/errors";
 import type { ApiResponse } from "~/lib/types";
 
@@ -13,10 +13,9 @@ type SavePromptResponse = ApiResponse<{ saved: boolean }>;
 
 /**
  * Get all saved prompts for current user or guest
+ * Automatically detects user type from session
  */
-export async function getSavedPrompts(
-  guestSessionId?: string,
-): Promise<SavedPromptsResponse> {
+export async function getSavedPrompts(): Promise<SavedPromptsResponse> {
   try {
     const session = await getServerAuthSession();
     const userId = session?.user?.id;
@@ -31,23 +30,25 @@ export async function getSavedPrompts(
         orderBy: { createdAt: "desc" },
       });
       savedPrompts = results.map((r) => r.prompt);
-    } else if (guestSessionId) {
-      // Guest user
-      const guestSession = await getValidGuestSession();
-      if (!guestSession) {
-        throw new ValidationError("Invalid guest session");
-      }
-
-      const results = await db.savedPrompt.findMany({
-        where: { guestSessionId: guestSession.id },
-        include: { prompt: true },
-        orderBy: { createdAt: "desc" },
-      });
-      savedPrompts = results.map((r) => r.prompt);
     } else {
-      throw new ValidationError(
-        "User must be authenticated or provide guest session",
-      );
+      // Guest user - auto-detect from cookies
+      try {
+        const guestSession = await getGuestSessionId();
+        if (guestSession) {
+          const results = await db.savedPrompt.findMany({
+            where: { guestSessionId: guestSession },
+            include: { prompt: true },
+            orderBy: { createdAt: "desc" },
+          });
+          savedPrompts = results.map((r) => r.prompt);
+        } else {
+          // No guest session, return empty
+          savedPrompts = [];
+        }
+      } catch {
+        // No valid guest session
+        savedPrompts = [];
+      }
     }
 
     return {
@@ -72,10 +73,10 @@ export async function getSavedPrompts(
 
 /**
  * Save or unsave a prompt (toggle)
+ * Automatically detects user type from session
  */
 export async function toggleSavePrompt(
   promptId: string,
-  guestSessionId?: string,
 ): Promise<SavePromptResponse> {
   try {
     if (!promptId?.trim()) {
@@ -114,45 +115,52 @@ export async function toggleSavePrompt(
           message: "Prompt saved successfully",
         };
       }
-    } else if (guestSessionId) {
-      // Guest user
-      const guestSession = await getValidGuestSession();
-      if (!guestSession) {
-        throw new ValidationError("Invalid guest session");
-      }
-
-      const existing = await db.savedPrompt.findFirst({
-        where: {
-          guestSessionId: guestSession.id,
-          promptId,
-        },
-      });
-
-      if (existing) {
-        await db.savedPrompt.delete({
-          where: { id: existing.id },
-        });
-        revalidatePath("/");
-        return {
-          success: true,
-          data: { saved: false },
-          message: "Prompt removed from saved",
-        };
-      } else {
-        await db.savedPrompt.create({
-          data: { guestSessionId: guestSession.id, promptId },
-        });
-        revalidatePath("/");
-        return {
-          success: true,
-          data: { saved: true },
-          message: "Prompt saved successfully",
-        };
-      }
     } else {
-      throw new ValidationError(
-        "User must be authenticated or provide guest session",
-      );
+      // Guest user - auto-detect from cookies
+      try {
+        const guestSessionId = await getGuestSessionId();
+        if (!guestSessionId) {
+          throw new ValidationError(
+            "No active session. Please refresh the page.",
+          );
+        }
+
+        const existing = await db.savedPrompt.findFirst({
+          where: {
+            guestSessionId,
+            promptId,
+          },
+        });
+
+        if (existing) {
+          await db.savedPrompt.delete({
+            where: { id: existing.id },
+          });
+          revalidatePath("/");
+          return {
+            success: true,
+            data: { saved: false },
+            message: "Prompt removed from saved",
+          };
+        } else {
+          await db.savedPrompt.create({
+            data: { guestSessionId, promptId },
+          });
+          revalidatePath("/");
+          return {
+            success: true,
+            data: { saved: true },
+            message: "Prompt saved successfully",
+          };
+        }
+      } catch (error) {
+        if (error instanceof ValidationError) {
+          throw error;
+        }
+        throw new ValidationError(
+          "Failed to access session. Please refresh the page.",
+        );
+      }
     }
   } catch (error: unknown) {
     if (error instanceof ValidationError) {
@@ -171,10 +179,10 @@ export async function toggleSavePrompt(
 
 /**
  * Check if a prompt is saved by current user/guest
+ * Automatically detects user type from session
  */
 export async function isPromptSaved(
   promptId: string,
-  guestSessionId?: string,
 ): Promise<ApiResponse<{ saved: boolean }>> {
   try {
     if (!promptId?.trim()) {
@@ -191,16 +199,22 @@ export async function isPromptSaved(
         where: { userId, promptId },
       });
       saved = !!existing;
-    } else if (guestSessionId) {
-      const guestSession = await getValidGuestSession();
-      if (guestSession) {
-        const existing = await db.savedPrompt.findFirst({
-          where: {
-            guestSessionId: guestSession.id,
-            promptId,
-          },
-        });
-        saved = !!existing;
+    } else {
+      // Guest user - auto-detect from cookies
+      try {
+        const guestSessionId = await getGuestSessionId();
+        if (guestSessionId) {
+          const existing = await db.savedPrompt.findFirst({
+            where: {
+              guestSessionId,
+              promptId,
+            },
+          });
+          saved = !!existing;
+        }
+      } catch {
+        // No valid guest session, not saved
+        saved = false;
       }
     }
 

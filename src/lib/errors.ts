@@ -82,6 +82,15 @@ export class NotFoundError extends AppError {
   public readonly id?: string;
 }
 
+export class ForbiddenError extends AppError {
+  constructor(
+    message = "Forbidden: You do not have permission to perform this action",
+    context: ErrorContext = {},
+  ) {
+    super(message, { operation: "forbidden", ...context });
+  }
+}
+
 export class InsufficientCreditsError extends AppError {
   constructor(
     message = "Insufficient credits to perform this action",

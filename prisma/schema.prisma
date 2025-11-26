@@ -10,26 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum UserRole {
   USER
   ADMIN
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  credits       Int       @default(10)
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  emailVerified     DateTime?
+  image             String?
+  role              UserRole  @default(USER)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  credits           Int       @default(10)
   lastDailyCreditAt DateTime?
 
-  accounts Account[]
-  sessions Session[]
+  accounts        Account[]
+  sessions        Session[]
+  savedPrompts    SavedPrompt[]
+  generatedImages GeneratedImage[]
 
   @@map("user")
 }
@@ -75,18 +76,17 @@ model VerificationToken {
   @@map("verification_token")
 }
 
-
 model GuestSession {
-  id        String   @id @default(cuid())
-  accessToken   String   @unique
-  sessionSecret String
-  fingerprint   String   @unique
-  credits   Int      @default(10)
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime @default(dbgenerated("(now() + interval '7 days')"))
+  id                String    @id @default(cuid())
+  accessToken       String    @unique
+  sessionSecret     String
+  fingerprint       String    @unique
+  credits           Int       @default(10)
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  expiresAt         DateTime  @default(dbgenerated("(now() + interval '7 days')"))
   lastDailyCreditAt DateTime?
 
   @@index([expiresAt])
@@ -94,15 +94,61 @@ model GuestSession {
 }
 
 model Prompt {
-  id          String   @id @default(cuid())
-  title       String
-  text        String   @db.Text
-  imageUrl    String
-  category    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  text      String   @db.Text
+  imageUrl  String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  savedBy         SavedPrompt[]
+  generatedImages GeneratedImage[]
 
   @@index([category])
   @@index([createdAt(sort: Desc)])
   @@map("prompt")
+}
+
+model SavedPrompt {
+  id       String @id @default(cuid())
+  promptId String
+
+  // Polymorphic relationship - either userId OR guestSessionId
+  userId         String?
+  guestSessionId String?
+
+  createdAt DateTime @default(now())
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: one save per user/guest per prompt
+  @@unique([userId, promptId])
+  @@unique([guestSessionId, promptId])
+  @@index([userId])
+  @@index([guestSessionId])
+  @@index([promptId])
+  @@map("saved_prompt")
+}
+
+model GeneratedImage {
+  id       String @id @default(cuid())
+  promptId String
+  imageUrl String @db.Text
+
+  // Polymorphic relationship
+  userId         String?
+  guestSessionId String?
+
+  metadata  Json? // Store generation params, model used, etc.
+  createdAt DateTime @default(now())
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([guestSessionId, createdAt(sort: Desc)])
+  @@index([promptId])
+  @@map("generated_image")
 }

@@ -67,7 +67,7 @@ interface CategoryBadgeProps {
 
 function CategoryBadge({ category }: CategoryBadgeProps) {
   return (
-    <div className="mb-2 flex flex-wrap gap-1">
+    <div className="mb-3 flex flex-wrap gap-1 px-3">
       <Badge
         variant="secondary"
         className={cn(
@@ -256,13 +256,13 @@ export function PromptCard({
         {/* Description Container */}
         <div
           className={cn(
-            "flex flex-1 flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-50/50",
+            "mx-3 mb-3 flex flex-1 flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-50/50",
           )}
         >
           {/* Scrollable Text */}
           <div
             className={cn(
-              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 h-24 overflow-y-auto p-2.5",
+              "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 h-24 overflow-y-auto p-3",
             )}
           >
             <p className="font-rubik text-sm text-slate-800">{prompt.text}</p>

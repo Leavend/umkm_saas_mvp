@@ -22,6 +22,7 @@ import { useMarketplaceFilters } from "~/hooks/use-marketplace-filters";
 import { useCredits } from "~/hooks/use-credits";
 import { useIsMobile } from "~/hooks/use-mobile";
 import { useSession } from "~/lib/auth-client";
+import { getSavedPrompts } from "~/actions/saved-prompts";
 import type { ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
 
@@ -136,6 +137,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
   const { data: session } = useSession();
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [savedPrompts, setSavedPrompts] = useState<Prompt[]>([]);
 
   // Device-specific view mode setup
   useEffect(() => {
@@ -145,6 +147,22 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
       setMobileViewMode("default"); // List view for desktop
     }
   }, [isMobile, setMobileViewMode]);
+
+  // Fetch saved prompts when mode changes to 'saved'
+  useEffect(() => {
+    if (mode === "saved") {
+      void (async () => {
+        try {
+          const result = await getSavedPrompts();
+          if (result.success && result.data) {
+            setSavedPrompts(result.data.prompts);
+          }
+        } catch (error) {
+          console.error("Failed to fetch saved prompts:", error);
+        }
+      })();
+    }
+  }, [mode]);
 
   // Use prompts from database
   const allPrompts = prompts;
@@ -193,7 +211,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
       case "saved":
         return (
           <MarketplaceSaved
-            prompts={[]}
+            prompts={savedPrompts}
             onCreditsUpdate={refreshCredits}
             onShowAuthModal={() => openModal("auth")}
             onPromptClick={handlePromptClick}
@@ -212,7 +230,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
           />
         );
     }
-  }, [mode, filteredPrompts, refreshCredits, openModal, handlePromptClick]);
+  }, [mode, filteredPrompts, savedPrompts, refreshCredits, openModal, handlePromptClick]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">

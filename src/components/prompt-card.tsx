@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { Share2, Bookmark, Loader2, Send } from "lucide-react";
-import { toast } from "sonner";
 import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
@@ -32,7 +31,6 @@ interface PromptCardProps {
  * Extract overlay buttons into a separate component
  */
 interface OverlayButtonsProps {
-  prompt: Prompt;
   isSaved: boolean;
   isBookmarkLoading: boolean;
   onShare: (e: React.MouseEvent) => void;
@@ -40,7 +38,6 @@ interface OverlayButtonsProps {
 }
 
 function OverlayButtons({
-  prompt,
   isSaved,
   isBookmarkLoading,
   onShare,
@@ -62,7 +59,8 @@ function OverlayButtons({
         size="icon"
         className={cn(
           UI_CONSTANTS.component.button.icon,
-          isSaved && "bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100",
+          isSaved &&
+          "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100",
         )}
         onClick={onBookmark}
         disabled={isBookmarkLoading}
@@ -71,12 +69,7 @@ function OverlayButtons({
         {isBookmarkLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Bookmark
-            className={cn(
-              "h-4 w-4",
-              isSaved && "fill-current",
-            )}
-          />
+          <Bookmark className={cn("h-4 w-4", isSaved && "fill-current")} />
         )}
       </Button>
     </div>
@@ -145,7 +138,6 @@ function PromptImageSection({
         sizes={UI_CONSTANTS.image.sizes.thumbnail}
       />
       <OverlayButtons
-        prompt={prompt}
         isSaved={isSaved}
         isBookmarkLoading={isBookmarkLoading}
         onShare={onShare}
@@ -216,12 +208,14 @@ export function PromptCard({
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
 
   // Hooks for Share and Bookmark functionality
-  const { share, isSharing } = useWebShare();
-  const { isSaved, isLoading: isBookmarkLoading, toggleBookmark } = useBookmark(
-    {
-      promptId: prompt.id,
-    },
-  );
+  const { share } = useWebShare();
+  const {
+    isSaved,
+    isLoading: isBookmarkLoading,
+    toggleBookmark,
+  } = useBookmark({
+    promptId: prompt.id,
+  });
 
   // Handle share button click
   const handleShare = useCallback(

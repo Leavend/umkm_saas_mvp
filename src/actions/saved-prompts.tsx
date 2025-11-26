@@ -2,9 +2,21 @@
 
 import type { Prompt } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { db } from "~/server/db";
 import { getServerAuthSession } from "~/lib/auth";
-import { getGuestSessionId } from "~/server/auth/guest-session";
+import {
+  getGuestSessionId,
+  getGuestSessionCredentials,
+  GUEST_SESSION_COOKIE,
+  GUEST_ACCESS_TOKEN_COOKIE,
+  GUEST_SESSION_SECRET_COOKIE,
+  GUEST_FINGERPRINT_COOKIE,
+} from "~/server/auth/guest-session";
+import {
+  ensureGuestSession,
+  GUEST_SESSION_MAX_AGE_SECONDS,
+} from "~/server/services/guest-session-service";
 import { ValidationError } from "~/lib/errors";
 import type { ApiResponse } from "~/lib/types";
 
@@ -116,13 +128,45 @@ export async function toggleSavePrompt(
         };
       }
     } else {
-      // Guest user - auto-detect from cookies
+      // Guest user - auto-create session if needed
       try {
-        const guestSessionId = await getGuestSessionId();
+        let guestSessionId = await getGuestSessionId();
+
+        // If no session exists, create one automatically
         if (!guestSessionId) {
-          throw new ValidationError(
-            "No active session. Please refresh the page.",
-          );
+          const credentials = await getGuestSessionCredentials();
+          const { session, created } = await ensureGuestSession(credentials);
+
+          // Set cookies for the new session
+          if (created) {
+            const cookieStore = await cookies();
+            const cookieOptions = {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax" as const,
+              maxAge: GUEST_SESSION_MAX_AGE_SECONDS,
+              path: "/",
+            };
+
+            cookieStore.set(GUEST_SESSION_COOKIE, session.id, cookieOptions);
+            cookieStore.set(
+              GUEST_ACCESS_TOKEN_COOKIE,
+              session.accessToken,
+              cookieOptions,
+            );
+            cookieStore.set(
+              GUEST_SESSION_SECRET_COOKIE,
+              session.sessionSecret,
+              cookieOptions,
+            );
+            cookieStore.set(
+              GUEST_FINGERPRINT_COOKIE,
+              session.fingerprint,
+              cookieOptions,
+            );
+          }
+
+          guestSessionId = session.id;
         }
 
         const existing = await db.savedPrompt.findFirst({
@@ -157,8 +201,9 @@ export async function toggleSavePrompt(
         if (error instanceof ValidationError) {
           throw error;
         }
+        console.error("Guest session error:", error);
         throw new ValidationError(
-          "Failed to access session. Please refresh the page.",
+          "Failed to save prompt. Please try again.",
         );
       }
     }
@@ -222,7 +267,7 @@ export async function isPromptSaved(
       success: true,
       data: { saved },
     };
-  } catch (error: unknown) {
+  } catch {
     return {
       success: false,
       error: "Failed to check saved status",

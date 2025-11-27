@@ -19,6 +19,7 @@ import {
 } from "~/server/services/guest-session-service";
 import { ValidationError } from "~/lib/errors";
 import type { ApiResponse } from "~/lib/types";
+import { getServerTranslation, type Locale } from "~/lib/i18n";
 
 type SavedPromptsResponse = ApiResponse<{ prompts: Prompt[] }>;
 type SavePromptResponse = ApiResponse<{ saved: boolean }>;
@@ -27,7 +28,9 @@ type SavePromptResponse = ApiResponse<{ saved: boolean }>;
  * Get all saved prompts for current user or guest
  * Automatically detects user type from session
  */
-export async function getSavedPrompts(): Promise<SavedPromptsResponse> {
+export async function getSavedPrompts(
+  locale: Locale = "en",
+): Promise<SavedPromptsResponse> {
   try {
     const session = await getServerAuthSession();
     const userId = session?.user?.id;
@@ -78,7 +81,7 @@ export async function getSavedPrompts(): Promise<SavedPromptsResponse> {
 
     return {
       success: false,
-      error: "Failed to fetch saved prompts",
+      error: getServerTranslation(locale, "common.errors.fetchSavedPromptsFailed"),
     };
   }
 }
@@ -89,6 +92,7 @@ export async function getSavedPrompts(): Promise<SavedPromptsResponse> {
  */
 export async function toggleSavePrompt(
   promptId: string,
+  locale: Locale = "en",
 ): Promise<SavePromptResponse> {
   try {
     if (!promptId?.trim()) {
@@ -217,7 +221,7 @@ export async function toggleSavePrompt(
 
     return {
       success: false,
-      error: "Failed to toggle saved prompt",
+      error: getServerTranslation(locale, "common.errors.toggleSavedFailed"),
     };
   }
 }
@@ -228,6 +232,7 @@ export async function toggleSavePrompt(
  */
 export async function isPromptSaved(
   promptId: string,
+  locale: Locale = "en",
 ): Promise<ApiResponse<{ saved: boolean }>> {
   try {
     if (!promptId?.trim()) {
@@ -270,7 +275,7 @@ export async function isPromptSaved(
   } catch {
     return {
       success: false,
-      error: "Failed to check saved status",
+      error: getServerTranslation(locale, "common.errors.checkSavedStatusFailed"),
     };
   }
 }

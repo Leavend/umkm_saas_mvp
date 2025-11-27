@@ -11,6 +11,7 @@ import {
 import { PromptList } from "~/components/admin/prompt-list";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "~/components/language-provider";
 import {
   createPrompt,
   updatePrompt,
@@ -25,6 +26,7 @@ export default function AdminPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const translations = useTranslations();
 
   const loadPrompts = async () => {
     setIsLoading(true);
@@ -50,7 +52,7 @@ export default function AdminPage() {
     const result = await createPrompt(data);
 
     if (result.success) {
-      toast.success("Prompt created successfully!");
+      toast.success(translations.admin.toast.promptCreated);
       setViewMode("list");
       await loadPrompts();
     } else {
@@ -71,7 +73,7 @@ export default function AdminPage() {
     });
 
     if (result.success) {
-      toast.success("Prompt updated successfully!");
+      toast.success(translations.admin.toast.promptUpdated);
       setViewMode("list");
       setSelectedPrompt(null);
       await loadPrompts();
@@ -88,7 +90,7 @@ export default function AdminPage() {
     const result = await deletePrompt(id);
 
     if (result.success) {
-      toast.success("Prompt deleted successfully!");
+      toast.success(translations.admin.toast.promptDeleted);
       await loadPrompts();
     } else {
       const errorMsg =

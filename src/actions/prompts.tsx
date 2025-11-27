@@ -15,6 +15,7 @@ import {
   deductCreditsFromGuest,
 } from "~/server/services/prompt-service";
 import type { Prompt } from "@prisma/client";
+import { getServerTranslation, type Locale } from "~/lib/i18n";
 
 // ===== RESPONSE TYPES =====
 
@@ -30,7 +31,9 @@ type CopyPromptResponse = ApiResponse<{
 /**
  * Get all prompts ordered by creation date
  */
-export async function getAllPrompts(): Promise<PromptsListResponse> {
+export async function getAllPrompts(
+  locale: Locale = "en",
+): Promise<PromptsListResponse> {
   try {
     const prompts = await getAllPromptsService();
 
@@ -42,7 +45,7 @@ export async function getAllPrompts(): Promise<PromptsListResponse> {
   } catch {
     return {
       success: false,
-      error: "Failed to fetch prompts. Please try again.",
+      error: getServerTranslation(locale, "common.errors.fetchPromptsFailed"),
     };
   }
 }
@@ -52,6 +55,7 @@ export async function getAllPrompts(): Promise<PromptsListResponse> {
  */
 export async function getPromptsByCategory(
   category: string,
+  locale: Locale = "en",
 ): Promise<PromptsListResponse> {
   try {
     const prompts = await getPromptsByCategoryService(category);
@@ -71,7 +75,7 @@ export async function getPromptsByCategory(
 
     return {
       success: false,
-      error: "Failed to fetch prompts. Please try again.",
+      error: getServerTranslation(locale, "common.errors.fetchPromptsFailed"),
     };
   }
 }
@@ -88,6 +92,7 @@ export async function getPromptsByCategory(
  */
 export async function copyPrompt(
   promptId: string,
+  locale: Locale = "en",
   guestSessionId?: string,
 ): Promise<CopyPromptResponse> {
   try {
@@ -120,7 +125,7 @@ export async function copyPrompt(
       remainingCredits = result.credits;
     } else {
       throw new ValidationError(
-        "User must be authenticated or provide guest session ID",
+        getServerTranslation(locale, "common.errors.authRequired"),
       );
     }
 
@@ -138,7 +143,7 @@ export async function copyPrompt(
     if (_error instanceof InsufficientCreditsError) {
       return {
         success: false,
-        error: "Insufficient credits. Please purchase more credits.",
+        error: getServerTranslation(locale, "common.errors.insufficientCredits"),
       };
     }
 
@@ -158,7 +163,7 @@ export async function copyPrompt(
 
     return {
       success: false,
-      error: "Failed to copy prompt. Please try again.",
+      error: getServerTranslation(locale, "common.errors.copyPromptFailed"),
     };
   }
 }

@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { copyPrompt } from "~/actions/prompts";
 import { useTranslations } from "~/components/language-provider";
 import type { Prompt } from "@prisma/client";
 
@@ -19,7 +18,7 @@ interface UsePromptCopyReturn {
 
 /**
  * Custom hook for handling prompt copy functionality
- * Encapsulates copy logic, loading states, and error handling
+ * Copies prompt text directly to clipboard without credit deduction
  */
 export function usePromptCopy({
   onCreditsUpdate,
@@ -36,44 +35,12 @@ export function usePromptCopy({
       try {
         setIsLoading(true);
 
-        const result = await copyPrompt(prompt.id);
-
-        if (!result.success) {
-          const errorMessage = result.error
-            ? typeof result.error === "string"
-              ? result.error
-              : result.error.message
-            : "An error occurred";
-
-          toast.error(errorMessage);
-
-          // Check for insufficient credits error
-          const isInsufficientCredits =
-            result.error &&
-            ((typeof result.error !== "string" &&
-              result.error.code === "INSUFFICIENT_CREDITS") ||
-              (typeof result.error === "string" &&
-                result.error.includes("Insufficient credits")));
-
-          if (isInsufficientCredits && onShowAuthModal) {
-            onShowAuthModal();
-          }
-          return;
-        }
-
-        // Copy to clipboard
-        await navigator.clipboard.writeText(result.data?.prompt.text ?? "");
-
-        // Update credits if available
-        if (onCreditsUpdate && result.data?.remainingCredits) {
-          onCreditsUpdate(result.data.remainingCredits);
-        }
+        // Copy to clipboard directly (no server call, no credit deduction)
+        await navigator.clipboard.writeText(prompt.text);
 
         // Show success state
         setIsCopied(true);
-        toast.success(translations.promptCard.copiedToClipboard, {
-          description: `${result.data?.remainingCredits ?? 0} ${translations.promptCard.creditsRemaining}`,
-        });
+        toast.success(translations.promptCard.copiedToClipboard);
 
         // Reset copied state after delay
         setTimeout(() => {
@@ -86,7 +53,7 @@ export function usePromptCopy({
         setIsLoading(false);
       }
     },
-    [translations, onCreditsUpdate, onShowAuthModal],
+    [translations],
   );
 
   return {

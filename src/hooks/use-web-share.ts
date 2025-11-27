@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "~/components/language-provider";
 
 interface ShareData {
   title: string;
@@ -20,6 +21,7 @@ interface UseWebShareReturn {
  */
 export function useWebShare(): UseWebShareReturn {
   const [isSharing, setIsSharing] = useState(false);
+  const translations = useTranslations();
 
   // Check if Web Share API is supported
   const isSupported = typeof window !== "undefined" && "share" in navigator;
@@ -41,12 +43,12 @@ export function useWebShare(): UseWebShareReturn {
             text: data.text,
             url: data.url,
           });
-          toast.success("Berhasil dibagikan!");
+          toast.success(translations.common.toast.shareSuccess);
         } else {
           // Fallback: Copy to clipboard
           const shareText = `${data.title}\n\n${data.text}${data.url ? `\n\n${data.url}` : ""}`;
           await navigator.clipboard.writeText(shareText);
-          toast.success("Teks disalin ke clipboard!");
+          toast.success(translations.common.toast.copySuccess);
         }
       } catch (error: unknown) {
         // Handle Web Share API errors
@@ -63,17 +65,17 @@ export function useWebShare(): UseWebShareReturn {
           }
           // Other DOMExceptions from Web Share API
           console.error("Share error:", error);
-          toast.error("Gagal membagikan");
+          toast.error(translations.common.toast.shareFailed);
         } else if (error instanceof Error) {
           // Other errors
           console.error("Share error:", error);
-          toast.error("Gagal membagikan");
+          toast.error(translations.common.toast.shareFailed);
         }
       } finally {
         setIsSharing(false);
       }
     },
-    [isSupported, isSharing],
+    [isSupported, isSharing, translations],
   );
 
   return {

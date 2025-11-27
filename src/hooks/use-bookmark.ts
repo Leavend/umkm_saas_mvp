@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { toggleSavePrompt, isPromptSaved } from "~/actions/saved-prompts";
+import { useTranslations } from "~/components/language-provider";
 
 interface UseBookmarkOptions {
   promptId: string;
@@ -25,6 +26,7 @@ export function useBookmark({
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const translations = useTranslations();
 
   // Check initial saved state
   useEffect(() => {
@@ -61,24 +63,24 @@ export function useBookmark({
 
         // Show success message
         if (newSavedState) {
-          toast.success("Prompt berhasil disimpan!");
+          toast.success(translations.common.toast.saveSuccess);
         } else {
-          toast.success("Prompt dihapus dari favorit");
+          toast.success(translations.common.toast.removeSuccess);
         }
       } else {
         toast.error(
           typeof result.error === "string"
             ? result.error
-            : "Gagal menyimpan prompt",
+            : translations.common.toast.saveFailed,
         );
       }
     } catch (error) {
       console.error("Toggle bookmark error:", error);
-      toast.error("Gagal menyimpan prompt");
+      toast.error(translations.common.toast.saveFailed);
     } finally {
       setIsLoading(false);
     }
-  }, [promptId, onSaveChange]);
+  }, [promptId, onSaveChange, translations]);
 
   return {
     isSaved,

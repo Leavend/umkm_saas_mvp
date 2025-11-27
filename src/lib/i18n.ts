@@ -107,6 +107,29 @@ export const TRANSLATIONS = {
         by: "by",
         lastUpdated: "Last updated:",
       },
+      toast: {
+        shareSuccess: "Successfully shared!",
+        copySuccess: "Text copied to clipboard!",
+        shareFailed: "Failed to share",
+        saveSuccess: "Prompt saved successfully!",
+        removeSuccess: "Prompt removed from favorites",
+        saveFailed: "Failed to save prompt",
+      },
+      errors: {
+        authRequired:
+          "User must be authenticated or provide guest session ID",
+        insufficientCredits: "Insufficient credits. Please purchase more credits.",
+        fetchPromptsFailed: "Failed to fetch prompts. Please try again.",
+        copyPromptFailed: "Failed to copy prompt. Please try again.",
+        fetchSavedPromptsFailed: "Failed to fetch saved prompts",
+        toggleSavedFailed: "Failed to toggle saved prompt",
+        checkSavedStatusFailed: "Failed to check saved status",
+        createPromptFailed: "Failed to create prompt. Please try again.",
+        updatePromptFailed: "Failed to update prompt. Please try again.",
+        deletePromptFailed: "Failed to delete prompt. Please try again.",
+        fetchGalleryFailed: "Failed to fetch gallery images",
+        saveGalleryFailed: "Failed to save image to gallery",
+      },
     },
     home: {
       nav: {
@@ -807,6 +830,7 @@ export const TRANSLATIONS = {
       galleryDescription: "Your generated images appear here.",
       savedTitle: "Saved",
       featureNotImplemented: "This feature is not yet implemented.",
+      featureInDevelopment: "This feature is under development",
       availablePrompts: "Available Prompts",
       promptSingular: "prompt",
       promptPlural: "prompts",
@@ -827,6 +851,14 @@ export const TRANSLATIONS = {
     },
     updateBadge: {
       lastUpdated: "Last updated:",
+    },
+    admin: {
+      toast: {
+        promptCreated: "Prompt created successfully!",
+        promptUpdated: "Prompt updated successfully!",
+        promptDeleted: "Prompt deleted successfully!",
+        saveFailed: "Failed to save prompt",
+      },
     },
     promptCard: {
       copying: "Copying...",
@@ -893,6 +925,29 @@ export const TRANSLATIONS = {
         isPartOf: "merupakan bagian dari",
         by: "oleh",
         lastUpdated: "Update terakhir:",
+      },
+      toast: {
+        shareSuccess: "Berhasil dibagikan!",
+        copySuccess: "Teks disalin ke clipboard!",
+        shareFailed: "Gagal membagikan",
+        saveSuccess: "Prompt berhasil disimpan!",
+        removeSuccess: "Prompt dihapus dari favorit",
+        saveFailed: "Gagal menyimpan prompt",
+      },
+      errors: {
+        authRequired:
+          "Pengguna harus terautentikasi atau menyediakan ID sesi tamu",
+        insufficientCredits: "Kredit tidak cukup. Silakan beli lebih banyak kredit.",
+        fetchPromptsFailed: "Gagal mengambil prompt. Silakan coba lagi.",
+        copyPromptFailed: "Gagal menyalin prompt. Silakan coba lagi.",
+        fetchSavedPromptsFailed: "Gagal mengambil prompt tersimpan",
+        toggleSavedFailed: "Gagal mengubah status simpan prompt",
+        checkSavedStatusFailed: "Gagal memeriksa status tersimpan",
+        createPromptFailed: "Gagal membuat prompt. Silakan coba lagi.",
+        updatePromptFailed: "Gagal memperbarui prompt. Silakan coba lagi.",
+        deletePromptFailed: "Gagal menghapus prompt. Silakan coba lagi.",
+        fetchGalleryFailed: "Gagal mengambil gambar galeri",
+        saveGalleryFailed: "Gagal menyimpan gambar ke galeri",
       },
     },
     home: {
@@ -1603,6 +1658,7 @@ export const TRANSLATIONS = {
       promptSingular: "prompt",
       promptPlural: "prompt",
       comingSoon: "Fitur lainnya segera hadir!",
+      featureInDevelopment: "Fitur ini sedang dalam pengembangan",
     },
     category: {
       clear: "Hapus",
@@ -1620,6 +1676,14 @@ export const TRANSLATIONS = {
     },
     updateBadge: {
       lastUpdated: "Terakhir diperbarui:",
+    },
+    admin: {
+      toast: {
+        promptCreated: "Prompt berhasil dibuat!",
+        promptUpdated: "Prompt berhasil diperbarui!",
+        promptDeleted: "Prompt berhasil dihapus!",
+        saveFailed: "Gagal menyimpan prompt",
+      },
     },
     promptCard: {
       copying: "Menyalin...",
@@ -1647,4 +1711,31 @@ export function formatTranslation(
     const replacement = replacements[key as keyof typeof replacements];
     return replacement !== undefined ? String(replacement) : match;
   });
+}
+
+/**
+ * Server-side translation helper
+ * Access nested translation keys using dot notation
+ * Example: getServerTranslation('en', 'common.errors.authRequired')
+ */
+export function getServerTranslation(
+  locale: Locale,
+  key: string,
+): string {
+  const normalizedLocale = normalizeLocale(locale);
+  const keys = key.split(".");
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let value: any = TRANSLATIONS[normalizedLocale];
+
+  for (const k of keys) {
+    if (value && typeof value === "object" && k in value) {
+      value = value[k];
+    } else {
+      // Fallback to key if translation not found
+      return key;
+    }
+  }
+
+  return typeof value === "string" ? value : key;
 }

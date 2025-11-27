@@ -7,6 +7,7 @@ import { Input } from "~/components/ui/input";
 import { Card } from "~/components/ui/card";
 import { XIcon as X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "~/components/language-provider";
 
 interface PromptFormProps {
   prompt?: Prompt;
@@ -41,6 +42,7 @@ export function PromptForm({ prompt, onSubmit, onCancel }: PromptFormProps) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const translations = useTranslations();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +50,13 @@ export function PromptForm({ prompt, onSubmit, onCancel }: PromptFormProps) {
 
     try {
       await onSubmit(formData);
-      toast.success(prompt ? "Prompt updated!" : "Prompt created!");
+      toast.success(
+        prompt
+          ? translations.admin.toast.promptUpdated
+          : translations.admin.toast.promptCreated,
+      );
     } catch (error) {
-      toast.error("Failed to save prompt");
+      toast.error(translations.admin.toast.saveFailed);
     } finally {
       setIsSubmitting(false);
     }

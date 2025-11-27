@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Share2, Bookmark, Loader2, Send } from "lucide-react";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
 import { Separator } from "~/components/ui/separator";
@@ -155,7 +156,10 @@ interface ActionButtonsProps {
   prompt: Prompt;
   onShowAuthModal?: () => void;
   onCreditsUpdate?: (credits: number) => void;
-  translations: { common: { actions: { goToGenerate: string } } };
+  translations: {
+    common: { actions: { goToGenerate: string } };
+    marketplace: { featureInDevelopment: string };
+  };
 }
 
 function ActionButtons({
@@ -174,7 +178,10 @@ function ActionButtons({
           UI_CONSTANTS.component.button.sm,
           "flex-1 gap-1.5 text-[10px] sm:w-auto sm:flex-none sm:text-xs",
         )}
-        onClick={() => onClick?.(prompt)}
+        onClick={(e) => {
+          e.stopPropagation();
+          toast.info(translations.marketplace.featureInDevelopment);
+        }}
       >
         <Send className="h-3 w-3 sm:h-4 sm:w-4" />
         {translations.common.actions.goToGenerate}

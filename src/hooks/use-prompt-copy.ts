@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { toast } from "sonner";
-import { useTranslations } from "~/components/language-provider";
 import type { Prompt } from "@prisma/client";
 
 interface UsePromptCopyOptions {
@@ -10,23 +8,24 @@ interface UsePromptCopyOptions {
   onShowAuthModal?: () => void;
 }
 
+type CopyStatus = "idle" | "copied" | "error";
+
 interface UsePromptCopyReturn {
   isLoading: boolean;
-  isCopied: boolean;
+  status: CopyStatus;
+  clearStatus: () => void;
   copyPrompt: (prompt: Prompt, event?: React.MouseEvent) => Promise<void>;
 }
 
 /**
- * Custom hook for handling prompt copy functionality
- * Copies prompt text directly to clipboard without credit deduction
+ * Prompt copy hook - returns status for component feedback
  */
 export function usePromptCopy({
   onCreditsUpdate,
   onShowAuthModal,
 }: UsePromptCopyOptions = {}): UsePromptCopyReturn {
-  const translations = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [status, setStatus] = useState<CopyStatus>("idle");
 
   const handleCopy = useCallback(
     async (prompt: Prompt, event?: React.MouseEvent) => {
@@ -34,31 +33,28 @@ export function usePromptCopy({
 
       try {
         setIsLoading(true);
+        setStatus("idle");
 
-        // Copy to clipboard directly (no server call, no credit deduction)
         await navigator.clipboard.writeText(prompt.text);
-
-        // Show success state
-        setIsCopied(true);
-        toast.success(translations.promptCard.copiedToClipboard);
-
-        // Reset copied state after delay
-        setTimeout(() => {
-          setIsCopied(false);
-        }, 2000);
+        setStatus("copied");
       } catch (error) {
         console.error("Failed to copy prompt:", error);
-        toast.error(translations.promptCard.copyFailed);
+        setStatus("error");
       } finally {
         setIsLoading(false);
       }
     },
-    [translations],
+    [],
   );
+
+  const clearStatus = useCallback(() => {
+    setStatus("idle");
+  }, []);
 
   return {
     isLoading,
-    isCopied,
+    status,
+    clearStatus,
     copyPrompt: handleCopy,
   };
 }

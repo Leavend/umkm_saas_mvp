@@ -31,6 +31,8 @@ model User {
   sessions        Session[]
   savedPrompts    SavedPrompt[]
   generatedImages GeneratedImage[]
+  promptRequests  PromptRequest[]
+  promptRatings   PromptRating[]
 
   @@map("user")
 }
@@ -104,6 +106,7 @@ model Prompt {
 
   savedBy         SavedPrompt[]
   generatedImages GeneratedImage[]
+  ratings         PromptRating[]
 
   @@index([category])
   @@index([createdAt(sort: Desc)])
@@ -151,4 +154,46 @@ model GeneratedImage {
   @@index([guestSessionId, createdAt(sort: Desc)])
   @@index([promptId])
   @@map("generated_image")
+}
+
+model PromptRequest {
+  id          String   @id @default(cuid())
+  description String   @db.Text
+  category    String?
+
+  // Polymorphic relationship - either userId OR guestSessionId
+  userId         String?
+  guestSessionId String?
+
+  // Tracking
+  status    String   @default("pending") // pending, reviewed, fulfilled
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([guestSessionId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("prompt_request")
+}
+
+model PromptRating {
+  id             String   @id @default(cuid())
+  promptId       String
+  userId         String?
+  guestSessionId String?
+  rating         Boolean  // true = thumbs up, false = thumbs down
+  createdAt      DateTime @default(now())
+
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([promptId, userId])
+  @@unique([promptId, guestSessionId])
+  @@index([promptId])
+  @@index([userId])
+  @@index([guestSessionId])
+  @@map("prompt_rating")
 }

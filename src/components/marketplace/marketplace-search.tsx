@@ -4,8 +4,7 @@ import { forwardRef } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 
-interface MarketplaceSearchProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+interface MarketplaceSearchProps extends React.InputHTMLAttributes<HTMLInputElement> {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   placeholder?: string;

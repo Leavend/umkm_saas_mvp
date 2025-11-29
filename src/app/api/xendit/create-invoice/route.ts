@@ -6,6 +6,8 @@ import { env } from "~/env";
 import { xenditInvoiceClient } from "~/lib/xendit";
 import { UnauthorizedError } from "~/lib/errors";
 import { requireCurrentUserId } from "~/server/auth/session";
+import { withSentryTracing, captureError } from "~/lib/sentry";
+import { log } from "~/lib/logger";
 
 type CreateInvoicePayload = {
   productId?: string;
@@ -13,95 +15,124 @@ type CreateInvoicePayload = {
 };
 
 export async function POST(request: Request) {
-  try {
-    const userId = await requireCurrentUserId();
-    const body = (await request
-      .json()
-      .catch(() => null)) as CreateInvoicePayload | null;
+  let body: CreateInvoicePayload | null = null;
 
-    const productId = body?.productId;
-    const currency = body?.currency ?? "IDR";
+  return await withSentryTracing(
+    "xendit.createInvoice",
+    async () => {
+      try {
+        const userId = await requireCurrentUserId();
+        body = (await request
+          .json()
+          .catch(() => null)) as CreateInvoicePayload | null;
 
-    if (!productId || typeof productId !== "string") {
-      return NextResponse.json(
-        { error: "Missing or invalid productId" },
-        { status: 400 },
-      );
-    }
+        const productId = body?.productId;
+        const currency = body?.currency ?? "IDR";
 
-    if (!["IDR", "USD"].includes(currency)) {
-      return NextResponse.json({ error: "Invalid currency" }, { status: 400 });
-    }
+        if (!productId || typeof productId !== "string") {
+          return NextResponse.json(
+            { error: "Missing or invalid productId" },
+            { status: 400 },
+          );
+        }
 
-    // Get product configuration by ID
-    const product = PRODUCT_UTILS.getById(productId);
+        if (!["IDR", "USD"].includes(currency)) {
+          return NextResponse.json(
+            { error: "Invalid currency" },
+            { status: 400 },
+          );
+        }
 
-    if (!product) {
-      return NextResponse.json({ error: "Unknown productId" }, { status: 400 });
-    }
+        // Get product configuration by ID
+        const product = PRODUCT_UTILS.getById(productId);
 
-    const amount = currency === "USD" ? product.usdAmount : product.amount;
-    const productName = product.name;
+        if (!product) {
+          return NextResponse.json(
+            { error: "Unknown productId" },
+            { status: 400 },
+          );
+        }
 
-    const origin = request.headers.get("origin") ?? env.NEXTAUTH_URL ?? "";
+        const amount = currency === "USD" ? product.usdAmount : product.amount;
+        const productName = product.name;
 
-    const successUrl = new URL("/", origin).toString();
+        const origin = request.headers.get("origin") ?? env.NEXTAUTH_URL ?? "";
 
-    const externalId = `${userId}-${productId}-${Date.now()}`;
+        const successUrl = new URL("/", origin).toString();
 
-    const invoice = await xenditInvoiceClient.createInvoice({
-      data: {
-        externalId,
-        amount,
-        currency,
-        description: productName,
-        items: [
-          {
-            name: productName,
-            price: amount,
-            quantity: 1,
-            referenceId: productId,
+        const externalId = `${userId}-${productId}-${Date.now()}`;
+
+        const invoice = await xenditInvoiceClient.createInvoice({
+          data: {
+            externalId,
+            amount,
+            currency,
+            description: productName,
+            items: [
+              {
+                name: productName,
+                price: amount,
+                quantity: 1,
+                referenceId: productId,
+              },
+            ],
+            metadata: {
+              userId,
+              productId,
+              currency,
+              externalId,
+            },
+            successRedirectUrl: successUrl,
+            failureRedirectUrl: successUrl,
           },
-        ],
-        metadata: {
-          userId,
-          productId,
-          currency,
-          externalId,
-        },
-        successRedirectUrl: successUrl,
-        failureRedirectUrl: successUrl,
-      },
-    });
+        });
 
-    return NextResponse.json({ invoiceUrl: invoice.invoiceUrl });
-  } catch (error: unknown) {
-    if (error instanceof UnauthorizedError) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+        return NextResponse.json({ invoiceUrl: invoice.invoiceUrl });
+      } catch (error: unknown) {
+        // Capture error in Sentry with context
+        captureError(error, {
+          tags: {
+            flow: "payment",
+            operation: "create_invoice",
+          },
+          extra: {
+            productId: body?.productId,
+            currency: body?.currency,
+          },
+        });
 
-    if (error instanceof XenditSdkError) {
-      console.error("Xendit create invoice API error", {
-        status: error.status,
-        code: error.errorCode,
-        message: error.errorMessage,
-      });
+        if (error instanceof UnauthorizedError) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-      const status =
-        typeof error.status === "number" && Number.isFinite(error.status)
-          ? error.status
-          : 502;
+        if (error instanceof XenditSdkError) {
+          log.error("Xendit create invoice API error", error, {
+            status: error.status,
+            code: error.errorCode,
+            message: error.errorMessage,
+            userId: await requireCurrentUserId().catch(() => "unknown"),
+          });
 
-      return NextResponse.json(
-        { error: error.errorMessage ?? "Failed to create invoice" },
-        { status },
-      );
-    }
+          const status =
+            typeof error.status === "number" && Number.isFinite(error.status)
+              ? error.status
+              : 502;
 
-    console.error("Xendit create invoice error", error);
-    return NextResponse.json(
-      { error: "Failed to create invoice" },
-      { status: 500 },
-    );
-  }
+          return NextResponse.json(
+            { error: error.errorMessage ?? "Failed to create invoice" },
+            { status },
+          );
+        }
+
+        log.error("Xendit create invoice error", error as Error, {
+          userId: await requireCurrentUserId().catch(() => "unknown"),
+        });
+        return NextResponse.json(
+          { error: "Failed to create invoice" },
+          { status: 500 },
+        );
+      }
+    },
+    { userId: await requireCurrentUserId().catch(() => "unknown") },
+  );
 }

@@ -230,7 +230,14 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
           />
         );
     }
-  }, [mode, filteredPrompts, savedPrompts, refreshCredits, openModal, handlePromptClick]);
+  }, [
+    mode,
+    filteredPrompts,
+    savedPrompts,
+    refreshCredits,
+    openModal,
+    handlePromptClick,
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100">
@@ -280,6 +287,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
         isOpen={activeModal === "topup"}
         onClose={closeModal}
         lang={lang}
+        credits={credits}
         onCreditsUpdate={refreshCredits}
       />
 

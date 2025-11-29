@@ -81,7 +81,10 @@ export async function getSavedPrompts(
 
     return {
       success: false,
-      error: getServerTranslation(locale, "common.errors.fetchSavedPromptsFailed"),
+      error: getServerTranslation(
+        locale,
+        "common.errors.fetchSavedPromptsFailed",
+      ),
     };
   }
 }
@@ -206,9 +209,7 @@ export async function toggleSavePrompt(
           throw error;
         }
         console.error("Guest session error:", error);
-        throw new ValidationError(
-          "Failed to save prompt. Please try again.",
-        );
+        throw new ValidationError("Failed to save prompt. Please try again.");
       }
     }
   } catch (error: unknown) {
@@ -275,7 +276,10 @@ export async function isPromptSaved(
   } catch {
     return {
       success: false,
-      error: getServerTranslation(locale, "common.errors.checkSavedStatusFailed"),
+      error: getServerTranslation(
+        locale,
+        "common.errors.checkSavedStatusFailed",
+      ),
     };
   }
 }

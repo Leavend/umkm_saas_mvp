@@ -1,8 +1,7 @@
-// src/app/[lang]/page.tsx
-
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { SUPPORTED_LOCALES, assertValidLocale } from "~/lib/i18n";
+import { notFound } from "next/navigation";
+import { SUPPORTED_LOCALES, isSupportedLocale } from "~/lib/i18n";
 import { MarketplacePage } from "~/features/marketplace/components/marketplace-page";
 import { getAllPrompts } from "~/actions/prompts";
 
@@ -19,6 +18,10 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+
+  if (!isSupportedLocale(lang)) {
+    return {};
+  }
 
   const titles = {
     en: "AI Prompt Marketplace - Professional AI Prompts for Content Creation",
@@ -96,7 +99,9 @@ export default async function HomePage({
 }) {
   const { lang } = await params;
 
-  assertValidLocale(lang);
+  if (!isSupportedLocale(lang)) {
+    notFound();
+  }
 
   // Fetch all prompts
   const promptsResult = await getAllPrompts();

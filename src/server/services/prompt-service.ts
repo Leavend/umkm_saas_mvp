@@ -131,15 +131,34 @@ export async function getPromptById(promptId: string): Promise<Prompt> {
 
 /**
  * Get all prompts ordered by creation date
+ * Filters out prompts with quality score < 50% (minimum 5 ratings)
  */
 export async function getAllPrompts(): Promise<Prompt[]> {
-  return db.prompt.findMany({
+  const prompts = await db.prompt.findMany({
     orderBy: { createdAt: "desc" },
+    include: {
+      ratings: { select: { rating: true } },
+    },
   });
+
+  // Filter and return without ratings data
+  return prompts
+    .filter((prompt) => {
+      const total = prompt.ratings.length;
+      if (total < 5) return true;
+
+      const thumbsUp = prompt.ratings.filter(
+        (r: { rating: boolean }) => r.rating,
+      ).length;
+      const score = Math.round((thumbsUp / total) * 100);
+      return score >= 50;
+    })
+    .map(({ ratings, ...prompt }) => prompt as Prompt);
 }
 
 /**
  * Get prompts by category
+ * Filters out prompts with quality score < 50% (minimum 5 ratings)
  */
 export async function getPromptsByCategory(
   category: string,
@@ -148,8 +167,25 @@ export async function getPromptsByCategory(
     throw new ValidationError("Category is required");
   }
 
-  return db.prompt.findMany({
+  const prompts = await db.prompt.findMany({
     where: { category: category.trim() },
     orderBy: { createdAt: "desc" },
+    include: {
+      ratings: { select: { rating: true } },
+    },
   });
+
+  // Filter and return without ratings data
+  return prompts
+    .filter((prompt) => {
+      const total = prompt.ratings.length;
+      if (total < 5) return true;
+
+      const thumbsUp = prompt.ratings.filter(
+        (r: { rating: boolean }) => r.rating,
+      ).length;
+      const score = Math.round((thumbsUp / total) * 100);
+      return score >= 50;
+    })
+    .map(({ ratings, ...prompt }) => prompt as Prompt);
 }

@@ -91,7 +91,6 @@ export function MarketplacePromptContainer({
               onCreditsUpdate={onCreditsUpdate}
               onShowAuthModal={onShowAuthModal}
               onPromptClick={onPromptClick}
-              view={view}
             />
           </>
         )}

@@ -1,23 +1,23 @@
 import { useState, useCallback, useEffect } from "react";
-import { toast } from "sonner";
 import { toggleSavePrompt, isPromptSaved } from "~/actions/saved-prompts";
-import { useTranslations } from "~/components/language-provider";
 
 interface UseBookmarkOptions {
   promptId: string;
   onSaveChange?: (saved: boolean) => void;
 }
 
+type BookmarkStatus = "idle" | "saved" | "removed" | "error";
+
 interface UseBookmarkReturn {
   isSaved: boolean;
   isLoading: boolean;
   toggleBookmark: () => Promise<void>;
+  status: BookmarkStatus;
+  clearStatus: () => void;
 }
 
 /**
- * Custom hook for bookmark/save prompt functionality
- * Supports both authenticated users and guest sessions
- * Server actions automatically detect user type
+ * Bookmark hook - returns status for component to handle UI feedback
  */
 export function useBookmark({
   promptId,
@@ -26,14 +26,13 @@ export function useBookmark({
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const translations = useTranslations();
+  const [status, setStatus] = useState<BookmarkStatus>("idle");
 
   // Check initial saved state
   useEffect(() => {
     const checkSavedStatus = async () => {
       try {
         setIsChecking(true);
-        // Server action will auto-detect user or guest
         const result = await isPromptSaved(promptId);
 
         if (result.success && result.data) {
@@ -51,40 +50,36 @@ export function useBookmark({
 
   const toggleBookmark = useCallback(async () => {
     setIsLoading(true);
+    setStatus("idle");
 
     try {
-      // Server action will auto-detect user or guest
       const result = await toggleSavePrompt(promptId);
 
       if (result.success && result.data) {
         const newSavedState = result.data.saved;
         setIsSaved(newSavedState);
+        setStatus(newSavedState ? "saved" : "removed");
         onSaveChange?.(newSavedState);
-
-        // Show success message
-        if (newSavedState) {
-          toast.success(translations.common.toast.saveSuccess);
-        } else {
-          toast.success(translations.common.toast.removeSuccess);
-        }
       } else {
-        toast.error(
-          typeof result.error === "string"
-            ? result.error
-            : translations.common.toast.saveFailed,
-        );
+        setStatus("error");
       }
     } catch (error) {
       console.error("Toggle bookmark error:", error);
-      toast.error(translations.common.toast.saveFailed);
+      setStatus("error");
     } finally {
       setIsLoading(false);
     }
-  }, [promptId, onSaveChange, translations]);
+  }, [promptId, onSaveChange]);
+
+  const clearStatus = useCallback(() => {
+    setStatus("idle");
+  }, []);
 
   return {
     isSaved,
     isLoading: isLoading || isChecking,
     toggleBookmark,
+    status,
+    clearStatus,
   };
 }

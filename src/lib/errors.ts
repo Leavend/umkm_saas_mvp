@@ -209,8 +209,18 @@ export const getErrorMessage = (value: unknown): string =>
 
 export const logError = (context: string, value: unknown) => {
   const error = toError(value);
-  console.error(`${context}: ${error.message}`);
-  if (error.stack) {
-    console.error(error.stack);
+
+  // Use structured logging instead of console.error
+  if (typeof window === "undefined") {
+    // Server-side: use Pino
+    import("./logger").then(({ log }) => {
+      log.error(context, error, { context });
+    });
+  } else {
+    // Client-side: fallback to console
+    console.error(`${context}: ${error.message}`);
+    if (error.stack) {
+      console.error(error.stack);
+    }
   }
 };

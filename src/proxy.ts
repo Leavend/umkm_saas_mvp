@@ -1,4 +1,4 @@
-// src/proxy.ts
+// src/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import Negotiator from "negotiator";
@@ -14,24 +14,19 @@ import {
 
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-// Fungsi helper untuk mendapatkan locale
+// Helper: Get locale from cookie or browser headers
 function getLocale(request: NextRequest): Locale {
-  // 1. Cek Cookie
   const cookieLocale = request.cookies.get(LANGUAGE_STORAGE_KEY)?.value;
-  if (isSupportedLocale(cookieLocale)) {
-    return cookieLocale;
-  }
+  if (isSupportedLocale(cookieLocale)) return cookieLocale;
 
-  // 2. Cek Header Browser
   const negotiator = new Negotiator({
     headers: {
       "accept-language": request.headers.get("accept-language") ?? "",
     },
   });
 
-  const languages = negotiator.languages();
   const matchedLocale = localeMatcher(
-    languages,
+    negotiator.languages(),
     [...SUPPORTED_LOCALES],
     DEFAULT_LOCALE,
   );
@@ -39,37 +34,35 @@ function getLocale(request: NextRequest): Locale {
   return isSupportedLocale(matchedLocale) ? matchedLocale : DEFAULT_LOCALE;
 }
 
-export default function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Catatan: Logika shouldBypassPath dihapus karena sudah ditangani oleh config.matcher di bawah.
-
-  const pathnameLocale = pathname.split("/")[1];
+// Helper: Handle requests that already have a locale
+function handleLocaleRequest(
+  request: NextRequest,
+  locale: Locale,
+): NextResponse {
   const existingCookie = request.cookies.get(LANGUAGE_STORAGE_KEY)?.value;
 
-  // KASUS 1: URL sudah memiliki locale (misal: /en/about)
-  if (isSupportedLocale(pathnameLocale)) {
-    // Jika cookie beda dengan URL, sinkronkan cookie dengan URL
-    if (pathnameLocale !== existingCookie) {
-      const response = NextResponse.next();
-      response.cookies.set(LANGUAGE_STORAGE_KEY, pathnameLocale, {
-        path: "/",
-        maxAge: LOCALE_COOKIE_MAX_AGE,
-        sameSite: "lax",
-      });
-      return response;
-    }
-    return NextResponse.next();
+  if (locale !== existingCookie) {
+    const response = NextResponse.next();
+    response.cookies.set(LANGUAGE_STORAGE_KEY, locale, {
+      path: "/",
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+    return response;
   }
 
-  // KASUS 2: URL tidak memiliki locale (misal: /about) -> Redirect
+  return NextResponse.next();
+}
+
+// Helper: Handle requests missing a locale (redirect)
+function handleMissingLocale(request: NextRequest): NextResponse {
   const locale = getLocale(request);
   const url = request.nextUrl.clone();
+  const { pathname } = request.nextUrl;
 
-  // Pastikan pathname bersih agar tidak double slash
   url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
 
-  const response = NextResponse.redirect(url, 307); // Gunakan 307 untuk preserve method
+  const response = NextResponse.redirect(url, 307);
   response.cookies.set(LANGUAGE_STORAGE_KEY, locale, {
     path: "/",
     maxAge: LOCALE_COOKIE_MAX_AGE,
@@ -79,7 +72,22 @@ export default function proxy(request: NextRequest) {
   return response;
 }
 
+// Main middleware function
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const pathnameLocale = pathname.split("/")[1];
+
+  // Check if the path starts with a supported locale
+  if (isSupportedLocale(pathnameLocale)) {
+    return handleLocaleRequest(request, pathnameLocale);
+  }
+
+  return handleMissingLocale(request);
+}
+
 export const config = {
-  // Matcher ini sudah cukup kuat untuk memfilter file statis
-  matcher: ["/((?!_next|api|favicon.ico|\\.well-known|.*\\..*).*)"],
+  // Expanded matcher to exclude more static files and system paths
+  matcher: [
+    "/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|.*\\.png|.*\\.jpg|.*\\.svg|.*\\.css|.*\\.js|\\.well-known).*)",
+  ],
 };

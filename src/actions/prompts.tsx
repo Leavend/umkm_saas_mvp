@@ -143,7 +143,10 @@ export async function copyPrompt(
     if (_error instanceof InsufficientCreditsError) {
       return {
         success: false,
-        error: getServerTranslation(locale, "common.errors.insufficientCredits"),
+        error: getServerTranslation(
+          locale,
+          "common.errors.insufficientCredits",
+        ),
       };
     }
 

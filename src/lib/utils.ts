@@ -112,58 +112,9 @@ export function generateId(length = 8): string {
   return result;
 }
 
-/**
- * Debounce function for performance optimization
- */
-export function debounce<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  wait: number,
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
-
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
-/**
- * Throttle function for performance optimization
- */
-export function throttle<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  limit: number,
-): (...args: Parameters<T>) => void {
-  let inThrottle: boolean;
-
-  return (...args: Parameters<T>) => {
-    if (!inThrottle) {
-      func(...args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
-}
-
 // Note: deepClone function removed due to TypeScript complexity
 // This function was causing type assertion issues and is not currently used
 // If needed in the future, consider using a simpler approach or a library like lodash
-
-/**
- * Format file size for display
- */
-export function formatFileSize(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
 
 /**
  * Format date for display
@@ -212,24 +163,6 @@ export function formatCurrency(
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
-}
-
-/**
- * Get time ago in human readable format
- */
-export function getTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffMinutes > 0)
-    return `${diffMinutes} minute${diffMinutes > 1 ? "s" : ""} ago`;
-  return "Just now";
 }
 
 /**

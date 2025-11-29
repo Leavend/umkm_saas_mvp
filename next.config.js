@@ -55,6 +55,14 @@ const config = {
       },
     ];
   },
+  webpack: (config) => {
+    // Fix for pino/thread-stream dependency issue
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      tap: false,
+    };
+    return config;
+  },
 };
 
 export default config;

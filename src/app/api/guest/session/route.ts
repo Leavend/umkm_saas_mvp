@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
       userAgent,
     });
 
-    const { id: sessionId, credits } = await getSessionWithCredits(ensureResult);
+    const { id: sessionId, credits } =
+      await getSessionWithCredits(ensureResult);
 
     // Prepare response with session data
     const response = NextResponse.json({

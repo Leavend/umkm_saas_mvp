@@ -15,7 +15,11 @@ export async function sendDailyCreditEmail(
 ) {
   try {
     const html = generateEmailTemplate(name, credits);
-    const data = await callResendApi(to, "Your Daily Credits Are Here! 🎁", html);
+    const data = await callResendApi(
+      to,
+      "Your Daily Credits Are Here! 🎁",
+      html,
+    );
 
     logger.info({ msg: "Email sent", to, emailId: data.id });
     return { success: true, id: data.id };

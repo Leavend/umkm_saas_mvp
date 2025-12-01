@@ -113,11 +113,7 @@ function createExpiredSessionResponse() {
   return response;
 }
 
-function logMigration(
-  guestSessionId: string,
-  userId: string,
-  credits: number,
-) {
+function logMigration(guestSessionId: string, userId: string, credits: number) {
   console.log("Guest migrated:", { guestSessionId, userId, credits });
 }
 

@@ -105,6 +105,20 @@ export async function POST(request: Request) {
     // Apply credits to user
     await applyCreditPurchase(externalId, productId);
 
+    // Log payment success (client-side analytics will track this)
+    const userId = externalId.split("-")[0];
+    const product = Object.values(PRODUCT_CONFIG).find(
+      (p) => p.id === productId,
+    );
+    if (userId && product) {
+      console.log("Payment success:", {
+        userId,
+        amount: product.amount,
+        credits: product.credits,
+        productId,
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     logError("Xendit webhook processing error", error);

@@ -26,6 +26,7 @@ model User {
   updatedAt         DateTime  @updatedAt
   credits           Int       @default(10)
   lastDailyCreditAt DateTime?
+  emailOptIn        Boolean   @default(false)
 
   accounts        Account[]
   sessions        Session[]

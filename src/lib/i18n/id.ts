@@ -849,4 +849,16 @@ export const id = {
     thankYou: "Terima kasih atas masukan Anda!",
     alreadyRated: "Anda sudah menilai prompt ini",
   },
+  profile: {
+    accountInfo: "Informasi Akun",
+    name: "Nama",
+    email: "Email",
+    emailNotifications: "Notifikasi Email",
+    dailyCreditEmails: "Email Kredit Harian",
+    dailyCreditEmailsDesc:
+      "Terima notifikasi harian tentang kredit yang tersedia",
+    emailOptInEnabled: "Notifikasi email diaktifkan!",
+    emailOptInDisabled: "Notifikasi email dinonaktifkan",
+    updateFailed: "Gagal memperbarui pengaturan",
+  },
 } as const;

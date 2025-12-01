@@ -31,6 +31,8 @@ export const env = createEnv({
     NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT: z.string().url(),
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string(),
     NEXT_PUBLIC_GOOGLE_ONE_TAP_ALLOWED_ORIGINS: z.string().optional(),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().url(),
   },
 
   /**
@@ -54,6 +56,8 @@ export const env = createEnv({
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_GOOGLE_ONE_TAP_ALLOWED_ORIGINS:
       process.env.NEXT_PUBLIC_GOOGLE_ONE_TAP_ALLOWED_ORIGINS,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

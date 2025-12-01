@@ -37,6 +37,12 @@ export function usePromptCopy({
 
         await navigator.clipboard.writeText(prompt.text);
         setStatus("copied");
+
+        // Track copy event
+        if (typeof window !== "undefined") {
+          const { trackCopyClicked } = await import("~/lib/analytics-helpers");
+          trackCopyClicked(prompt.id, true);
+        }
       } catch (error) {
         console.error("Failed to copy prompt:", error);
         setStatus("error");

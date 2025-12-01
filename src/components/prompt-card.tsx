@@ -2,9 +2,11 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useMarketUI } from "~/stores/use-market-ui";
 import { PromptCardDefault } from "./prompt-card/prompt-card-default";
 import { PromptCardImageOnly } from "./prompt-card/prompt-card-image-only";
+import { trackPromptViewed } from "~/lib/analytics-helpers";
 import type { PromptCardProps } from "./prompt-card/types";
 
 export function PromptCard({
@@ -17,6 +19,11 @@ export function PromptCard({
 }: PromptCardProps) {
   const { cardViewMode: globalCardViewMode } = useMarketUI();
   const currentCardViewMode = cardViewMode ?? globalCardViewMode;
+
+  // Track prompt view
+  useEffect(() => {
+    trackPromptViewed(prompt.id, prompt.category);
+  }, [prompt.id, prompt.category]);
 
   // Image-only mode
   if (currentCardViewMode === "image-only") {

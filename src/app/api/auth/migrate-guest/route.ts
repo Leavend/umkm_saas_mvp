@@ -19,13 +19,11 @@ import {
   GUEST_SESSION_SECRET_COOKIE,
 } from "~/server/auth/guest-session";
 
+// ... imports
+
 export async function POST(request: NextRequest) {
   try {
-    // Get the current session (user just signed up)
-    const session = await getServerAuthSession();
-
-    const userId = session?.user?.id;
-
+    const userId = await getAuthenticatedUserId();
     if (!userId) {
       return NextResponse.json(
         { success: false, error: "No authenticated user found" },
@@ -33,9 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get guest session ID from cookies
     const guestCredentials = await getGuestSessionCredentials(request.headers);
-
     if (!guestCredentials.sessionId) {
       return NextResponse.json({
         success: true,
@@ -44,58 +40,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const ipAddress =
-      request.headers.get("x-forwarded-for") ??
-      request.headers.get("x-real-ip") ??
-      undefined;
-    const userAgent = request.headers.get("user-agent") ?? undefined;
-
-    let guestSession: Awaited<
-      ReturnType<typeof validateGuestSessionCredentials>
-    > | null = null;
-    try {
-      guestSession = await validateGuestSessionCredentials({
-        ...guestCredentials,
-        ipAddress,
-        userAgent,
-      });
-      // Ensure guest session has latest credits before migration
-      await ensureDailyCreditForGuest(guestSession.id);
-    } catch (error: unknown) {
-      if (
-        error instanceof NotFoundError ||
-        error instanceof UnauthorizedError
-      ) {
-        const response = NextResponse.json({
-          success: true,
-          message: "Guest session expired before migration",
-          migrated: false,
-        });
-
-        response.cookies.delete(GUEST_SESSION_COOKIE);
-        response.cookies.delete(GUEST_ACCESS_TOKEN_COOKIE);
-        response.cookies.delete(GUEST_SESSION_SECRET_COOKIE);
-        response.cookies.delete(GUEST_FINGERPRINT_COOKIE);
-
-        return response;
-      }
-
-      throw toError(error);
-    }
-
+    const guestSession = await validateGuest(request, guestCredentials);
     if (!guestSession) {
-      return NextResponse.json({
-        success: true,
-        message: "Guest session expired before migration",
-        migrated: false,
-      });
+      return createExpiredSessionResponse();
     }
 
-    // Migrate guest session to user
     const migrationResult = await migrateGuestSessionToUser(
       guestSession.id,
       userId,
     );
+
+    logMigration(guestSession.id, userId, migrationResult.transferredCredits);
 
     const response = NextResponse.json({
       success: true,
@@ -105,12 +60,7 @@ export async function POST(request: NextRequest) {
       transferredProjects: migrationResult.transferredProjects,
     });
 
-    // Clear the guest session cookie
-    response.cookies.delete(GUEST_SESSION_COOKIE);
-    response.cookies.delete(GUEST_ACCESS_TOKEN_COOKIE);
-    response.cookies.delete(GUEST_SESSION_SECRET_COOKIE);
-    response.cookies.delete(GUEST_FINGERPRINT_COOKIE);
-
+    clearGuestCookies(response);
     return response;
   } catch (error: unknown) {
     logError("Guest migration failed:", error);
@@ -123,4 +73,57 @@ export async function POST(request: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+async function getAuthenticatedUserId() {
+  const session = await getServerAuthSession();
+  return session?.user?.id;
+}
+
+async function validateGuest(request: NextRequest, guestCredentials: any) {
+  try {
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ??
+      request.headers.get("x-real-ip") ??
+      undefined;
+    const userAgent = request.headers.get("user-agent") ?? undefined;
+
+    const guestSession = await validateGuestSessionCredentials({
+      ...guestCredentials,
+      ipAddress,
+      userAgent,
+    });
+    await ensureDailyCreditForGuest(guestSession.id);
+    return guestSession;
+  } catch (error) {
+    if (error instanceof NotFoundError || error instanceof UnauthorizedError) {
+      return null;
+    }
+    throw toError(error);
+  }
+}
+
+function createExpiredSessionResponse() {
+  const response = NextResponse.json({
+    success: true,
+    message: "Guest session expired before migration",
+    migrated: false,
+  });
+  clearGuestCookies(response);
+  return response;
+}
+
+function logMigration(
+  guestSessionId: string,
+  userId: string,
+  credits: number,
+) {
+  console.log("Guest migrated:", { guestSessionId, userId, credits });
+}
+
+function clearGuestCookies(response: NextResponse) {
+  response.cookies.delete(GUEST_SESSION_COOKIE);
+  response.cookies.delete(GUEST_ACCESS_TOKEN_COOKIE);
+  response.cookies.delete(GUEST_SESSION_SECRET_COOKIE);
+  response.cookies.delete(GUEST_FINGERPRINT_COOKIE);
 }

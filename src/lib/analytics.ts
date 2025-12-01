@@ -1,10 +1,10 @@
 import posthog from "posthog-js";
+import { env } from "~/env";
 
 // Initialize PostHog on client side only
 if (typeof window !== "undefined") {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-    api_host:
-      process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+  posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
+    api_host: env.NEXT_PUBLIC_POSTHOG_HOST,
     person_profiles: "identified_only", // Only track identified users
     capture_pageview: false, // We'll manually track pageviews
     capture_pageleave: true,

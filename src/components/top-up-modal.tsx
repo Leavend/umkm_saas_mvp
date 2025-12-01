@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import { useTranslations } from "~/components/language-provider";
@@ -13,6 +13,11 @@ import { Coins, Check, X } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { useSession, signOut } from "next-auth/react";
 import { createProductConfig, PackageList } from "./top-up";
+import {
+  trackTopUpOpened,
+  trackPackageSelected,
+  trackXenditRedirect,
+} from "~/lib/analytics-helpers";
 import type { TopUpTranslations } from "./top-up";
 
 interface TopUpModalProps {
@@ -36,6 +41,13 @@ export function TopUpModal({
 
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
+  // Track modal opened
+  useEffect(() => {
+    if (isOpen && credits !== null) {
+      trackTopUpOpened(credits, "button_click");
+    }
+  }, [isOpen, credits]);
+
   // Get user session
   const { data: session } = useSession();
   const user = session?.user;
@@ -56,25 +68,35 @@ export function TopUpModal({
 
   const handlePurchase = async (productId: string): Promise<void> => {
     setIsProcessing(productId);
+
+    // Find selected package
+    const selectedPackage = products.find((p) => p.id === productId);
+    if (selectedPackage) {
+      trackPackageSelected(
+        productId,
+        selectedPackage.amount,
+        selectedPackage.credits,
+      );
+    }
+
     try {
       const response = await fetch("/api/xendit/create-invoice", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productId,
-          currency: "IDR",
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, currency: "IDR" }),
       });
 
       const data = (await response.json()) as {
         invoiceUrl?: string;
+        invoiceId?: string;
         error?: string;
       };
 
       if (response.ok && data.invoiceUrl) {
-        // Open Xendit invoice in new tab
+        // Track Xendit redirect
+        if (data.invoiceId && selectedPackage) {
+          trackXenditRedirect(data.invoiceId, selectedPackage.amount);
+        }
         window.open(data.invoiceUrl, "_blank", "noopener,noreferrer");
       } else {
         toast.error(data.error ?? t.paymentFailed);

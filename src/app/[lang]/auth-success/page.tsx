@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Loader2, Check } from "lucide-react";
 import { useTranslations } from "~/components/language-provider";
+import { useSession } from "next-auth/react";
+import { trackUserSignup } from "~/lib/analytics-helpers";
 
 /**
  * Auth Success Page
@@ -20,51 +22,15 @@ export default function AuthSuccessPage() {
   const pathname = usePathname();
   const translations = useTranslations();
   const t = translations.auth.authSuccess;
+  const { data: session } = useSession();
 
   // Extract locale from pathname (e.g., /en/auth-success -> en)
   const locale = pathname.split("/")[1] ?? "en";
   const homeUrl = `/${locale}`;
 
   useEffect(() => {
-    // Get target window (popup opener or iframe parent)
-    const targetWindow = (window.opener ?? window.parent) as Window | null;
-
-    if (targetWindow && targetWindow !== window) {
-      try {
-        // Send success message to parent window
-        targetWindow.postMessage(
-          {
-            type: "GOOGLE_AUTH_SUCCESS",
-            timestamp: Date.now(),
-          },
-          window.location.origin,
-        );
-
-        // If this was a popup window, close it automatically
-        if (window.opener) {
-          setTimeout(() => {
-            window.close();
-          }, 800); // Fast close for better UX
-        } else {
-          // If this was an iframe, wait longer then fallback redirect
-          setTimeout(() => {
-            window.location.href = homeUrl;
-          }, 2000);
-        }
-      } catch (error) {
-        // If postMessage fails (cross-origin), fallback to redirect
-        console.error("Failed to send auth success message:", error);
-        setTimeout(() => {
-          window.location.href = homeUrl;
-        }, 1500);
-      }
-    } else {
-      // No parent window found, redirect to home
-      setTimeout(() => {
-        window.location.href = homeUrl;
-      }, 1500);
-    }
-  }, [homeUrl]);
+    handleAuthSuccess(session, homeUrl);
+  }, [session, homeUrl]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4">
@@ -94,4 +60,50 @@ export default function AuthSuccessPage() {
       </div>
     </div>
   );
+}
+
+function handleAuthSuccess(session: any, homeUrl: string) {
+  // Get target window (popup opener or iframe parent)
+  const targetWindow = (window.opener ?? window.parent) as Window | null;
+
+  if (targetWindow && targetWindow !== window) {
+    try {
+      // Track user signup
+      if (session?.user?.id) {
+        trackUserSignup("google", session.user.id);
+      }
+
+      // Send success message to parent window
+      targetWindow.postMessage(
+        {
+          type: "GOOGLE_AUTH_SUCCESS",
+          timestamp: Date.now(),
+        },
+        window.location.origin,
+      );
+
+      // If this was a popup window, close it automatically
+      if (window.opener) {
+        setTimeout(() => {
+          window.close();
+        }, 800); // Fast close for better UX
+      } else {
+        // If this was an iframe, wait longer then fallback redirect
+        setTimeout(() => {
+          window.location.href = homeUrl;
+        }, 2000);
+      }
+    } catch (error) {
+      // If postMessage fails (cross-origin), fallback to redirect
+      console.error("Failed to send auth success message:", error);
+      setTimeout(() => {
+        window.location.href = homeUrl;
+      }, 1500);
+    }
+  } else {
+    // No parent window found, redirect to home
+    setTimeout(() => {
+      window.location.href = homeUrl;
+    }, 1500);
+  }
 }

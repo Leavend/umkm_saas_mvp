@@ -844,4 +844,16 @@ export const en = {
     thankYou: "Thanks for your feedback!",
     alreadyRated: "You've already rated this prompt",
   },
+  profile: {
+    accountInfo: "Account Information",
+    name: "Name",
+    email: "Email",
+    emailNotifications: "Email Notifications",
+    dailyCreditEmails: "Daily Credit Emails",
+    dailyCreditEmailsDesc:
+      "Receive daily notifications about your available credits",
+    emailOptInEnabled: "Email notifications enabled!",
+    emailOptInDisabled: "Email notifications disabled",
+    updateFailed: "Failed to update settings",
+  },
 } as const;

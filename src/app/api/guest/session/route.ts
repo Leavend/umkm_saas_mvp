@@ -18,40 +18,21 @@ import {
   GUEST_SESSION_SECRET_COOKIE,
 } from "~/server/auth/guest-session";
 
+// ... imports
+
 export async function POST(request: NextRequest) {
   try {
-    // Extract client information for session security
-    const ipAddress =
-      request.headers.get("x-forwarded-for") ??
-      request.headers.get("x-real-ip") ??
-      "unknown";
-    const userAgent = request.headers.get("user-agent") ?? "unknown";
-
-    // Extract existing session data from cookies
-    const existingSessionCookie = request.cookies.get(GUEST_SESSION_COOKIE);
-    const existingSessionId = existingSessionCookie?.value ?? undefined;
-    const existingAccessToken =
-      request.cookies.get(GUEST_ACCESS_TOKEN_COOKIE)?.value ?? undefined;
-    const existingSessionSecret =
-      request.cookies.get(GUEST_SESSION_SECRET_COOKIE)?.value ?? undefined;
-    const existingFingerprint =
-      request.cookies.get(GUEST_FINGERPRINT_COOKIE)?.value ?? undefined;
+    const { ipAddress, userAgent } = extractClientInfo(request);
+    const existingSession = extractSessionData(request);
 
     // Ensure guest session exists or create new one
     const ensureResult = await ensureGuestSession({
-      sessionId: existingSessionId,
-      accessToken: existingAccessToken,
-      sessionSecret: existingSessionSecret,
-      fingerprint: existingFingerprint,
+      ...existingSession,
       ipAddress,
       userAgent,
     });
 
-    const session = ensureResult.session;
-    const { id: sessionId, accessToken, sessionSecret, fingerprint } = session;
-
-    // Ensure daily credits for the guest
-    const { credits } = await ensureDailyCreditForGuest(sessionId);
+    const { id: sessionId, credits } = await getSessionWithCredits(ensureResult);
 
     // Prepare response with session data
     const response = NextResponse.json({
@@ -59,44 +40,76 @@ export async function POST(request: NextRequest) {
       credits,
     });
 
-    // Set secure cookies based on environment
-    const secure = process.env.NODE_ENV === "production";
-    const maxAge = GUEST_SESSION_MAX_AGE_SECONDS;
-    const cookieOptions = {
-      httpOnly: true,
-      secure,
-      sameSite: "lax" as const,
-      maxAge,
-      path: "/",
-    };
+    setSessionCookies(response, ensureResult.session);
 
-    // Set all necessary cookies for guest session
-    response.cookies.set(GUEST_SESSION_COOKIE, sessionId, cookieOptions);
-    response.cookies.set(GUEST_ACCESS_TOKEN_COOKIE, accessToken, cookieOptions);
-    response.cookies.set(
-      GUEST_SESSION_SECRET_COOKIE,
-      sessionSecret,
-      cookieOptions,
-    );
-
-    // Fingerprint cookie can be accessed by client-side scripts
-    response.cookies.set(GUEST_FINGERPRINT_COOKIE, fingerprint, {
-      ...cookieOptions,
-      httpOnly: false,
-    });
+    // Track guest creation if it's a new session
+    if (ensureResult.created) {
+      console.log("Guest created:", { sessionId });
+    }
 
     return response;
   } catch (error: unknown) {
-    // Handle application-specific errors
     if (error instanceof AppError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-
-    // Handle unexpected errors
     logError("Failed to create or renew guest session", error);
     return NextResponse.json(
       { error: "Failed to create guest session" },
       { status: 500 },
     );
   }
+}
+
+function extractClientInfo(request: NextRequest) {
+  return {
+    ipAddress:
+      request.headers.get("x-forwarded-for") ??
+      request.headers.get("x-real-ip") ??
+      "unknown",
+    userAgent: request.headers.get("user-agent") ?? "unknown",
+  };
+}
+
+function extractSessionData(request: NextRequest) {
+  return {
+    sessionId: request.cookies.get(GUEST_SESSION_COOKIE)?.value,
+    accessToken: request.cookies.get(GUEST_ACCESS_TOKEN_COOKIE)?.value,
+    sessionSecret: request.cookies.get(GUEST_SESSION_SECRET_COOKIE)?.value,
+    fingerprint: request.cookies.get(GUEST_FINGERPRINT_COOKIE)?.value,
+  };
+}
+
+async function getSessionWithCredits(
+  ensureResult: Awaited<ReturnType<typeof ensureGuestSession>>,
+) {
+  const session = ensureResult.session;
+  const { credits } = await ensureDailyCreditForGuest(session.id);
+  return { id: session.id, credits };
+}
+
+function setSessionCookies(response: NextResponse, session: any) {
+  const secure = process.env.NODE_ENV === "production";
+  const cookieOptions = {
+    httpOnly: true,
+    secure,
+    sameSite: "lax" as const,
+    maxAge: GUEST_SESSION_MAX_AGE_SECONDS,
+    path: "/",
+  };
+
+  response.cookies.set(GUEST_SESSION_COOKIE, session.id, cookieOptions);
+  response.cookies.set(
+    GUEST_ACCESS_TOKEN_COOKIE,
+    session.accessToken,
+    cookieOptions,
+  );
+  response.cookies.set(
+    GUEST_SESSION_SECRET_COOKIE,
+    session.sessionSecret,
+    cookieOptions,
+  );
+  response.cookies.set(GUEST_FINGERPRINT_COOKIE, session.fingerprint, {
+    ...cookieOptions,
+    httpOnly: false,
+  });
 }

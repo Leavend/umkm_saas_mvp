@@ -56,7 +56,9 @@ export function ActionButtons({
           }}
         >
           <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="truncate">{translations.common.actions.goToGenerate}</span>
+          <span className="truncate">
+            {translations.common.actions.goToGenerate}
+          </span>
         </Button>
 
         <CopyButton

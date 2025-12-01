@@ -41,8 +41,8 @@ export function ActionButtons({
   };
 
   return (
-    <div className="space-y-2 p-2.5">
-      <div className="flex flex-wrap items-center gap-2 overflow-visible">
+    <div className="space-y-1.5 p-2.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Button
           size="sm"
           variant="outline"
@@ -56,7 +56,7 @@ export function ActionButtons({
           }}
         >
           <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-          {translations.common.actions.goToGenerate}
+          <span className="truncate">{translations.common.actions.goToGenerate}</span>
         </Button>
 
         <CopyButton

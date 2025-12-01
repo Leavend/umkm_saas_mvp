@@ -34,12 +34,12 @@ export function PromptFeedback({
     return (
       <div
         className={cn(
-          "flex items-center gap-2 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700",
+          "flex items-center gap-2 rounded-lg bg-green-50 px-2.5 py-2 text-xs text-green-700 sm:text-sm",
           className,
         )}
       >
-        <Check className="h-4 w-4" />
-        <span>{t.promptFeedback.thankYou}</span>
+        <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+        <span className="truncate">{t.promptFeedback.thankYou}</span>
       </div>
     );
   }
@@ -47,31 +47,31 @@ export function PromptFeedback({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-lg border bg-white p-4 shadow-sm",
+        "flex flex-col gap-2 rounded-lg border bg-white p-2.5 shadow-sm",
         className,
       )}
     >
-      <p className="text-sm font-medium text-slate-700">
+      <p className="text-xs font-medium text-slate-700 sm:text-sm">
         {t.promptFeedback.question}
       </p>
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={() => handleRate(true)}
-          className="flex-1 text-green-600 hover:bg-green-50"
+          className="flex-1 text-[10px] text-green-600 hover:bg-green-50 sm:text-xs"
         >
-          <Check className="mr-2 h-4 w-4" />
-          {t.promptFeedback.thumbsUp}
+          <Check className="mr-1 h-3 w-3 sm:mr-1.5 sm:h-4 sm:w-4" />
+          <span className="truncate">{t.promptFeedback.thumbsUp}</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => handleRate(false)}
-          className="flex-1 text-red-600 hover:bg-red-50"
+          className="flex-1 text-[10px] text-red-600 hover:bg-red-50 sm:text-xs"
         >
-          <X className="mr-2 h-4 w-4" />
-          {t.promptFeedback.thumbsDown}
+          <X className="mr-1 h-3 w-3 sm:mr-1.5 sm:h-4 sm:w-4" />
+          <span className="truncate">{t.promptFeedback.thumbsDown}</span>
         </Button>
       </div>
     </div>

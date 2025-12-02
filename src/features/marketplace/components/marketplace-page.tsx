@@ -297,6 +297,8 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
         isOpen={!!selectedPrompt}
         onClose={handleClosePromptDetail}
         onCreditsUpdate={refreshCredits}
+        allPrompts={allPrompts}
+        onNavigate={navigateToPrompt}
       />
 
       <MobileFabDock />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Copy, Check, Clock, Tag } from "lucide-react";
+import { X, Copy, Check, Clock, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -16,6 +16,8 @@ interface PromptDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreditsUpdate?: (credits: number) => void;
+  allPrompts?: Prompt[];
+  onNavigate?: (promptId: string) => void;
 }
 
 export function PromptDetailModal({
@@ -23,10 +25,28 @@ export function PromptDetailModal({
   isOpen,
   onClose,
   onCreditsUpdate,
+  allPrompts = [],
+  onNavigate,
 }: PromptDetailModalProps) {
   const translations = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+
+  const currentIndex = prompt ? allPrompts.findIndex((p) => p.id === prompt.id) : -1;
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex >= 0 && currentIndex < allPrompts.length - 1;
+
+  const handlePrevious = () => {
+    if (hasPrev && onNavigate) {
+      onNavigate(allPrompts[currentIndex - 1]!.id);
+    }
+  };
+
+  const handleNext = () => {
+    if (hasNext && onNavigate) {
+      onNavigate(allPrompts[currentIndex + 1]!.id);
+    }
+  };
 
   const handleCopy = async () => {
     if (!prompt) return;
@@ -84,6 +104,31 @@ export function PromptDetailModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="mx-4 max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0 sm:mx-0">
+        {/* Navigation Arrows */}
+        {hasPrev && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-2 top-1/2 z-50 h-10 w-10 -translate-y-1/2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700 sm:left-4"
+            onClick={handlePrevious}
+            disabled={isLoading}
+            aria-label="Previous prompt"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
+        {hasNext && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 z-50 h-10 w-10 -translate-y-1/2 rounded-full bg-slate-800/80 text-white hover:bg-slate-700 sm:right-4"
+            onClick={handleNext}
+            disabled={isLoading}
+            aria-label="Next prompt"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        )}
         <div className="p-4 pb-0 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">

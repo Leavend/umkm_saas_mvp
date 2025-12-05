@@ -128,8 +128,10 @@ export function PromptDetailModal({
           />
 
           <PromptInfoSection
+            title={prompt.title}
             category={prompt.category}
             text={prompt.text}
+            sequenceNumber={prompt.sequenceNumber}
             isLoading={isLoading}
             status={status}
             translations={translations}

@@ -41,7 +41,7 @@ export function PromptImageSection({
     onClearBookmarkStatus,
 }: PromptImageSectionProps) {
     return (
-        <div className="relative flex-shrink-0 bg-slate-100 md:w-1/2">
+        <div className="relative flex-shrink-0 bg-slate-900 md:w-1/2">
             <div className="relative aspect-square w-full">
                 <Image
                     src={imageUrl}
@@ -51,6 +51,8 @@ export function PromptImageSection({
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
                 />
+                {/* Gradient overlay for better button visibility */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
                 <NavigationButtons
                     hasPrev={hasPrev}
                     hasNext={hasNext}
@@ -137,50 +139,61 @@ function ActionButtons({
     onClearBookmarkStatus: () => void;
 }) {
     return (
-        <div className="absolute bottom-3 right-3 flex gap-2">
-            <div className="relative">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-full bg-white/90 text-slate-700 shadow-md hover:bg-white"
-                    onClick={onShare}
-                    aria-label="Share prompt"
-                >
-                    <Share2 className="h-4 w-4" />
-                </Button>
-                <ActionToast
-                    show={shareStatus === "shared"}
-                    variant="shared"
-                    onDismiss={onClearShareStatus}
-                />
-            </div>
-            <div className="relative">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                        "h-9 w-9 rounded-full bg-white/90 shadow-md hover:bg-white",
-                        isSaved ? "text-brand-500" : "text-slate-700",
-                    )}
-                    onClick={onBookmark}
-                    disabled={isBookmarkLoading}
-                    aria-label={isSaved ? "Remove from saved" : "Save prompt"}
-                >
-                    {isBookmarkLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <Icon
-                            name="Bookmark"
-                            className={cn("h-4 w-4", isSaved && "fill-current")}
-                        />
-                    )}
-                </Button>
+        <div className="absolute bottom-4 right-4 flex gap-2">
+            <GlassButton onClick={onShare} ariaLabel="Share prompt">
+                <Share2 className="h-4 w-4" />
+                <ActionToast show={shareStatus === "shared"} variant="shared" onDismiss={onClearShareStatus} />
+            </GlassButton>
+            <GlassButton
+                onClick={onBookmark}
+                disabled={isBookmarkLoading}
+                ariaLabel={isSaved ? "Remove from saved" : "Save prompt"}
+                isActive={isSaved}
+            >
+                {isBookmarkLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <Icon name="Bookmark" className={cn("h-4 w-4", isSaved && "fill-current")} />
+                )}
                 <ActionToast
                     show={bookmarkStatus === "saved" || bookmarkStatus === "removed"}
                     variant={bookmarkStatus === "saved" ? "saved" : "removed"}
                     onDismiss={onClearBookmarkStatus}
                 />
-            </div>
+            </GlassButton>
         </div>
     );
 }
+
+function GlassButton({
+    onClick,
+    disabled,
+    ariaLabel,
+    isActive,
+    children,
+}: {
+    onClick: () => void;
+    disabled?: boolean;
+    ariaLabel: string;
+    isActive?: boolean;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="relative">
+            <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                    "h-10 w-10 rounded-full border border-white/20 bg-white/90 shadow-lg backdrop-blur-sm transition-all hover:bg-white hover:scale-105",
+                    isActive ? "text-amber-500" : "text-slate-700",
+                )}
+                onClick={onClick}
+                disabled={disabled}
+                aria-label={ariaLabel}
+            >
+                {children}
+            </Button>
+        </div>
+    );
+}
+

@@ -66,11 +66,18 @@ export function PromptCardDefault({
   return (
     <Card
       className={cn(
-        "focus-visible:ring-brand-500/50 flex h-full w-full flex-col rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2",
+        "focus-visible:ring-brand-500/50 flex h-full w-full cursor-pointer flex-col rounded-2xl border border-slate-200 bg-white p-0 transition-all hover:shadow-lg focus-visible:ring-2",
       )}
       tabIndex={0}
-      role="group"
+      role="button"
       aria-label={`Prompt card for ${prompt.title}`}
+      onClick={() => onClick?.(prompt)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.(prompt);
+        }
+      }}
     >
       {/* Image Section */}
       <PromptImageSection

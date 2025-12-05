@@ -130,6 +130,28 @@ export async function getPromptById(promptId: string): Promise<Prompt> {
 }
 
 /**
+ * Get single prompt by sequence number
+ * Used for cleaner URL routing (e.g., /en/1 instead of /en/cuid)
+ */
+export async function getPromptBySequence(
+  sequenceNumber: number,
+): Promise<Prompt> {
+  if (!Number.isInteger(sequenceNumber) || sequenceNumber <= 0) {
+    throw new ValidationError("Sequence number must be a positive integer");
+  }
+
+  const prompt = await db.prompt.findUnique({
+    where: { sequenceNumber },
+  });
+
+  if (!prompt) {
+    throw new NotFoundError("Prompt not found");
+  }
+
+  return prompt;
+}
+
+/**
  * Get all prompts ordered by creation date
  * Filters out prompts with quality score < 50% (minimum 5 ratings)
  */

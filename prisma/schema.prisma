@@ -97,13 +97,14 @@ model GuestSession {
 }
 
 model Prompt {
-  id        String   @id @default(cuid())
-  title     String
-  text      String   @db.Text
-  imageUrl  String
-  category  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  sequenceNumber Int      @unique @default(autoincrement())
+  title          String
+  text           String   @db.Text
+  imageUrl       String
+  category       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   savedBy         SavedPrompt[]
   generatedImages GeneratedImage[]

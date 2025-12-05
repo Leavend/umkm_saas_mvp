@@ -30,6 +30,12 @@ export function useBookmark({
 
   // Check initial saved state
   useEffect(() => {
+    // Skip check if promptId is empty (modal not yet opened with a prompt)
+    if (!promptId) {
+      setIsChecking(false);
+      return;
+    }
+
     const checkSavedStatus = async () => {
       try {
         setIsChecking(true);

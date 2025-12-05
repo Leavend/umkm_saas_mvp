@@ -1,15 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import type { Prompt } from "@prisma/client";
 import { Container } from "~/components/container";
-import { Button } from "~/components/ui/button";
-import {
-  PromptForm,
-  type PromptFormData,
-} from "~/components/admin/prompt-form";
-import { PromptList } from "~/components/admin/prompt-list";
-import { Loader2 } from "lucide-react";
+import { type PromptFormData } from "~/components/admin/prompt-form";
 import { toast } from "sonner";
 import { useTranslations } from "~/components/language-provider";
 import {
@@ -18,15 +13,25 @@ import {
   deletePrompt,
   getAllPromptsAdmin,
 } from "~/actions/admin-prompts";
+import { getPendingRequestsCount } from "~/actions/prompt-requests";
+import { AdminHeader, AdminContent } from "./admin-parts";
 
 type ViewMode = "list" | "create" | "edit";
 
 export default function AdminPage() {
+  const params = useParams();
+  const lang = (params.lang as string) || "en";
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
   const translations = useTranslations();
+
+  useEffect(() => {
+    void loadPrompts();
+    void loadPendingCount();
+  }, []);
 
   const loadPrompts = async () => {
     setIsLoading(true);
@@ -44,9 +49,12 @@ export default function AdminPage() {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    void loadPrompts();
-  }, []);
+  const loadPendingCount = async () => {
+    const result = await getPendingRequestsCount();
+    if (result.success && result.data) {
+      setPendingCount(result.data.count);
+    }
+  };
 
   const handleCreate = async (data: PromptFormData) => {
     const result = await createPrompt(data);
@@ -114,51 +122,24 @@ export default function AdminPage() {
   return (
     <Container>
       <div className="mx-auto max-w-6xl space-y-6">
-        {viewMode === "list" && (
-          <>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">
-                  Manage Prompts
-                </h1>
-                <p className="mt-1 text-slate-600">
-                  Create, edit, and manage AI prompts for the marketplace
-                </p>
-              </div>
-              <Button
-                onClick={() => setViewMode("create")}
-                className="bg-blue-600 text-white hover:bg-blue-700"
-              >
-                <span className="mr-2">+</span>
-                Create Prompt
-              </Button>
-            </div>
+        <AdminHeader
+          viewMode={viewMode}
+          lang={lang}
+          pendingCount={pendingCount}
+          setViewMode={setViewMode}
+        />
 
-            {isLoading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              </div>
-            ) : (
-              <PromptList
-                prompts={prompts}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            )}
-          </>
-        )}
-
-        {viewMode === "create" && (
-          <PromptForm onSubmit={handleCreate} onCancel={handleCancel} />
-        )}
-
-        {viewMode === "edit" && selectedPrompt && (
-          <PromptForm
-            prompt={selectedPrompt}
-            onSubmit={handleUpdate}
-            onCancel={handleCancel}
-          />
-        )}
+        <AdminContent
+          viewMode={viewMode}
+          isLoading={isLoading}
+          prompts={prompts}
+          selectedPrompt={selectedPrompt}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onCancel={handleCancel}
+        />
       </div>
     </Container>
   );

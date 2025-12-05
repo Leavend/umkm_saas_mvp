@@ -125,3 +125,34 @@ export async function updateRequestStatus(
     return { success: false, error: "Failed to update status" };
   }
 }
+
+/**
+ * Get count of pending prompt requests (Admin only)
+ */
+export async function getPendingRequestsCount() {
+  try {
+    const context = await getSessionContext();
+
+    if (!context.userId) {
+      return { success: true, data: { count: 0 } };
+    }
+
+    const user = await db.user.findUnique({
+      where: { id: context.userId },
+      select: { role: true },
+    });
+
+    if (user?.role !== "ADMIN") {
+      return { success: true, data: { count: 0 } };
+    }
+
+    const count = await db.promptRequest.count({
+      where: { status: "pending" },
+    });
+
+    return { success: true, data: { count } };
+  } catch (error) {
+    logger.error({ msg: "getPendingRequestsCount failed", err: error });
+    return { success: true, data: { count: 0 } };
+  }
+}

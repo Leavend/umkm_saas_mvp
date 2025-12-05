@@ -3,8 +3,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Session } from "next-auth";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { MarketplaceHero } from "~/components/marketplace/marketplace-hero";
 import { MarketplaceFilterBar } from "~/components/marketplace/marketplace-filter-bar";
 import { MarketplaceGallery } from "~/components/marketplace/marketplace-gallery";
@@ -25,110 +23,13 @@ import { useSession } from "~/lib/auth-client";
 import { getSavedPrompts } from "~/actions/saved-prompts";
 import type { ModalType } from "~/lib/types";
 import type { Prompt } from "@prisma/client";
+import { useMarketplaceRouting } from "../hooks/use-marketplace-routing";
+import { useModalState } from "../hooks/use-modal-state";
+import { useUrlSync } from "../hooks/use-url-sync";
 
 interface MarketplacePageProps {
   prompts: Prompt[];
   lang: string;
-}
-
-/**
- * Extract routing logic into a custom hook for better separation of concerns
- */
-function useMarketplaceRouting(
-  lang: string,
-  allPrompts: Prompt[],
-  setSelectedPrompt: (prompt: Prompt | null) => void,
-) {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const navigateToPrompt = useCallback(
-    (promptId: string) => {
-      router.push(`/${lang}/${promptId}`, { scroll: false });
-    },
-    [router, lang],
-  );
-
-  const navigateToHome = useCallback(() => {
-    router.push(`/${lang}`, { scroll: false });
-  }, [router, lang]);
-
-  const handleRouteChange = useCallback(() => {
-    const pathParts = pathname.split("/").filter(Boolean);
-
-    if (pathParts.length === 2 && pathParts[0] === lang) {
-      const promptId = pathParts[1];
-      const prompt = allPrompts.find((p) => p.id === promptId);
-      if (prompt) {
-        setSelectedPrompt(prompt);
-      }
-    } else if (pathParts.length === 1 && pathParts[0] === lang) {
-      setSelectedPrompt(null);
-    }
-  }, [pathname, lang, allPrompts, setSelectedPrompt]);
-
-  useEffect(() => {
-    handleRouteChange();
-  }, [handleRouteChange]);
-
-  return { navigateToPrompt, navigateToHome, handleRouteChange };
-}
-
-/**
- * Extract modal state management into a custom hook
- */
-function useModalState(
-  session: Session | null,
-  setActiveModal: (modal: ModalType | null) => void,
-) {
-  const openModal = useCallback(
-    (modal: ModalType) => {
-      // Only open auth modal if user is not authenticated
-      if (modal === "auth" && session?.user) {
-        // User already authenticated
-        return;
-      }
-      setActiveModal(modal);
-    },
-    [session?.user, setActiveModal],
-  );
-
-  const closeModal = useCallback(() => {
-    setActiveModal(null);
-  }, [setActiveModal]);
-
-  // Auto-close auth modal when user successfully logs in
-  useEffect(() => {
-    if (session?.user) {
-      closeModal();
-    }
-  }, [session?.user, closeModal]);
-
-  return { openModal, closeModal };
-}
-
-/**
- * Extract URL sync logic into a custom hook
- */
-function useUrlSync(
-  setMode: (mode: "browse" | "gallery" | "saved" | null) => void,
-  setSelectedCategory: (category: string) => void,
-) {
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    // Sync mode with URL on mount
-    const modeParam = searchParams.get("mode");
-    if (modeParam === "gallery" || modeParam === "saved") {
-      setMode(modeParam);
-    }
-
-    // Sync category with URL on mount
-    const categoryParam = searchParams.get("category");
-    if (categoryParam) {
-      setSelectedCategory(categoryParam);
-    }
-  }, [searchParams, setMode, setSelectedCategory]);
 }
 
 export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
@@ -186,7 +87,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
   const handlePromptClick = useCallback(
     (prompt: Prompt) => {
       setSelectedPrompt(prompt);
-      navigateToPrompt(prompt.id);
+      navigateToPrompt(prompt.sequenceNumber);
     },
     [setSelectedPrompt, navigateToPrompt],
   );
@@ -299,6 +200,7 @@ export function MarketplacePage({ prompts, lang }: MarketplacePageProps) {
         onCreditsUpdate={refreshCredits}
         allPrompts={allPrompts}
         onNavigate={navigateToPrompt}
+        onShowAuthModal={() => openModal("auth")}
       />
 
       <MobileFabDock />

@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import type { User, UseAuthSessionReturn } from "~/lib/types";
 
+// Admin email whitelist - must match server-side admin-auth.ts
+const ADMIN_EMAILS = ["tiohadybayu@gmail.com"];
+
 /**
  * Custom hook for managing authentication session state
  * Provides type-safe access to user data and auth status
  */
-export function useAuthSession(): UseAuthSessionReturn {
+export function useAuthSession(): UseAuthSessionReturn & { isAdmin: boolean } {
   const { data: session, status } = useSession();
   const isPending = status === "loading";
   const isAuthenticated = status === "authenticated";
@@ -28,10 +31,15 @@ export function useAuthSession(): UseAuthSessionReturn {
     }
   }, [session]);
 
+  const isAdmin = Boolean(
+    isAuthenticated && user?.email && ADMIN_EMAILS.includes(user.email),
+  );
+
   return {
     user,
     isAuthenticated,
     isPending,
-    error: null, // NextAuth doesn't provide error in useSession return
+    isAdmin,
+    error: null,
   };
 }
